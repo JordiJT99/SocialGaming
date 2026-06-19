@@ -1,5 +1,6 @@
 import { getUserHistory } from "../data/store";
 import { MATCHES } from "../data/matches";
+import { Flame } from "lucide-react";
 
 export default function Profile({ store, user }) {
   const history = getUserHistory(store, MATCHES);
@@ -34,7 +35,7 @@ export default function Profile({ store, user }) {
           <span className="stat-label">precisión</span>
         </div>
         <div className="stat-card">
-          <span className="stat-value-lg">🔥{user?.streak || 0}</span>
+          <span className="stat-value-lg stat-value-icon"><Flame size={18} /> {user?.streak || 0}</span>
           <span className="stat-label">racha actual</span>
         </div>
       </div>

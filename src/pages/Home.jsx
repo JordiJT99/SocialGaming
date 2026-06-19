@@ -1,186 +1,110 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Check,
-  ChevronRight,
-  Clock3,
-  Gift,
-  Sparkles,
-  Star,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, Check, ChevronRight, CircleDot, Clock3, Gift, LoaderCircle, Star, Trophy, Users } from "lucide-react";
 
-const matches = [
-  {
-    competition: "LaLiga",
-    time: "Hoy, 21:00",
-    home: "FC Barcelona",
-    away: "Real Madrid",
-    homeCode: "BAR",
-    awayCode: "RMA",
-    colors: ["#a50044", "#f7c800"],
-    odds: ["1.82", "3.40", "2.15"],
-  },
-  {
-    competition: "Champions League",
-    time: "Manana, 20:45",
-    home: "Manchester City",
-    away: "Inter",
-    homeCode: "MCI",
-    awayCode: "INT",
-    colors: ["#79bcec", "#111827"],
-    odds: ["1.58", "3.85", "3.20"],
-  },
-  {
-    competition: "LaLiga",
-    time: "Sabado, 18:30",
-    home: "Atletico de Madrid",
-    away: "Sevilla FC",
-    homeCode: "ATM",
-    awayCode: "SEV",
-    colors: ["#d71920", "#ffffff"],
-    odds: ["1.70", "3.10", "2.80"],
-  },
-];
-
-const leaders = [
-  { name: "TikiTaka10", score: "24.890", color: "#ef6a5b" },
-  { name: "MisterGol", score: "23.440", color: "#43a4c3" },
-  { name: "LaPizarra", score: "21.975", color: "#7b73c7" },
-  { name: "Jordi", score: "18.230", color: "#35b999", me: true },
-];
-
-function MatchRow({ match, index }) {
+function MatchRow({ match }) {
   const [selection, setSelection] = useState(null);
+  const options = match.odds ? [["1", match.odds[1]], ["X", match.odds.X], ["2", match.odds[2]]] : [];
 
   return (
     <article className="classic-match">
       <div className="match-meta">
-        <span>{match.competition}</span>
-        <span><Clock3 size={13} /> {match.time}</span>
+        <span>{match.league}</span>
+        <span><Clock3 size={13} /> {new Date(match.date).toLocaleString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
       </div>
       <div className="classic-match-body">
         <div className="classic-teams">
           <div className="classic-team">
-            <span className="team-badge" style={{ background: match.colors[0] }}>{match.homeCode}</span>
+            <span className="team-badge api-badge">{match.homeBadge ? <img src={match.homeBadge} alt="" /> : match.home.slice(0, 3).toUpperCase()}</span>
             <strong>{match.home}</strong>
           </div>
-          <span className="versus">VS</span>
+          <span className="versus">{match.status === "finished" ? match.score : "VS"}</span>
           <div className="classic-team away">
-            <span className="team-badge" style={{ background: match.colors[1], color: index === 2 ? "#122c38" : "#fff" }}>
-              {match.awayCode}
-            </span>
+            <span className="team-badge api-badge">{match.awayBadge ? <img src={match.awayBadge} alt="" /> : match.away.slice(0, 3).toUpperCase()}</span>
             <strong>{match.away}</strong>
           </div>
         </div>
-        <div className="classic-picks" aria-label={`Pronostico ${match.home} contra ${match.away}`}>
-          {["1", "X", "2"].map((pick, pickIndex) => (
-            <button
-              key={pick}
-              type="button"
-              className={selection === pick ? "selected" : ""}
-              onClick={() => setSelection(pick)}
-            >
-              <span>{pick}</span>
-              <b>{match.odds[pickIndex]}</b>
-              {selection === pick && <Check size={14} />}
-            </button>
-          ))}
-        </div>
+        {options.length > 0 ? (
+          <div className="classic-picks">
+            {options.map(([pick, odd]) => (
+              <button key={pick} type="button" className={selection === pick ? "selected" : ""} onClick={() => setSelection(pick)}>
+                <span>{pick}</span><b>{odd.toFixed(2)}</b>{selection === pick && <Check size={14} />}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="odds-unavailable">Cuotas no disponibles</div>
+        )}
       </div>
     </article>
   );
 }
 
-export default function Home() {
+export default function Home({ sportsData }) {
+  const featured = sportsData.matches.filter((match) => match.status !== "finished").slice(0, 3);
+  const topTeams = sportsData.standings.slice(0, 4);
+
   return (
     <div className="classic-home">
       <section className="welcome-panel">
         <div>
-          <span className="welcome-kicker"><Sparkles size={15} /> Jornada 24 en juego</span>
-          <h1>Hola, Jordi. ¿Listo para jugar?</h1>
-          <p>Haz tus pronosticos, suma monedas y compite con tus amigos por premios.</p>
+          <span className="welcome-kicker"><CircleDot size={15} /> LaLiga · Datos conectados</span>
+          <h1>Buenas, Jordi. Consulta la jornada real.</h1>
+          <p>Partidos, resultados y clasificación cargados desde {sportsData.source}.</p>
         </div>
         <div className="welcome-stats">
-          <div><strong>7</strong><span>racha actual</span></div>
-          <div><strong>#42</strong><span>ranking semanal</span></div>
-          <div><strong>68%</strong><span>aciertos</span></div>
+          <div><strong>{sportsData.matches.filter((match) => match.status === "upcoming").length}</strong><span>próximos</span></div>
+          <div><strong>{sportsData.matches.filter((match) => match.status === "live").length}</strong><span>en directo</span></div>
+          <div><strong>{sportsData.standings.length}</strong><span>equipos</span></div>
         </div>
       </section>
 
       <div className="classic-layout">
         <main className="classic-main-column">
           <div className="content-heading">
-            <div>
-              <span className="tiny-label">Partidos destacados</span>
-              <h2>Haz tu pronostico</h2>
-            </div>
+            <div><span className="tiny-label">Próximos encuentros</span><h2>Partidos de LaLiga</h2></div>
             <Link to="/predictions">Ver todos <ArrowRight size={15} /></Link>
           </div>
 
+          {sportsData.loading && <div className="api-state"><LoaderCircle className="spin" size={24} /><strong>Consultando proveedores deportivos</strong></div>}
+          {sportsData.error && <div className="api-state error"><AlertCircle size={24} /><strong>No se pudieron cargar los datos</strong><p>{sportsData.error}</p></div>}
+          {!sportsData.loading && !sportsData.error && featured.length === 0 && <div className="api-state"><CalendarEmpty /><strong>No hay próximos partidos publicados</strong><p>La competición puede estar fuera de temporada.</p></div>}
+
           <div className="classic-match-list">
-            {matches.map((match, index) => (
-              <MatchRow key={`${match.home}-${match.away}`} match={match} index={index} />
-            ))}
+            {featured.map((match) => <MatchRow key={match.id} match={match} />)}
           </div>
 
           <section className="league-banner">
-            <div className="league-illustration">
-              <span><Users size={26} /></span>
-              <span><Trophy size={30} /></span>
-              <span><Star size={23} /></span>
-            </div>
-            <div>
-              <span className="tiny-label">Ligas privadas</span>
-              <h2>¿Quien sabe mas de futbol?</h2>
-              <p>Crea una liga, invita a tus amigos y demuestralo cada jornada.</p>
-            </div>
+            <div className="league-illustration"><span><Users size={26} /></span><span><Trophy size={30} /></span><span><Star size={23} /></span></div>
+            <div><span className="tiny-label">Ligas privadas</span><h2>El grupo habla. La tabla decide.</h2><p>Compite con tus amigos usando los resultados reales.</p></div>
             <Link to="/leagues" className="classic-button">Crear una liga <ChevronRight size={16} /></Link>
           </section>
         </main>
 
         <aside className="classic-rail">
           <section className="rail-card ranking-widget">
-            <div className="rail-heading">
-              <div><Trophy size={17} /><h3>Top semanal</h3></div>
-              <Link to="/ranking">Ranking</Link>
-            </div>
+            <div className="rail-heading"><div><Trophy size={17} /><h3>Clasificación</h3></div><Link to="/ranking">Completa</Link></div>
             <div className="leader-list">
-              {leaders.map((leader, index) => (
-                <div className={`leader-row ${leader.me ? "is-me" : ""}`} key={leader.name}>
-                  <span className="leader-position">{index + 1}</span>
-                  <span className="leader-avatar" style={{ background: leader.color }}>{leader.name[0]}</span>
-                  <strong>{leader.name}</strong>
-                  <b>{leader.score}</b>
+              {topTeams.map((team) => (
+                <div className="leader-row" key={team.id}>
+                  <span className="leader-position">{team.rank}</span>
+                  <span className="leader-avatar team-logo-small"><img src={team.logo} alt="" /></span>
+                  <strong>{team.name}</strong><b>{team.points} pts</b>
                 </div>
               ))}
             </div>
           </section>
-
           <section className="rail-card daily-card">
-            <div className="daily-icon"><Gift size={28} /></div>
-            <span className="tiny-label">Recompensa diaria</span>
-            <h3>Vuelve cada dia</h3>
-            <p>Completa una prediccion para mantener tu racha y conseguir monedas extra.</p>
-            <div className="day-track">
-              {[20, 30, 40, 50, 75].map((points, index) => (
-                <div className={index < 2 ? "done" : ""} key={points}>
-                  <span>{index < 2 ? <Check size={13} /> : index + 1}</span>
-                  <small>+{points}</small>
-                </div>
-              ))}
-            </div>
-            <Link to="/predictions" className="classic-button full">Jugar ahora</Link>
-          </section>
-
-          <section className="responsible-note">
-            <span>100% gratis</span>
-            <p>Juega con monedas virtuales. Sin depositos ni dinero real.</p>
+            <div className="daily-icon"><Gift size={28} /></div><span className="tiny-label">{sportsData.source}</span><h3>Información actualizada</h3>
+            <p>Los datos se guardan durante 10 minutos para respetar el límite gratuito.</p>
+            <Link to="/dashboard" className="classic-button full">Abrir panel</Link>
           </section>
         </aside>
       </div>
     </div>
   );
+}
+
+function CalendarEmpty() {
+  return <Clock3 size={24} />;
 }

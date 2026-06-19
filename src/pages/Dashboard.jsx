@@ -1,53 +1,40 @@
 import { Link } from "react-router-dom";
+import { ChartNoAxesCombined, Clock3, Coins, Flame } from "lucide-react";
 import MatchCard from "../components/MatchCard";
-import RankingTable from "../components/RankingTable";
 
-export default function Dashboard({ store, matches, allUsers, onPredict, user }) {
-  const upcoming = matches.filter((m) => m.status === "upcoming" && new Date(m.date) > new Date()).slice(0, 4);
-  const finished = matches.filter((m) => m.status === "finished").slice(0, 3);
+export default function Dashboard({ store, matches, standings, onPredict, user, sportsData }) {
+  const upcoming = matches.filter((match) => match.status === "upcoming" && new Date(match.date) > new Date()).slice(0, 4);
+  const finished = matches.filter((match) => match.status === "finished").slice(0, 3);
+  const userPredictions = store.predictions.filter((prediction) => prediction.userId === "current_user");
+  const pendingCount = userPredictions.filter((prediction) => prediction.status === "pending").length;
+  const wonCount = userPredictions.filter((prediction) => prediction.status === "won").length;
 
-  const sortedUsers = [...allUsers].sort((a, b) => b.points - a.points).slice(0, 5).map((u, i) => ({ ...u, rank: i + 1 }));
-
-  const userPredictions = store.predictions.filter((p) => p.userId === "current_user");
-  const pendingCount = userPredictions.filter((p) => p.status === "pending").length;
-  const wonCount = userPredictions.filter((p) => p.status === "won").length;
+  const stats = [
+    { icon: Coins, value: user?.points?.toLocaleString() || 0, label: "puntos" },
+    { icon: ChartNoAxesCombined, value: `${wonCount}/${userPredictions.length}`, label: "aciertos" },
+    { icon: Clock3, value: pendingCount, label: "pendientes" },
+    { icon: Flame, value: user?.streak || 0, label: "racha" },
+  ];
 
   return (
     <div className="page dashboard">
       <div className="page-header">
-        <h1>Dashboard</h1>
-        <p className="text-muted">Bienvenido de nuevo, {user?.username}</p>
+        <div>
+          <h1>Mi panel</h1>
+          <p className="text-muted">Tu actividad, tus picks y el pulso de la jornada.</p>
+        </div>
+        <span className={`data-source ${!sportsData?.error ? "is-live" : ""}`}>
+          {sportsData?.loading ? "Actualizando datos" : sportsData?.error ? "Sin conexión" : sportsData?.source}
+        </span>
       </div>
 
       <div className="stats-row">
-        <div className="stat-card">
-          <span className="stat-icon">🪙</span>
-          <div>
-            <span className="stat-value-lg">{user?.points?.toLocaleString() || 0}</span>
-            <span className="stat-label">puntos</span>
+        {stats.map(({ icon: Icon, value, label }) => (
+          <div className="stat-card" key={label}>
+            <span className="stat-icon"><Icon size={20} /></span>
+            <div><span className="stat-value-lg">{value}</span><span className="stat-label">{label}</span></div>
           </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">📊</span>
-          <div>
-            <span className="stat-value-lg">{wonCount}/{userPredictions.length}</span>
-            <span className="stat-label">aciertos</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">⏳</span>
-          <div>
-            <span className="stat-value-lg">{pendingCount}</span>
-            <span className="stat-label">pendientes</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">🔥</span>
-          <div>
-            <span className="stat-value-lg">{user?.streak || 0}</span>
-            <span className="stat-label">racha</span>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="dash-grid">
@@ -57,55 +44,40 @@ export default function Dashboard({ store, matches, allUsers, onPredict, user })
             <Link to="/predictions" className="btn btn-outline btn-sm">Ver todos</Link>
           </div>
           <div className="matches-list">
-            {upcoming.map((m) => {
-              const existing = store.predictions.find((p) => p.matchId === m.id && p.userId === "current_user");
-              return (
-                <MatchCard
-                  key={m.id}
-                  match={m}
-                  existingPrediction={existing}
-                  onPredict={onPredict}
-                />
-              );
-            })}
+            {upcoming.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                existingPrediction={store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === "current_user")}
+                onPredict={onPredict}
+              />
+            ))}
           </div>
 
-          <div className="section-header" style={{ marginTop: 24 }}>
-            <h2>Últimos resultados</h2>
-          </div>
+          <div className="section-header" style={{ marginTop: 24 }}><h2>Últimos resultados</h2></div>
           <div className="matches-list">
-            {finished.map((m) => {
-              const existing = store.predictions.find((p) => p.matchId === m.id && p.userId === "current_user");
-              return (
-                <MatchCard
-                  key={m.id}
-                  match={m}
-                  existingPrediction={existing}
-                  onPredict={onPredict}
-                />
-              );
-            })}
+            {finished.map((match) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                existingPrediction={store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === "current_user")}
+                onPredict={onPredict}
+              />
+            ))}
           </div>
         </div>
 
         <div className="dash-side">
-          <div className="section-header">
-            <h2>Top global</h2>
-            <Link to="/ranking" className="btn btn-outline btn-sm">Ver más</Link>
+          <div className="section-header"><h2>Clasificación</h2><Link to="/ranking" className="btn btn-outline btn-sm">Ver completa</Link></div>
+          <div className="mini-standings">
+            {standings.slice(0, 5).map((team) => (
+              <div key={team.id}><span>{team.rank}</span><img src={team.logo} alt="" /><strong>{team.name}</strong><b>{team.points}</b></div>
+            ))}
           </div>
-          <RankingTable rows={sortedUsers} compact />
-
-          <div className="section-header" style={{ marginTop: 16 }}>
-            <h2>Información</h2>
-          </div>
+          <div className="section-header" style={{ marginTop: 16 }}><h2>Cómo funciona</h2></div>
           <div className="info-card">
-            <p>
-              Predice resultados y gana puntos. Cuantos más aciertes, más puntos acumulas
-              para canjear por premios reales.
-            </p>
-            <p className="text-muted" style={{ fontSize: 12, marginTop: 8 }}>
-              Sin apuestas con dinero real. Economía cerrada.
-            </p>
+            <p>Pronostica resultados y suma monedas según tu acierto. Úsalas en torneos, retos y recompensas.</p>
+            <p className="text-muted" style={{ fontSize: 12, marginTop: 8 }}>Juego gratuito con economía virtual cerrada.</p>
           </div>
         </div>
       </div>

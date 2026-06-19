@@ -103,9 +103,9 @@ export const USERS = [
 ];
 
 export const PRIZES = [
-  { id: 1, name: "Sorteos", pointsCost: 500, description: "Entrada para sorteos semanales", emoji: "🎫" },
-  { id: 2, name: "Gift Card 10€", pointsCost: 15000, description: "Tarjeta regalo Amazon", emoji: "🎁" },
-  { id: 3, name: "Camiseta oficial", pointsCost: 20000, description: "Camiseta de tu equipo", emoji: "👕" },
-  { id: 4, name: "Paysafecard 25€", pointsCost: 25000, description: "Tarjeta prepago 25€", emoji: "💳" },
-  { id: 5, name: "Xiaomi Redmi", pointsCost: 35000, description: "Smartphone Xiaomi", emoji: "📱" },
+  { id: 1, name: "Sorteos", pointsCost: 500, description: "Entrada para sorteos semanales", icon: "ticket" },
+  { id: 2, name: "Gift Card 10 EUR", pointsCost: 15000, description: "Tarjeta regalo Amazon", icon: "gift" },
+  { id: 3, name: "Camiseta oficial", pointsCost: 20000, description: "Camiseta de tu equipo", icon: "shirt" },
+  { id: 4, name: "Paysafecard 25 EUR", pointsCost: 25000, description: "Tarjeta prepago 25 EUR", icon: "card" },
+  { id: 5, name: "Xiaomi Redmi", pointsCost: 35000, description: "Smartphone Xiaomi", icon: "phone" },
 ];
