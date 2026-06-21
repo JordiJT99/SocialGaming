@@ -1,0 +1,637 @@
+:root {
+  --st-bg: #f6f7f7;
+  --st-paper: #ffffff;
+  --st-low: #f0f2f1;
+  --st-line: #c8d1cc;
+  --st-ink: #191c1d;
+  --st-muted: #5f6863;
+  --st-primary: #005840;
+  --st-primary-2: #007355;
+  --st-mint: #99f5cf;
+  --st-gold: #e3c600;
+  --st-gold-soft: #fff7c7;
+  --st-error: #ba1a1a;
+  --st-shadow: 0 2px 4px rgba(0, 0, 0, 0.035), 0 1px 0 rgba(0, 0, 0, 0.025);
+}
+
+body {
+  color: var(--st-ink);
+  background: var(--st-bg);
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.side-nav {
+  width: 232px;
+  color: #d9e3de;
+  background: #202524;
+  border: 0;
+  box-shadow: none;
+}
+
+.side-brand {
+  height: 72px;
+  padding: 0 22px;
+  color: #fff;
+  background: #181c1b;
+}
+
+.side-brand:hover,
+.brand-word {
+  color: #fff;
+}
+
+.brand-word {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.brand-word span {
+  color: var(--st-mint);
+}
+
+.brand-symbol,
+.side-avatar {
+  border-radius: 5px;
+  background: var(--st-primary-2);
+  box-shadow: none;
+}
+
+.side-profile {
+  margin: 16px 14px 18px;
+  padding: 13px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 6px;
+  background: rgba(255,255,255,.06);
+}
+
+.side-profile strong { color: #fff; }
+.side-profile span,
+.side-profile > svg,
+.side-label { color: #8ca39a; }
+
+.side-links { padding: 2px 14px 20px; }
+
+.side-link {
+  min-height: 44px;
+  padding: 0 13px;
+  border-radius: 4px;
+  color: #cad6d0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.side-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,.08);
+}
+
+.side-link.active {
+  color: #fff;
+  background: var(--st-primary-2);
+}
+
+.side-link.active svg { color: #fff; }
+.side-footer { border-top-color: rgba(255,255,255,.1); }
+.side-footer button { color: #91a69d; }
+
+.app-main {
+  padding-top: 72px;
+  padding-left: 232px;
+}
+
+.top-bar {
+  left: 232px;
+  height: 72px;
+  padding: 0 32px;
+  color: var(--st-ink);
+  background: rgba(255,255,255,.98);
+  border-bottom: 1px solid var(--st-line);
+  box-shadow: none;
+}
+
+.desktop-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.desktop-message span { color: #808984; }
+
+.notification-button,
+.profile-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--st-line);
+  border-radius: 4px;
+  color: var(--st-primary);
+  background: #fff;
+}
+
+.coin-balance {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--st-line);
+  border-radius: 4px;
+  color: var(--st-ink);
+  background: var(--st-low);
+}
+
+.coin {
+  color: #4a3f00;
+  background: var(--st-gold);
+}
+
+.welcome-panel,
+.product-hero,
+.sportsbook-hero,
+.challenge-hero,
+.earn-hero,
+.rewards-hero {
+  min-height: 190px;
+  padding: 38px max(32px, calc((100vw - 232px - 1280px) / 2));
+  color: var(--st-ink);
+  background: #fff;
+  border-bottom: 1px solid var(--st-line);
+}
+
+.welcome-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 32px;
+}
+
+.welcome-panel h1,
+.product-hero h1 {
+  max-width: 760px;
+  color: var(--st-primary);
+  font-size: clamp(34px, 3.4vw, 48px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.welcome-panel p,
+.product-hero p {
+  color: var(--st-muted);
+  font-size: 14px;
+}
+
+.welcome-kicker,
+.product-eyebrow,
+.tiny-label,
+.content-heading a,
+.rail-heading a,
+.event-info span,
+.more-markets {
+  color: var(--st-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.welcome-stats,
+.hero-metric,
+.earn-balance,
+.reward-balance,
+.virtual-only,
+.challenge-countdown {
+  width: 430px;
+  min-width: 0;
+  border: 1px solid var(--st-line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--st-shadow);
+}
+
+.classic-layout,
+.sportsbook-layout,
+.fantasy-layout {
+  width: min(1280px, calc(100% - 64px));
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.classic-layout {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.classic-rail,
+.dash-side,
+.fantasy-side,
+.bet-slip {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+}
+
+.page {
+  width: min(1280px, calc(100% - 64px));
+  max-width: none;
+  padding: 32px 0 72px;
+}
+
+.page-header h1 {
+  color: var(--st-ink);
+  font-size: 32px;
+  line-height: 40px;
+}
+
+.classic-match,
+.rail-card,
+.panel,
+.stat-card,
+.match-card,
+.info-card,
+.league-card,
+.ranking-row,
+.history-item,
+.inline-form,
+.offer-row,
+.reward-card,
+.challenge-card,
+.standings-table {
+  border: 1px solid var(--st-line);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: var(--st-shadow);
+}
+
+.classic-match:hover,
+.match-card:hover {
+  border-color: var(--st-primary-2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.05);
+}
+
+.match-meta,
+.match-header,
+.rail-heading,
+.panel-heading {
+  border-bottom-color: var(--st-line);
+  background: var(--st-low);
+}
+
+.classic-match-body {
+  grid-template-columns: minmax(360px, 1fr) 300px;
+  padding: 20px;
+}
+
+.classic-picks button,
+.event-markets button,
+.odds-btn {
+  min-height: 48px;
+  border: 1px solid #6e7a73;
+  border-radius: 4px;
+  color: var(--st-ink);
+  background: #fff;
+  box-shadow: none;
+}
+
+.classic-picks button:hover,
+.event-markets button:hover,
+.odds-btn:hover:not(:disabled) {
+  border-color: var(--st-primary-2);
+  color: var(--st-primary);
+  background: #eef7f3;
+}
+
+.classic-picks button.selected,
+.event-markets button.selected,
+.odds-btn.selected,
+.classic-button,
+.btn-primary,
+.challenge-card > button {
+  border-color: var(--st-primary-2);
+  color: #fff;
+  background: var(--st-primary-2);
+  box-shadow: none;
+}
+
+.classic-button:hover,
+.btn-primary:hover {
+  background: var(--st-primary);
+}
+
+.classic-picks button b,
+.event-markets button b,
+.odds-value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.content-heading h2,
+.league-banner h2,
+.page-header h1,
+.section-header h2,
+.panel-heading h2 {
+  color: var(--st-ink);
+}
+
+.league-banner {
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  min-height: 150px;
+  padding: 26px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--st-primary-2);
+}
+
+.league-banner h2,
+.league-banner .tiny-label { color: #fff; }
+.league-banner p { color: var(--st-mint); }
+.league-banner .classic-button { color: var(--st-primary); background: #fff; }
+
+.sport-filter-btn,
+.competition-filters button,
+.market-sports button,
+.competition-filter,
+.reward-filters button {
+  border: 1px solid var(--st-line);
+  border-radius: 4px;
+  color: var(--st-ink);
+  background: #fff;
+}
+
+.sport-filter-btn.active,
+.competition-filters button.active,
+.market-sports button.active,
+.reward-filters button.active {
+  border-color: var(--st-primary);
+  color: #fff;
+  background: var(--st-primary);
+}
+
+.status-filters {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 18px;
+}
+
+.status-filters button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--st-line);
+  border-radius: 4px;
+  color: var(--st-ink);
+  background: #fff;
+  font-weight: 700;
+}
+
+.status-filters button.active {
+  border-color: var(--st-primary);
+  color: #fff;
+  background: var(--st-primary);
+}
+
+.results-heading {
+  margin-top: 34px;
+}
+
+.results-list .classic-match {
+  border-left: 3px solid var(--st-primary-2);
+}
+
+.final-score,
+.match-result {
+  min-width: 58px;
+  color: var(--st-primary);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.live-label {
+  color: #b42318;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.result-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  color: var(--st-primary);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.match-card.finished {
+  opacity: 1;
+}
+
+.api-state.compact {
+  min-height: 110px;
+}
+
+.data-source.is-live {
+  border-color: #98c7b7;
+  color: var(--st-primary);
+  background: #eaf5f0;
+}
+
+.predictions-page .matches-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.predictions-page .match-card {
+  min-height: 210px;
+  padding: 18px;
+}
+
+.sportsbook-layout {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.bet-slip { border-top: 4px solid var(--st-primary-2); }
+.slip-count { background: var(--st-error); }
+
+.fantasy-layout {
+  grid-template-columns: minmax(640px, 1fr) 360px;
+}
+
+.fantasy-pitch {
+  min-height: 660px;
+  margin: 20px;
+  border: 1px solid var(--st-line);
+  border-radius: 16px;
+  background-color: #fff;
+  background-image:
+    linear-gradient(rgba(0,115,85,.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,115,85,.055) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.fantasy-player > span { background: var(--st-primary); }
+.fantasy-player.captain > span { box-shadow: 0 0 0 3px var(--st-gold); }
+
+.reward-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(1280px, calc(100% - 64px));
+  gap: 18px;
+}
+
+.reward-art { min-height: 190px; }
+.reward-card-body button { background: var(--st-primary); }
+
+.mobile-bottom-nav,
+.mobile-brand {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .side-nav { width: 76px; }
+  .top-bar { left: 76px; }
+  .app-main { padding-left: 76px; }
+}
+
+@media (max-width: 720px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    padding-bottom: 80px;
+    overflow-x: hidden;
+  }
+
+  .side-nav { display: none; }
+
+  .app-main {
+    padding-top: 64px;
+    padding-left: 0;
+  }
+
+  .top-bar {
+    right: 0;
+    left: 0;
+    width: auto;
+    max-width: 100%;
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .desktop-message,
+  .notification-button,
+  .profile-button,
+  .mobile-menu {
+    display: none !important;
+  }
+
+  .mobile-brand {
+    display: flex !important;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .mobile-brand .brand-word {
+    color: var(--st-primary);
+  }
+
+  .mobile-brand .brand-word span {
+    color: var(--st-primary-2);
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 180;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+    height: 76px;
+    padding: 7px 4px 8px;
+    border-top: 1px solid var(--st-line);
+    background: rgba(255,255,255,.98);
+    box-shadow: 0 -4px 12px rgba(0,0,0,.035);
+  }
+
+  .mobile-bottom-nav a {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: #4f5853;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .mobile-bottom-nav a.active { color: var(--st-primary); }
+
+  .welcome-panel,
+  .product-hero {
+    display: block;
+    min-height: 0;
+    padding: 28px 16px;
+  }
+
+  .welcome-panel h1,
+  .product-hero h1 {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .welcome-stats,
+  .hero-metric,
+  .earn-balance,
+  .reward-balance,
+  .virtual-only {
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  .page,
+  .classic-layout,
+  .sportsbook-layout,
+  .fantasy-layout,
+  .reward-grid {
+    width: calc(100% - 32px);
+    max-width: calc(100% - 32px);
+  }
+
+  .classic-layout,
+  .fantasy-layout,
+  .sportsbook-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .classic-rail,
+  .dash-side,
+  .fantasy-side,
+  .bet-slip {
+    position: static;
+  }
+
+  .classic-match-body {
+    grid-template-columns: 1fr;
+  }
+
+  .predictions-page .matches-grid,
+  .reward-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .league-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .fantasy-pitch {
+    min-height: 620px;
+    margin: 10px;
+  }
+}

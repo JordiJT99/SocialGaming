@@ -1,110 +1,155 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, ArrowRight, Check, ChevronRight, CircleDot, Clock3, Gift, LoaderCircle, Star, Trophy, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, Gift, Plus, Trophy } from "lucide-react";
 
-function MatchRow({ match }) {
+const SECTIONS = [
+  { key: "live", label: "En Directo", filter: (m) => m.status === "live" },
+  { key: "mundial", label: "Mundial 2026", filter: (m) => m.league === "Mundial 2026" && m.status !== "live" },
+  { key: "football", label: "Fútbol", filter: (m) => m.sportKey === "football" && m.league !== "Mundial 2026" && m.status !== "live" },
+  { key: "basketball", label: "Baloncesto", filter: (m) => m.sportKey === "basketball" && m.status !== "live" },
+  { key: "tennis", label: "Tenis", filter: (m) => m.sportKey === "tennis" && m.status !== "live" },
+  { key: "baseball", label: "Béisbol", filter: (m) => m.sportKey === "baseball" && m.status !== "live" },
+  { key: "hockey", label: "Hockey", filter: (m) => m.sportKey === "hockey" && m.status !== "live" },
+];
+
+const sortMatches = (a, b) => {
+  if (a.status === "live" && b.status !== "live") return -1;
+  if (b.status === "live" && a.status !== "live") return 1;
+  if (a.status === "upcoming" && b.status !== "upcoming") return -1;
+  if (b.status === "upcoming" && a.status !== "upcoming") return 1;
+  return new Date(a.date) - new Date(b.date);
+};
+
+function TeamBadge({ src, name }) {
+  return (
+    <span className="apex-team-badge">
+      <b>{name.slice(0, 3).toUpperCase()}</b>
+      {src && <img src={src} alt="" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
+    </span>
+  );
+}
+
+function HomeMatchCard({ match }) {
   const [selection, setSelection] = useState(null);
-  const options = match.odds ? [["1", match.odds[1]], ["X", match.odds.X], ["2", match.odds[2]]] : [];
+  const isLive = match.status === "live";
+  const isFinished = match.status === "finished";
+  const options = match.odds
+    ? [["1", "Local", match.odds[1]], ...(match.odds.X ? [["X", "Empate", match.odds.X]] : []), ["2", "Visita", match.odds[2]]]
+    : [];
 
   return (
-    <article className="classic-match">
-      <div className="match-meta">
+    <article className="apex-home-match">
+      <div className="apex-home-match-meta">
         <span>{match.league}</span>
-        <span><Clock3 size={13} /> {new Date(match.date).toLocaleString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+        {isLive ? <b>LIVE</b> : isFinished ? <time>FINAL</time> : <time>{new Date(match.date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}</time>}
       </div>
-      <div className="classic-match-body">
-        <div className="classic-teams">
-          <div className="classic-team">
-            <span className="team-badge api-badge">{match.homeBadge ? <img src={match.homeBadge} alt="" /> : match.home.slice(0, 3).toUpperCase()}</span>
-            <strong>{match.home}</strong>
-          </div>
-          <span className="versus">{match.status === "finished" ? match.score : "VS"}</span>
-          <div className="classic-team away">
-            <span className="team-badge api-badge">{match.awayBadge ? <img src={match.awayBadge} alt="" /> : match.away.slice(0, 3).toUpperCase()}</span>
-            <strong>{match.away}</strong>
-          </div>
+      <div className="apex-home-teams">
+        <div><TeamBadge src={match.homeBadge} name={match.home} /><strong>{match.home}</strong></div>
+        <span className={isLive || isFinished ? "live-score" : ""}>{isLive || isFinished ? match.score || "0 - 0" : "VS"}<small>{isLive ? match.statusLabel || "En directo" : isFinished ? "Resultado oficial" : ""}</small></span>
+        <div><TeamBadge src={match.awayBadge} name={match.away} /><strong>{match.away}</strong></div>
+      </div>
+      {!isFinished && options.length ? (
+        <div className="apex-home-odds">
+          {options.map(([key, label, odd]) => (
+            <button type="button" key={key} className={selection === key ? "selected" : ""} onClick={() => setSelection(key)}>
+              <small>{label}</small><b>{odd?.toFixed(2)}</b>
+            </button>
+          ))}
         </div>
-        {options.length > 0 ? (
-          <div className="classic-picks">
-            {options.map(([pick, odd]) => (
-              <button key={pick} type="button" className={selection === pick ? "selected" : ""} onClick={() => setSelection(pick)}>
-                <span>{pick}</span><b>{odd.toFixed(2)}</b>{selection === pick && <Check size={14} />}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="odds-unavailable">Cuotas no disponibles</div>
-        )}
-      </div>
+      ) : (
+        <div className="apex-no-odds">{isFinished ? "Partido finalizado" : isLive ? "Marcador actualizado en directo" : "Cuotas pendientes"}</div>
+      )}
     </article>
   );
 }
 
-export default function Home({ sportsData }) {
-  const featured = sportsData.matches.filter((match) => match.status !== "finished").slice(0, 3);
-  const topTeams = sportsData.standings.slice(0, 4);
+function MatchSection({ label, matches, limit = 6, linkTo }) {
+  if (!matches.length) return null;
+  const visible = matches.slice(0, limit);
 
   return (
-    <div className="classic-home">
-      <section className="welcome-panel">
-        <div>
-          <span className="welcome-kicker"><CircleDot size={15} /> LaLiga · Datos conectados</span>
-          <h1>Buenas, Jordi. Consulta la jornada real.</h1>
-          <p>Partidos, resultados y clasificación cargados desde {sportsData.source}.</p>
-        </div>
-        <div className="welcome-stats">
-          <div><strong>{sportsData.matches.filter((match) => match.status === "upcoming").length}</strong><span>próximos</span></div>
-          <div><strong>{sportsData.matches.filter((match) => match.status === "live").length}</strong><span>en directo</span></div>
-          <div><strong>{sportsData.standings.length}</strong><span>equipos</span></div>
-        </div>
-      </section>
-
-      <div className="classic-layout">
-        <main className="classic-main-column">
-          <div className="content-heading">
-            <div><span className="tiny-label">Próximos encuentros</span><h2>Partidos de LaLiga</h2></div>
-            <Link to="/predictions">Ver todos <ArrowRight size={15} /></Link>
-          </div>
-
-          {sportsData.loading && <div className="api-state"><LoaderCircle className="spin" size={24} /><strong>Consultando proveedores deportivos</strong></div>}
-          {sportsData.error && <div className="api-state error"><AlertCircle size={24} /><strong>No se pudieron cargar los datos</strong><p>{sportsData.error}</p></div>}
-          {!sportsData.loading && !sportsData.error && featured.length === 0 && <div className="api-state"><CalendarEmpty /><strong>No hay próximos partidos publicados</strong><p>La competición puede estar fuera de temporada.</p></div>}
-
-          <div className="classic-match-list">
-            {featured.map((match) => <MatchRow key={match.id} match={match} />)}
-          </div>
-
-          <section className="league-banner">
-            <div className="league-illustration"><span><Users size={26} /></span><span><Trophy size={30} /></span><span><Star size={23} /></span></div>
-            <div><span className="tiny-label">Ligas privadas</span><h2>El grupo habla. La tabla decide.</h2><p>Compite con tus amigos usando los resultados reales.</p></div>
-            <Link to="/leagues" className="classic-button">Crear una liga <ChevronRight size={16} /></Link>
-          </section>
-        </main>
-
-        <aside className="classic-rail">
-          <section className="rail-card ranking-widget">
-            <div className="rail-heading"><div><Trophy size={17} /><h3>Clasificación</h3></div><Link to="/ranking">Completa</Link></div>
-            <div className="leader-list">
-              {topTeams.map((team) => (
-                <div className="leader-row" key={team.id}>
-                  <span className="leader-position">{team.rank}</span>
-                  <span className="leader-avatar team-logo-small"><img src={team.logo} alt="" /></span>
-                  <strong>{team.name}</strong><b>{team.points} pts</b>
-                </div>
-              ))}
-            </div>
-          </section>
-          <section className="rail-card daily-card">
-            <div className="daily-icon"><Gift size={28} /></div><span className="tiny-label">{sportsData.source}</span><h3>Información actualizada</h3>
-            <p>Los datos se guardan durante 10 minutos para respetar el límite gratuito.</p>
-            <Link to="/dashboard" className="classic-button full">Abrir panel</Link>
-          </section>
-        </aside>
+    <section className="apex-section apex-sport-section">
+      <div className="apex-section-title">
+        <h2>{label}{matches.some((m) => m.status === "live") && <span className="apex-live-dot" />}</h2>
+        {linkTo && matches.length > limit && <Link to={linkTo}>VER TODO</Link>}
       </div>
-    </div>
+      <div className="apex-horizontal-matches">
+        {visible.map((match) => <HomeMatchCard key={match.id} match={match} />)}
+      </div>
+    </section>
   );
 }
 
-function CalendarEmpty() {
-  return <Clock3 size={24} />;
+export default function Home({ sportsData }) {
+  const sections = useMemo(() =>
+    SECTIONS.map((section) => ({
+      ...section,
+      matches: sportsData.matches.filter(section.filter).sort(sortMatches),
+    })).filter((s) => s.matches.length > 0),
+  [sportsData.matches]);
+
+  const results = useMemo(() =>
+    [...sportsData.matches]
+      .filter((m) => m.status === "finished")
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 6),
+  [sportsData.matches]);
+
+  return (
+    <div className="apex-page apex-home-page">
+      <section className="apex-welcome">
+        <h1>¡Hola, Jordi! <span>👋</span></h1>
+        <p>¿Qué tal tu instinto hoy?</p>
+      </section>
+
+      <section className="apex-streak-card apex-card">
+        <div><Flame size={27} /><h2>Racha de 5 días</h2><Gift size={24} /></div>
+        <span className="apex-progress"><i style={{ width: "71%" }} /></span>
+        <footer><small>DÍA 5</small><b>COFRE EN 2 DÍAS</b></footer>
+      </section>
+
+      <section className="apex-level-card apex-card">
+        <div><span>PROGRESO DE NIVEL</span><strong>850 / 1000 XP</strong></div>
+        <span className="apex-progress"><i style={{ width: "85%" }} /></span>
+      </section>
+
+      <section className="apex-section">
+        <div className="apex-section-title"><h2>Resumen Semanal</h2><Link to="/dashboard">VER TODO</Link></div>
+        <div className="apex-week-card apex-card">
+          <div><strong>78%</strong><span>PRECISIÓN</span></div>
+          <div className="apex-chart">{[32, 52, 70, 42, 58, 48, 56].map((height, index) => <i key={index} style={{ height: `${height}px` }} />)}</div>
+        </div>
+      </section>
+
+      {sportsData.loading && (
+        <section className="apex-section"><div className="apex-home-loading"><i /><i /><i /><span>Sincronizando partidos...</span></div></section>
+      )}
+      {!sportsData.loading && sportsData.error && (
+        <section className="apex-section"><div className="apex-home-loading error"><span>No se pudieron cargar los eventos.</span><small>{sportsData.error}</small></div></section>
+      )}
+
+      {sections.map((section) => (
+        <MatchSection
+          key={section.key}
+          label={section.label}
+          matches={section.matches}
+          limit={section.key === "live" ? 10 : 6}
+          linkTo="/predictions"
+        />
+      ))}
+
+      <section className="apex-master-card">
+        <div><h2>Reto de Maestros</h2><p>Adivina 3 resultados exactos y gana 2,000 monedas.</p><Link to="/challenges">PARTICIPAR AHORA</Link></div>
+        <Trophy size={118} />
+        <button type="button" aria-label="Abrir reto"><Plus size={26} /></button>
+      </section>
+
+      {results.length > 0 && (
+        <section className="apex-results-section">
+          <div className="apex-section-title"><h2>Últimos Resultados</h2><Link to="/predictions?status=finished">VER TODO</Link></div>
+          <div>{results.map((match) => <article key={match.id}><span>{match.league}</span><strong>{match.home}</strong><b>{match.score}</b><strong>{match.away}</strong></article>)}</div>
+        </section>
+      )}
+    </div>
+  );
 }

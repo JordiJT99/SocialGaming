@@ -1,10 +1,19 @@
 import { useMemo, useState } from "react";
 import { AlertCircle, ChevronDown, CircleDot, Info, LoaderCircle, Minus, Plus, ShieldCheck, Trash2, X } from "lucide-react";
 
-export default function Sportsbook({ sportsData }) {
+export default function Sportsbook({ sportsData, onSportSelect }) {
   const [slip, setSlip] = useState([]);
   const [stake, setStake] = useState(100);
-  const events = sportsData.matches.filter((match) => match.status !== "finished");
+  const [sportFilter, setSportFilter] = useState("all");
+  const sports = [
+    { key: "football", name: "Football" },
+    { key: "basketball", name: "Basketball" },
+    { key: "tennis", name: "Tennis" },
+  ];
+  const events = sportsData.matches.filter((match) =>
+    match.status !== "finished" &&
+    (sportFilter === "all" || (match.sportKey || "football") === sportFilter),
+  );
   const totalOdds = useMemo(() => slip.reduce((total, pick) => total * pick.odd, 1), [slip]);
 
   const togglePick = (event, pick, odd) => {
@@ -18,15 +27,21 @@ export default function Sportsbook({ sportsData }) {
   return (
     <div className="product-page sportsbook-page">
       <header className="product-hero sportsbook-hero">
-        <div><span className="product-eyebrow"><CircleDot size={15} /> Cuotas de API-Football</span><h1>Arma tu jugada</h1><p>Solo se muestran cuotas recibidas del proveedor. No se generan valores simulados.</p></div>
+        <div><span className="product-eyebrow"><CircleDot size={15} /> Cuotas de Odds API</span><h1>Arma tu jugada</h1><p>Solo se muestran cuotas recibidas del proveedor. No se generan valores simulados.</p></div>
         <div className="virtual-only"><ShieldCheck size={18} /><div><strong>Modo gratuito</strong><span>Sin depósito ni retirada de dinero</span></div></div>
       </header>
 
       <div className="sportsbook-layout">
         <main>
-          <div className="market-toolbar"><div className="market-sports"><button className="active">Fútbol</button></div><button className="competition-filter">LaLiga 2025-2026 <ChevronDown size={15} /></button></div>
+          <div className="market-toolbar">
+            <div className="market-sports">
+              <button className={sportFilter === "all" ? "active" : ""} onClick={() => setSportFilter("all")}>Todos</button>
+              {sports.map((sport) => <button className={sportFilter === sport.key ? "active" : ""} onClick={() => { setSportFilter(sport.key); onSportSelect?.(sport.key); }} key={sport.key}>{sport.name}</button>)}
+            </div>
+            <button className="competition-filter">Eventos disponibles <ChevronDown size={15} /></button>
+          </div>
           {sportsData.loading && <div className="api-state"><LoaderCircle className="spin" size={24} /><strong>Cargando cuotas</strong></div>}
-          {sportsData.error && <div className="api-state error"><AlertCircle size={24} /><strong>Error de API-Football</strong><p>{sportsData.error}</p></div>}
+          {sportsData.error && <div className="api-state error"><AlertCircle size={24} /><strong>Error de Odds API</strong><p>{sportsData.error}</p></div>}
           {!sportsData.loading && !sportsData.error && events.length === 0 && <div className="api-state"><Info size={24} /><strong>No hay próximos eventos publicados</strong></div>}
           <div className="event-list">
             {events.map((event) => (
@@ -35,7 +50,7 @@ export default function Sportsbook({ sportsData }) {
                 <div className="event-teams"><strong>{event.home}</strong><span>vs</span><strong>{event.away}</strong></div>
                 {event.odds ? (
                   <div className="event-markets">
-                    {[["1", event.odds[1]], ["X", event.odds.X], ["2", event.odds[2]]].map(([pick, odd]) => {
+                    {[["1", event.odds[1]], ...(event.odds.X ? [["X", event.odds.X]] : []), ["2", event.odds[2]]].map(([pick, odd]) => {
                       const selected = slip.some((item) => item.eventId === event.id && item.pick === pick);
                       return <button className={selected ? "selected" : ""} onClick={() => togglePick(event, pick, odd)} key={pick}><span>{pick}</span><b>{odd.toFixed(2)}</b>{selected && <X size={12} />}</button>;
                     })}
@@ -56,7 +71,7 @@ export default function Sportsbook({ sportsData }) {
               <button className="classic-button full">Jugar {stake.toLocaleString("es-ES")} coins</button>
             </>
           )}
-          <div className="slip-disclaimer"><Info size={14} /> Datos de cuotas: API-Football.</div>
+          <div className="slip-disclaimer"><Info size={14} /> Datos de cuotas: Odds API.</div>
         </aside>
       </div>
     </div>

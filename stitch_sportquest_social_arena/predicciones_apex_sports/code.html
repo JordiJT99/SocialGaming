@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROPHET - Predictions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#d9dadb",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#99f5cf",
+                    "tertiary-fixed-dim": "#e3c600",
+                    "error": "#ba1a1a",
+                    "surface-container-low": "#f3f4f5",
+                    "secondary-container": "#e2e2e5",
+                    "on-secondary-container": "#636467",
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f8f9fa",
+                    "on-tertiary-container": "#4a3f00",
+                    "secondary-fixed": "#e2e2e5",
+                    "on-tertiary": "#ffffff",
+                    "tertiary": "#6d5e00",
+                    "tertiary-container": "#c4ab00",
+                    "inverse-primary": "#7dd8b4",
+                    "on-primary-fixed": "#002116",
+                    "secondary": "#5d5e61",
+                    "on-tertiary-fixed-variant": "#524600",
+                    "on-primary": "#ffffff",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed-dim": "#7dd8b4",
+                    "error-container": "#ffdad6",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed": "#1a1c1e",
+                    "primary-container": "#007355",
+                    "surface-container-highest": "#e1e3e4",
+                    "primary": "#005840",
+                    "surface-container-high": "#e7e8e9",
+                    "inverse-surface": "#2e3132",
+                    "on-secondary-fixed-variant": "#454749",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#006c4f",
+                    "on-tertiary-fixed": "#211b00",
+                    "surface": "#f8f9fa",
+                    "background": "#f8f9fa",
+                    "surface-container": "#edeeef",
+                    "on-error": "#ffffff",
+                    "on-background": "#191c1d",
+                    "on-primary-container": "#9af5cf",
+                    "outline-variant": "#bec9c2",
+                    "tertiary-fixed": "#ffe249",
+                    "outline": "#6e7a73",
+                    "secondary-fixed-dim": "#c6c6c9"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "1rem",
+                    "stack-lg": "1.5rem",
+                    "stack-xs": "0.25rem",
+                    "stack-md": "1rem",
+                    "container-max": "1280px",
+                    "stack-sm": "0.5rem",
+                    "gutter": "1rem",
+                    "margin-desktop": "2rem"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "odds-display": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "odds-display": ["15px", {"lineHeight": "16px", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #f8f9fa;
+            color: #191c1d;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .card-shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        .active-scale:active {
+            transform: scale(0.98);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 0px;
+            display: none;
+        }
+    </style>
+</head>
+<body class="pb-24 pt-16">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-primary text-on-primary border-b border-primary-container">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="User profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhZuhN4GHfpIM-fUbGiX55I9gxvIy8zMYJF54BwvF36B9AaFBkTEiTDPxT5zbk300A4LszFCpQwhTV0qLO9jaAH8pe8Rt7r7xupXSYWCdJbztH2mY-62xyi_G0wGYn_G2B3XB3V14xgWBFd9OqwaN5moflrqloxTVW-ZNbUrkR9xaUav0RHjiQVpP2iE3-XIS72EbVHEklX453QDdwfYZCUKal8lFAqES7wXhSeGz7srxFULdg2yH47Adp1Y9ygTQjPc8-Y1G9RUE"/>
+</div>
+<h1 class="font-display-lg text-headline-lg-mobile tracking-tight uppercase">Prophet</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1 bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-bold text-sm">540</span>
+</div>
+<button class="active-scale text-on-primary">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-margin-mobile">
+<!-- Category Filters -->
+<div class="flex gap-2 overflow-x-auto py-4 custom-scrollbar items-center">
+<button class="flex-shrink-0 flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded font-label-sm text-label-sm border border-primary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">sports_soccer</span>
+            Football
+        </button>
+<button class="flex-shrink-0 flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded font-label-sm text-label-sm hover:bg-surface-container-low active-scale">
+<span class="material-symbols-outlined text-[18px]">sports_basketball</span>
+            Basketball
+        </button>
+<button class="flex-shrink-0 flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded font-label-sm text-label-sm hover:bg-surface-container-low active-scale">
+<span class="material-symbols-outlined text-[18px]">sports_tennis</span>
+            Tennis
+        </button>
+<button class="flex-shrink-0 flex items-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded font-label-sm text-label-sm hover:bg-surface-container-low active-scale">
+<span class="material-symbols-outlined text-[18px]">sports</span>
+            Esports
+        </button>
+</div>
+<!-- Section Header -->
+<div class="flex justify-between items-end mb-4">
+<div>
+<p class="text-primary font-label-sm text-label-sm uppercase tracking-widest">Live &amp; Upcoming</p>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Predictions Today</h2>
+</div>
+<button class="text-primary font-label-sm text-label-sm flex items-center gap-1 font-bold">
+            Calendar <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+</button>
+</div>
+<!-- Predictions List -->
+<div class="space-y-4">
+<!-- Match Card 1 -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant card-shadow overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 flex justify-between items-center border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">emoji_events</span>
+<span class="text-secondary font-label-sm text-[11px] uppercase font-bold tracking-wider">Champions League • Group A</span>
+</div>
+<span class="text-on-surface font-bold text-[12px]">21:00</span>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-6">
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-12 h-12 object-contain" data-alt="Man City Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH2cUfRVSuRc0Y5GlW7fpVLJKO_TWccwpPHJpsT8TdZTKBxG_ekkPVJFrmh6bi-c9TKCVnovkHjJ3Vd58jsB6ikT536fArSEqYUigXTK15i2KJKKoyrkNJeOGif-1Bvswer17DAu2OcWKewnyu7TlC_x70ZOr-UBRZu2cDWLOOFXVLK3H75H9eL2JO2nYsJmlrl6f8mDFZA6cfQHvxJtIRiwa_tMDUSts2ckQDSIJPqHt-uyxlmUK3lAMm0WFnzkMYFrJi0dChscw"/>
+<span class="text-on-surface font-bold text-sm text-center">Man. City</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-outline text-xs font-bold">VS</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-12 h-12 object-contain" data-alt="Real Madrid Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_pn2AAJgxzVHkGVAO1TTLJICYe3CR4HRaSWowCWfUcrJqxvRF1y4A0TIoiFtqBO6H2KU97ujh9TX6cU8E1-6WfNAI2izfglo_4LnQPSzVQ2SHrGRI95Nz7lDEo_TGruw28qxJPlwwNbK37Ce-swy_tbI2P3zruFilQqKAritgni4kO9HKnfXQrykVdEISbqPHOYset2NJwprIuN-MrenFiEo8PFDa8qMQYRNVgsWW6Nn49SF_S2lcrDxTpErtx_UfptIoJFdf6gw"/>
+<span class="text-on-surface font-bold text-sm text-center">Real Madrid</span>
+</div>
+</div>
+<!-- 1X2 Professional Odds Buttons -->
+<div class="grid grid-cols-3 gap-3">
+<button class="bg-primary text-on-primary flex flex-col items-center py-2 rounded-lg active-scale border border-primary">
+<span class="text-[10px] uppercase font-bold opacity-80">1</span>
+<span class="font-bold text-[15px]">1.85</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline text-on-surface flex flex-col items-center py-2 rounded-lg active-scale hover:bg-surface-container-low">
+<span class="text-[10px] uppercase font-bold opacity-60">X</span>
+<span class="font-bold text-[15px]">3.40</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline text-on-surface flex flex-col items-center py-2 rounded-lg active-scale hover:bg-surface-container-low">
+<span class="text-[10px] uppercase font-bold opacity-60">2</span>
+<span class="font-bold text-[15px]">4.20</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-low px-4 py-3 flex justify-between items-center border-t border-outline-variant">
+<button class="text-primary font-bold text-[12px] flex items-center gap-1">
+                    MODO AVANZADO <span class="material-symbols-outlined text-[16px]">tune</span>
+</button>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-bold text-[12px]">Puntos: +240</span>
+</div>
+</div>
+</div>
+<!-- Match Card 2 (LIVE) -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant card-shadow overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 flex justify-between items-center border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-error">live_tv</span>
+<span class="text-secondary font-label-sm text-[11px] uppercase font-bold tracking-wider">LaLiga • Round 24</span>
+</div>
+<div class="flex items-center gap-1.5 bg-error-container text-on-error-container px-2 py-0.5 rounded text-[11px] font-bold">
+<span class="w-1.5 h-1.5 bg-error rounded-full animate-pulse"></span>
+                    LIVE 65'
+                </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-6">
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-10 h-10 object-contain" data-alt="Barcelona Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAo5eRgjH-0Q8PjejFyYFWSnT2ouwesn4QirihjNWe-HdD3vzmHSeVAZU1I2N5lm97PbaOXusXYsXHm6waFM0AZ6wOlMFGY5lTKj_TSFaq3VfuST-Qkv7bhFC8sW2uQR64lLiyrU42Cz-3Y8YwN4R_VVQI9uZqLVzDGBA1HdsyOUMAKI-YRdY-32lrezS1_sE5YwF3ZoS3hAfo2JyHiTvFwOsnwsQjBgMrevRUU4MtYXhlGOLuCh_VOVfm544z23f4EAh47wyIfeiU"/>
+<span class="text-on-surface font-bold text-sm text-center">Barcelona</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-headline-lg-mobile font-bold text-primary">2 - 1</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-10 h-10 object-contain" data-alt="Atletico Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWJb0GeTf1s4hR5K6e3Zpw3fXxmfRPJyesD-aKvnSE6Lt4JEpve7iPP4PdJMfIc-9nSeQDv-3Mql3f_pq99w8oG5EUTZcY5XS6oz1zP2A12VxWL-C9BGYQEd0u3S5Ocsdl9Wr__PwUAvL1WMUIQZQMrAK9otZDhNVq2PyfCLZqj9h83G8MrdSGhLwMb7bO9fAsopXL1pL3rsapv7mTelCPq9cBjIDYVVbVjhb7OtDRNRsW1nHv8a5O1PmSuJmKPHQjNjfNuy1jdys"/>
+<span class="text-on-surface font-bold text-sm text-center">Atlético</span>
+</div>
+</div>
+<div class="flex gap-2">
+<div class="flex-1 bg-primary-container/10 border border-primary-container/20 rounded p-3 flex justify-between items-center">
+<div>
+<p class="text-[10px] uppercase font-bold text-primary opacity-70">Your Prediction</p>
+<p class="text-on-surface font-bold text-sm">Barcelona (1)</p>
+</div>
+<span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<button class="bg-surface-container-high border border-outline-variant px-4 rounded active-scale">
+<span class="material-symbols-outlined text-secondary">trending_up</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Match Card 3 -->
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant card-shadow overflow-hidden">
+<div class="bg-surface-container-low px-4 py-2 flex justify-between items-center border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">sports_soccer</span>
+<span class="text-secondary font-label-sm text-[11px] uppercase font-bold tracking-wider">Premier League</span>
+</div>
+<span class="text-on-surface font-bold text-[12px]">18:30</span>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-center mb-6">
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-10 h-10 object-contain" data-alt="Liverpool Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhQJK0Uk3aQPVCuTc308z8youu61B7lJo2EF3E0Ul0TmT84vJTGr_6lFvon5tAIPzy6LuExmwkVxPBoBbHwm8SqP37bL2B0MvveNgcN9JYHSU_lky95IwcYkmfyY5rSwJDno7zYKfPQR_peUtPEnj_q1WfE8uv5clYcaeT-oIuyY87lU3BET_m4mpjzUHRCCVzgW3chN7MiFtWPj9TkZvUT_k2V3RBG48hROt0pEFEtjODskqP0Ni90R8QhdzlgGM4rZn81xnzFS4"/>
+<span class="text-on-surface font-bold text-sm text-center">Liverpool</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-outline text-xs font-bold">VS</span>
+</div>
+<div class="flex flex-col items-center gap-2 w-1/3">
+<img class="w-10 h-10 object-contain" data-alt="Arsenal Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS6DlW8PMNTguk1nM4fFd-rJ1Lp9Oo3IxOWHNz0nHyNFssafzMGKaTmjC5whJr8H33GpBJJGZkxZF3kSymqma7DZvs07kYwVgwntih4CW3qfHAfsxQUXhUObjGd5DmEolxKBqtu3wiZlFThuLz0GUMElxTY-prKNUGWRNljOJwpQiNBwUI-l9GOYRMCiftbWXeLekkmPUzj5Ma0xAlDVfWH_61P1J-CAprkIo-YLwtNDw7OC_GXruDPR_EA1RgGQgoq2p4FGqbE_A"/>
+<span class="text-on-surface font-bold text-sm text-center">Arsenal</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<button class="bg-surface-container-lowest border border-outline text-on-surface flex flex-col items-center py-2 rounded-lg active-scale hover:bg-surface-container-low">
+<span class="text-[10px] uppercase font-bold opacity-60">1</span>
+<span class="font-bold text-[15px]">2.10</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline text-on-surface flex flex-col items-center py-2 rounded-lg active-scale hover:bg-surface-container-low">
+<span class="text-[10px] uppercase font-bold opacity-60">X</span>
+<span class="font-bold text-[15px]">3.15</span>
+</button>
+<button class="bg-surface-container-lowest border border-outline text-on-surface flex flex-col items-center py-2 rounded-lg active-scale hover:bg-surface-container-low">
+<span class="text-[10px] uppercase font-bold opacity-60">2</span>
+<span class="font-bold text-[15px]">3.50</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Selection -->
+<div class="mt-8 grid grid-cols-2 gap-4 pb-8">
+<div class="col-span-2 bg-primary text-on-primary rounded-lg p-6 relative overflow-hidden card-shadow">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mb-2">Combo Boost</h3>
+<p class="text-primary-fixed/80 text-sm mb-4">Combine 3+ predictions today to earn double coins and XP.</p>
+<div class="flex gap-2">
+<div class="w-12 h-1.5 bg-primary-fixed rounded-full"></div>
+<div class="w-12 h-1.5 bg-primary-container rounded-full"></div>
+<div class="w-12 h-1.5 bg-primary-container rounded-full"></div>
+</div>
+<span class="absolute right-6 bottom-6 material-symbols-outlined text-primary-fixed text-4xl opacity-20">auto_awesome</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex flex-col justify-between aspect-square border border-outline-variant card-shadow">
+<span class="material-symbols-outlined text-tertiary">leaderboard</span>
+<div>
+<p class="text-secondary font-bold text-[11px] uppercase tracking-wider">League Rank</p>
+<p class="text-on-surface font-bold text-2xl">#12</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-4 flex flex-col justify-between aspect-square border border-outline-variant card-shadow">
+<span class="material-symbols-outlined text-primary">history</span>
+<div>
+<p class="text-secondary font-bold text-[11px] uppercase tracking-wider">Success Rate</p>
+<p class="text-on-surface font-bold text-2xl">78%</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center pb-safe h-20 bg-surface-container-lowest border-t border-outline-variant shadow-lg">
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 active-scale">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[11px] font-bold mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary px-4 py-1 active-scale">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+<span class="text-[11px] font-bold mt-1">Predict</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 active-scale">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="text-[11px] font-bold mt-1">Fantasy</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 active-scale">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[11px] font-bold mt-1">Leagues</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary px-4 py-1 active-scale">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[11px] font-bold mt-1">Profile</span>
+</button>
+</nav>
+<script>
+    // Simple filter selection logic
+    const filterBtns = document.querySelectorAll('.flex-shrink-0');
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => {
+                b.classList.remove('bg-primary', 'text-on-primary', 'border-primary');
+                b.classList.add('bg-surface-container-lowest', 'text-on-surface', 'border-outline-variant');
+            });
+            btn.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'border-outline-variant');
+            btn.classList.add('bg-primary', 'text-on-primary', 'border-primary');
+        });
+    });
+</script>
+</body></html>

@@ -1,43 +1,38 @@
-import { useState } from "react";
-import { Check, ChevronRight, Clock3, Coins, Gamepad2, Play, Smartphone, Sparkles, UserPlus } from "lucide-react";
+import { CheckCircle2, Circle, CircleDollarSign, CircleHelp, ClipboardCheck, PlayCircle } from "lucide-react";
 
-const offers = [
-  { id: 1, icon: Play, title: "Mira un video deportivo", provider: "Rewarded video", reward: 25, time: "30 segundos", tone: "blue" },
-  { id: 2, icon: Smartphone, title: "Prueba una app de resultados", provider: "Oferta patrocinada", reward: 850, time: "5 minutos", tone: "green" },
-  { id: 3, icon: Gamepad2, title: "Alcanza el nivel 5", provider: "Juego recomendado", reward: 2400, time: "3 dias", tone: "coral" },
-  { id: 4, icon: UserPlus, title: "Completa un registro", provider: "Partner verificado", reward: 500, time: "2 minutos", tone: "gold" },
+const OFFERS = [
+  { title: "Video Rápido", copy: "Mira un anuncio de 30 segundos.", reward: "15", action: "Ver Ahora", icon: PlayCircle },
+  { title: "War Legends", copy: "Instala y alcanza el nivel 5.", reward: "1,200", action: "Instalar", image: true },
+  { title: "Encuesta de Perfil", copy: "Ayúdanos a conocer tus deportes favoritos.", reward: "250", action: "Comenzar", icon: CircleHelp },
 ];
 
 export default function Earn() {
-  const [completed, setCompleted] = useState([]);
   return (
-    <div className="product-page earn-page">
-      <header className="product-hero earn-hero">
-        <div><span className="product-eyebrow"><Coins size={15} /> Offerwall</span><h1>Gana monedas</h1><p>Completa tareas opcionales para acelerar tu progreso dentro de Playfulbet.</p></div>
-        <div className="earn-balance"><span>Ganado este mes</span><strong>3.275 P</strong><small>Limite mensual: 10.000 P</small></div>
-      </header>
-      <section className="earn-daily panel">
-        <div className="daily-streak-visual"><Sparkles size={25} /></div>
-        <div><span className="product-eyebrow">Bonus diario</span><h2>Tu recompensa esta lista</h2><p>Vuelve cada dia para aumentar el bonus hasta 100 monedas.</p></div>
-        <div className="earn-days">{[20, 30, 40, 60, 100].map((amount, index) => <span className={index < 3 ? "done" : ""} key={amount}>{index < 3 ? <Check size={13} /> : index + 1}<small>+{amount}</small></span>)}</div>
-        <button className="classic-button">Reclamar +40 P</button>
+    <div className="apex-page apex-earn-page">
+      <header><h1>Centro de Recompensas</h1><p>Completa tareas rápidas para aumentar tu saldo de monedas Apex.</p></header>
+      <section className="apex-daily-missions apex-card">
+        <div><h2><ClipboardCheck /> Misiones Diarias</h2><span>2/3 Completado</span></div>
+        <span className="apex-progress"><i style={{ width: "66%" }} /></span>
+        <article><CheckCircle2 /><div><strong>Login Diario</strong><small>+10 Coins</small></div></article>
+        <article><CheckCircle2 /><div><strong>Ver 3 Anuncios</strong><small>+25 Coins</small></div></article>
+        <article className="pending"><Circle /><div><strong>Ganar 1 Predicción</strong><small>+50 Coins</small></div></article>
       </section>
-      <div className="offer-heading"><div><h2>Ofertas recomendadas</h2><p>Las recompensas pueden tardar unos minutos en aparecer.</p></div><div><button className="active">Todas</button><button>Rapidas</button><button>Mayor premio</button></div></div>
-      <div className="offer-list">
-        {offers.map(({ id, icon: Icon, title, provider, reward, time, tone }) => {
-          const isCompleted = completed.includes(id);
-          return (
-            <article className="offer-row" key={id}>
-              <span className={`offer-icon ${tone}`}><Icon size={22} /></span>
-              <div className="offer-copy"><strong>{title}</strong><span>{provider}</span></div>
-              <div className="offer-time"><Clock3 size={14} /> {time}</div>
-              <div className="offer-reward"><span>Recompensa</span><strong>+{reward.toLocaleString("es-ES")} P</strong></div>
-              <button className={isCompleted ? "completed" : ""} onClick={() => setCompleted((current) => isCompleted ? current : [...current, id])}>{isCompleted ? <Check size={16} /> : <ChevronRight size={17} />}</button>
-            </article>
-          );
-        })}
-      </div>
-      <div className="offer-legal">Las tareas son opcionales y ofrecidas por terceros. Playfulbet nunca solicita pagos para completarlas.</div>
+      <section className="apex-featured-offers">
+        <h2>Ofertas Destacadas</h2>
+        {OFFERS.map(({ title, copy, reward, action, icon: Icon, image }) => (
+          <article key={title}>
+            <span className={image ? "game-art" : ""}>{image ? "WL" : <Icon />}</span>
+            <div><strong>{title}</strong><p>{copy}</p></div>
+            <b><CircleDollarSign /> {reward}</b>
+            <button>{action}</button>
+          </article>
+        ))}
+      </section>
+      <section className="apex-offerwalls">
+        <div><h2>Muros de Ofertas</h2><button>Ver todos ›</button></div>
+        <header><span>PROVEEDOR</span><span>TIPO</span><span>PREMIO MÁX.</span></header>
+        {[["A", "AdGate Media", "Multi-tarea", "+50k"], ["I", "IronSource", "Descargas", "+120k"], ["T", "TapJoy", "Encuestas", "+25k"]].map((row) => <article key={row[1]}><b>{row[0]}</b><strong>{row[1]}</strong><span>{row[2]}</span><em>● {row[3]}</em></article>)}
+      </section>
     </div>
   );
 }

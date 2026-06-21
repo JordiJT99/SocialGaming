@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tienda de Recompensas | PROPHET</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#d9dadb",
+                    "on-secondary-fixed": "#1a1c1e",
+                    "primary-fixed": "#99f5cf",
+                    "secondary-fixed": "#e2e2e5",
+                    "on-background": "#191c1d",
+                    "on-secondary-container": "#636467",
+                    "surface-container": "#edeeef",
+                    "on-primary-fixed": "#002116",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#211b00",
+                    "secondary": "#5d5e61",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-tint": "#006c4f",
+                    "primary-fixed-dim": "#7dd8b4",
+                    "inverse-primary": "#7dd8b4",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#f3f4f5",
+                    "primary": "#005840",
+                    "primary-container": "#007355",
+                    "tertiary-container": "#c4ab00",
+                    "secondary-container": "#e2e2e5",
+                    "on-primary-container": "#9af5cf",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#00513b",
+                    "background": "#f8f9fa",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c6c6c9",
+                    "outline": "#6e7a73",
+                    "on-secondary-fixed-variant": "#454749",
+                    "on-surface-variant": "#3e4944",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-high": "#e7e8e9",
+                    "on-tertiary-fixed-variant": "#524600",
+                    "on-tertiary-container": "#4a3f00",
+                    "tertiary-fixed-dim": "#e3c600",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary-fixed": "#ffe249",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#bec9c2",
+                    "surface": "#f8f9fa",
+                    "tertiary": "#6d5e00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-lg": "1.5rem",
+                    "container-max": "1280px",
+                    "stack-xs": "0.25rem",
+                    "stack-md": "1rem",
+                    "margin-desktop": "2rem",
+                    "gutter": "1rem",
+                    "stack-sm": "0.5rem",
+                    "margin-mobile": "1rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "odds-display": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "odds-display": ["15px", {"lineHeight": "16px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .reward-card:hover {
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+            border-color: #bec9c2;
+        }
+        .progress-bar-glow {
+            box-shadow: 0 0 8px rgba(0, 88, 64, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 h-16 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-stack-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional close-up studio portrait of a confident user, lit with soft natural light. The background is a minimalist grey gradient consistent with a high-end fintech application. The image conveys trust and high-performance energy, using a clean corporate aesthetic with sharp focus and professional depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlfA0v-nmpbEl1HxZ0COONYP8dhgqfVyF42PN253PMFwWIaq9k2fNZRC5dTlRlfqCkDWBpbzEl20KLvirzZ1OTc0MAMRE5qyHyNGf6sfO5mlszURF8f-ANWP5oQCoKQMHm9CQBXzxwnzRTthOwz22oBEi47KvEwJjUO1snYWrxLwR7b65vLx-yw6-SoX1cR1en7D5EIVzuvUG_TLjUodheWHIrTeT7g7BEJ1pSHR1LenUNGxbS7tbLREKvFB1lhVQkSHj5ODgzit8"/>
+</div>
+<span class="font-display-lg text-headline-lg-mobile md:text-headline-lg font-extrabold text-primary tracking-tighter">PROPHET</span>
+</div>
+<div class="flex items-center bg-primary-container px-4 py-1.5 rounded-full shadow-sm hover:scale-95 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined text-on-primary-container text-[20px] mr-2" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-odds-display text-on-primary-container">540 Coins</span>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-container-max mx-auto">
+<!-- Hero / Stats Section -->
+<section class="mb-stack-lg">
+<div class="bg-primary p-6 rounded-xl text-on-primary relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div class="z-10">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg mb-1">Tienda de Recompensas</h1>
+<p class="font-body-md text-on-primary-container opacity-90 max-w-md">Canjea tus ganancias por premios exclusivos. Sigue apostando para alcanzar tus objetivos.</p>
+</div>
+<div class="z-10 flex gap-4 w-full md:w-auto">
+<div class="bg-primary-container/30 backdrop-blur-sm p-4 rounded-lg flex-1 md:w-32 border border-white/10">
+<p class="font-label-sm text-on-primary-container uppercase opacity-70">Nivel</p>
+<p class="font-headline-md text-headline-md text-white">Elite III</p>
+</div>
+<div class="bg-primary-container/30 backdrop-blur-sm p-4 rounded-lg flex-1 md:w-32 border border-white/10">
+<p class="font-label-sm text-on-primary-container uppercase opacity-70">Racha</p>
+<p class="font-headline-md text-headline-md text-white">12 Días</p>
+</div>
+</div>
+<!-- Subtle decorative element -->
+<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-on-primary-container opacity-10 rounded-full blur-3xl"></div>
+</div>
+</section>
+<!-- Filters -->
+<nav class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-stack-md">
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm border border-primary">Todos</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-outline-variant hover:bg-surface-container-high transition-colors">Tecnología</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-outline-variant hover:bg-surface-container-high transition-colors">Gift Cards</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-outline-variant hover:bg-surface-container-high transition-colors">Gaming</button>
+<button class="flex-shrink-0 px-6 py-2 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm border border-outline-variant hover:bg-surface-container-high transition-colors">Lifestyle</button>
+</nav>
+<!-- Rewards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Amazon Card -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-contain p-8" data-alt="A premium 3D render of an Amazon Gift Card floating in a clean, minimalist studio environment. The lighting is crisp and professional, highlighting the metallic textures and the iconic Amazon logo. The color scheme is dominated by clean whites and subtle greys to fit a corporate fintech aesthetic, reflecting reliability and value." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFlOHQj0ecqBfQXOwzbxrhUo8RVm3n02FX1d0xYk9NwxKQEgKC6bzGPwx4x767LhCuN831UlzJBAI08B2wSMUaeyXa0q3QsJowIF1aFYdHAJsisjeY0mIB4OhQ11L4t7_EukGiMy1kjkBk52vFLLKo8d3XT8szFHNflQZDcs_ohnLC9q7GbLCengHwgN6afLCerGEaDlAfAX-1bZUr1a5jeP71W3h_VdaN2hfyWrD6bNxSSdVCVYc3ciy0vCZ3jPmRd1QGJ0MESHs"/>
+<span class="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-primary uppercase border border-primary/20">Popular</span>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Amazon Gift Card $50</h3>
+<p class="font-body-md text-on-surface-variant">Código digital instantáneo</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">5,000</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 5,000</span>
+<span>11%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 11%;"></div>
+</div>
+<button class="w-full py-3 bg-surface-container text-on-surface-variant font-headline-md text-[14px] rounded-lg opacity-50 cursor-not-allowed">Monedas insuficientes</button>
+</div>
+</div>
+<!-- PS5 Card -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-contain p-8" data-alt="A professional product photography shot of a Sony PlayStation 5 console and DualSense controller, arranged elegantly on a reflective white surface. High-key lighting emphasizes the sleek futuristic design of the console. The overall mood is high-performance and premium, with a palette of whites, deep blacks, and soft blue accents, fitting a corporate gaming aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaFSbFReYS_jyPKMSo9E82QbpqroVF_qLe5hh9TnPQMXMHvXk0--l5tys7simhRePLu_g8qz0TqaHRdmbO-IOLEZF8HvojYGXdZiog6qE1bkvTDsusaaNeEhJRF4DR1zLbghYeUj9UtDpSsJ1GKEi1Dm8qmDp5UW86Nv1XjnvDvnCWW4Zuk-BkG-Lg40PbqL1K76z-g-xv_M56Gpj-NWKQO2u7LhdYpk0Op9DFl1VN_vnWVOO3KEkJDoagc3UjIeJmzc0WZuEySvs"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">PlayStation 5 Console</h3>
+<p class="font-body-md text-on-surface-variant">Envío físico nacional</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">45,000</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 45,000</span>
+<span>1.2%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 1.2%;"></div>
+</div>
+<button class="w-full py-3 bg-surface-container text-on-surface-variant font-headline-md text-[14px] rounded-lg opacity-50 cursor-not-allowed">Monedas insuficientes</button>
+</div>
+</div>
+<!-- Steam Card -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-contain p-8" data-alt="A minimalist digital artwork representing a Steam Wallet Card. The Steam logo is rendered in a high-contrast dark grey against a textured white background with subtle holographic patterns. The lighting is clean and balanced, evoking a sense of digital wealth and gaming precision within a corporate white and emerald green design ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTeAdGIkVty5O2R76GqcYIqaWlnRpEOBrsPF-KzAar0iAYp80x3Boep2AavgH5vLdd01Pmktz0KQX-0mNJ7uDBlP7y-ioVDZq6RuSZd5KSxiYREKB_liiZQrazhmVuVAuQLTdax8_DSnaeylu0thyk4OZlAeJlpJc0mSDsFBDMCm1qotMkhUc-0khr-lR1W_EW3ZoZSIW3jEdrGT2B8fCl0jkgWateXl0haktWuT5UKUSZV9YGRXDvEFNW1H6EYF4R_Rk3s2iYRpg"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Steam Wallet $20</h3>
+<p class="font-body-md text-on-surface-variant">Crédito para juegos</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">2,000</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 2,000</span>
+<span>27%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 27%;"></div>
+</div>
+<button class="w-full py-3 bg-surface-container text-on-surface-variant font-headline-md text-[14px] rounded-lg opacity-50 cursor-not-allowed">Monedas insuficientes</button>
+</div>
+</div>
+<!-- iPhone Card -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-contain p-8" data-alt="A sleek, professional product render of the latest iPhone in Titanium Grey, showcased from multiple angles. The image uses sharp focus, professional lighting that creates soft highlights on the glass and metal surfaces, and a minimalist white studio background. The style is ultra-modern, corporate, and high-performance, reflecting a top-tier premium reward." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7eEVx0_CASjzJHxm4iCcMSo0lZB7yVHajpnFDvkO9ywkGHYg_7puDCy23_j3RQCnVYVr5llm7cJ0l75rfWkiHO22UX7hp_7XCE9n-CWIrJ6-XVPH9NZ-wmkAhp_7jATGyNdjtlgcCC6fKXtOZHrt6EcQrYinEOXHL005JP5QkEYgKOacEl8Wkz5RFFXf0uXqKvzMybASk-chXlCLF1d9Dq-399Ojwa_zx_aEx4rWPjMUF9wB5ep9OKSr-lA5VuhXpSDnGlcqI51o"/>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">iPhone 15 Pro Max</h3>
+<p class="font-body-md text-on-surface-variant">Último modelo 256GB</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">95,000</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 95,000</span>
+<span>0.5%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 0.5%;"></div>
+</div>
+<button class="w-full py-3 bg-surface-container text-on-surface-variant font-headline-md text-[14px] rounded-lg opacity-50 cursor-not-allowed">Monedas insuficientes</button>
+</div>
+</div>
+<!-- Nike Card -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative">
+<img class="w-full h-full object-contain p-8" data-alt="Professional sports product photography of a pair of high-performance Nike running shoes. The sneakers are white with sharp black accents and a vibrant emerald green sole, matching the application's color palette. The lighting is cinematic, casting soft shadows on a clean white background, conveying speed, precision, and high-performance engineering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDL-bB66Zuh1UUufAR7IdxVogxoHCO36ivsEuqWXRPnnKq8M3uuxSV5xg0cUR0s_MP1l1XOGjqxgQ0d7idRo07ggai-7rf2tHBOtQi7d8hW8lEWcMattPxS31IBCB0s64wwDn3krk_PkiYOl5ZDSIF8e5yiyxKHOZAP-R3_vm068zNZJD6Vaazr5pa9hUIVf5ec7j6KzeWGnv4eR3qEGxy8Dh5zppAS2d9za3mT1kTt1Q17QpYLz6WAOULgVh_QDJ-xAVn-wl9bSsM"/>
+<span class="absolute top-3 left-3 bg-tertiary text-on-tertiary px-2 py-1 rounded text-[10px] font-bold uppercase">Nuevo</span>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nike Voucher $100</h3>
+<p class="font-body-md text-on-surface-variant">Canjeable en tienda oficial</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">10,000</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 10,000</span>
+<span>5.4%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 5.4%;"></div>
+</div>
+<button class="w-full py-3 bg-surface-container text-on-surface-variant font-headline-md text-[14px] rounded-lg opacity-50 cursor-not-allowed">Monedas insuficientes</button>
+</div>
+</div>
+<!-- Starter Pack -->
+<div class="reward-card bg-white border border-outline-variant rounded-xl p-4 flex flex-col transition-all duration-300">
+<div class="h-48 w-full bg-surface-container-low rounded-lg mb-4 overflow-hidden relative flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[84px]" style="font-variation-settings: 'FILL' 1;">redeem</span>
+<span class="absolute top-3 right-3 bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded text-[10px] font-bold uppercase">Casi tuyo</span>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Pack de Inicio VIP</h3>
+<p class="font-body-md text-on-surface-variant">Boost de cuotas + 200 monedas</p>
+</div>
+<div class="flex items-center text-primary">
+<span class="material-symbols-outlined text-[18px] mr-1">monetization_on</span>
+<span class="font-odds-display">750</span>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<div class="flex justify-between text-label-sm font-label-sm mb-1 text-on-surface-variant">
+<span>Progreso: 540 / 750</span>
+<span>72%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-primary h-full progress-bar-glow transition-all duration-500" style="width: 72%;"></div>
+</div>
+<button class="w-full py-3 bg-primary text-on-primary font-headline-md text-[14px] rounded-lg hover:bg-primary-container active:scale-95 transition-all">Seguir ganando</button>
+</div>
+</div>
+</div>
+<!-- Redemption History -->
+<section class="mt-12">
+<h2 class="font-headline-md text-headline-md mb-4 flex items-center">
+<span class="material-symbols-outlined mr-2">history</span>
+                Actividad Reciente
+            </h2>
+<div class="bg-white border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant bg-surface-container-low flex justify-between font-label-sm text-on-surface-variant">
+<span>RECOMPENSA</span>
+<span>ESTADO</span>
+</div>
+<div class="divide-y divide-outline-variant">
+<div class="p-4 flex justify-between items-center">
+<div class="flex items-center">
+<div class="w-10 h-10 bg-surface-container rounded flex items-center justify-center mr-3">
+<span class="material-symbols-outlined text-primary">shopping_bag</span>
+</div>
+<div>
+<p class="font-body-lg font-semibold text-on-surface">Spotify Premium 1 Mes</p>
+<p class="font-label-sm text-on-surface-variant">14 Oct, 2023</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-[12px] font-bold">ENTREGADO</span>
+</div>
+<div class="p-4 flex justify-between items-center">
+<div class="flex items-center">
+<div class="w-10 h-10 bg-surface-container rounded flex items-center justify-center mr-3">
+<span class="material-symbols-outlined text-primary">sports_esports</span>
+</div>
+<div>
+<p class="font-body-lg font-semibold text-on-surface">League of Legends RP</p>
+<p class="font-label-sm text-on-surface-variant">02 Oct, 2023</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-[12px] font-bold">ENTREGADO</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-20 bg-surface-container rounded-t-xl shadow-lg">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm mt-1">Predict</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-95 shadow-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">redeem</span>
+<span class="font-label-sm text-label-sm mt-1">Fantasy</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm mt-1">Leagues</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</button>
+</nav>
+<script>
+        // Micro-interaction for coin counter
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simple filter logic placeholder
+        const filterButtons = document.querySelectorAll('nav button');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary');
+                    b.classList.add('bg-surface-container', 'text-on-surface-variant');
+                });
+                button.classList.add('bg-primary', 'text-on-primary');
+                button.classList.remove('bg-surface-container', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

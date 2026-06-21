@@ -1,4 +1,4 @@
-const BASE_URL = "https://www.thesportsdb.com/api/v1/json";
+const BASE_URL = "/sports-db/api/v1/json";
 const FREE_API_KEY = import.meta.env.VITE_THESPORTSDB_KEY || "123";
 const CACHE_KEY = "playfulbet:sportsdb:v2";
 const CACHE_TTL = 15 * 60 * 1000;
@@ -25,6 +25,8 @@ const normalizeEvent = (event, fallbackLeague) => {
     id: `sportsdb-${event.idEvent}`,
     externalId: event.idEvent,
     sportId: 1,
+    sportKey: "football",
+    sportName: "Fútbol",
     league: event.strLeague || fallbackLeague,
     home: event.strHomeTeam,
     away: event.strAwayTeam,

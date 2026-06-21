@@ -36,6 +36,8 @@ const normalizeFixture = (item, oddsByFixture) => {
     id: `api-${item.fixture.id}`,
     externalId: item.fixture.id,
     sportId: 1,
+    sportKey: "football",
+    sportName: "Fútbol",
     league: item.league.name,
     leagueLogo: item.league.logo,
     round: item.league.round,

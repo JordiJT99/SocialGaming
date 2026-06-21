@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PROPHET - Fantasy Football</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Shared Components Logic & Tailwind Config -->
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-dim": "#d9dadb",
+                "on-error-container": "#93000a",
+                "primary-fixed": "#99f5cf",
+                "tertiary-fixed-dim": "#e3c600",
+                "error": "#ba1a1a",
+                "surface-container-low": "#f3f4f5",
+                "secondary-container": "#e2e2e5",
+                "on-secondary-container": "#636467",
+                "surface-variant": "#e1e3e4",
+                "surface-container-lowest": "#ffffff",
+                "surface-bright": "#f8f9fa",
+                "on-tertiary-container": "#4a3f00",
+                "secondary-fixed": "#e2e2e5",
+                "on-tertiary": "#ffffff",
+                "tertiary": "#6d5e00",
+                "tertiary-container": "#c4ab00",
+                "inverse-primary": "#7dd8b4",
+                "on-primary-fixed": "#002116",
+                "secondary": "#5d5e61",
+                "on-tertiary-fixed-variant": "#524600",
+                "on-surface-variant": "#3e4944",
+                "on-primary-fixed-variant": "#00513b",
+                "on-primary": "#ffffff",
+                "inverse-on-surface": "#f0f1f2",
+                "primary-fixed-dim": "#7dd8b4",
+                "error-container": "#ffdad6",
+                "on-surface": "#191c1d",
+                "on-secondary-fixed": "#1a1c1e",
+                "primary-container": "#007355",
+                "surface-container-highest": "#e1e3e4",
+                "primary": "#005840",
+                "surface-container-high": "#e7e8e9",
+                "inverse-surface": "#2e3132",
+                "on-secondary-fixed-variant": "#454749",
+                "on-secondary": "#ffffff",
+                "surface-tint": "#006c4f",
+                "on-tertiary-fixed": "#211b00",
+                "surface": "#f8f9fa",
+                "background": "#f8f9fa",
+                "surface-container": "#edeeef",
+                "on-error": "#ffffff",
+                "on-background": "#191c1d",
+                "on-primary-container": "#9af5cf",
+                "outline-variant": "#bec9c2",
+                "tertiary-fixed": "#ffe249",
+                "outline": "#6e7a73",
+                "secondary-fixed-dim": "#c6c6c9"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+        },
+        "spacing": {
+                "margin-mobile": "1rem",
+                "stack-lg": "1.5rem",
+                "stack-xs": "0.25rem",
+                "stack-md": "1rem",
+                "container-max": "1280px",
+                "stack-sm": "0.5rem",
+                "gutter": "1rem",
+                "margin-desktop": "2rem"
+        },
+        "fontFamily": {
+                "display-lg": ["Inter"],
+                "body-md": ["Inter"],
+                "label-sm": ["Inter"],
+                "headline-lg": ["Inter"],
+                "headline-md": ["Inter"],
+                "headline-lg-mobile": ["Inter"]
+        },
+        "fontSize": {
+                "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+    body {
+        background-color: #f8f9fa;
+        color: #191c1d;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .pitch-gradient {
+        background-color: #ffffff;
+        background-image: 
+            linear-gradient(rgba(0, 115, 85, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 115, 85, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        border: 1px solid #bec9c2;
+        border-radius: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pitch-line {
+        position: absolute;
+        border: 1px solid rgba(0, 115, 85, 0.1);
+        pointer-events: none;
+    }
+
+    .center-circle {
+        width: 140px;
+        height: 140px;
+        border: 1px solid rgba(0, 115, 85, 0.1);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .player-card-shadow {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface-container-lowest border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzWi5UqGcVVY1fa_A_iFapVW4tKaKn6XdLFUSxsEfPwadKM9_EG8Rx2sqhhA5ffj-HW_vOam2P_U0FSrm1LQCoruW2yMpMiLgSIn6J9NMQTZCYhpdwbnrLSu1I0y_H4zlpPJY22CK2JwM4onbk7AGkAammC7EcMzBjVT5rwuN-GO10EPvngoCY20f69cwFUgVwyBTA5hsR8PS-MZ8jbCeUMyo6ntnTi_ecywOVzrU5etdmlQqByrn9E5jz9e6Gvx9xMDKDWJtzvYw"/>
+</div>
+<h1 class="font-display-lg text-headline-md font-extrabold text-primary tracking-tight">PROPHET</h1>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-bold text-label-sm text-on-surface">540</span>
+</div>
+</header>
+<!-- Sub-tabs -->
+<div class="fixed top-16 left-0 w-full z-40 bg-surface-container-lowest flex border-b border-outline-variant overflow-x-auto no-scrollbar">
+<button class="flex-1 py-3 px-6 text-primary border-b-2 border-primary font-label-sm whitespace-nowrap">Mi Equipo</button>
+<button class="flex-1 py-3 px-6 text-on-surface-variant font-label-sm whitespace-nowrap hover:text-on-surface">Mercado</button>
+<button class="flex-1 py-3 px-6 text-on-surface-variant font-label-sm whitespace-nowrap hover:text-on-surface">Estadísticas</button>
+<button class="flex-1 py-3 px-6 text-on-surface-variant font-label-sm whitespace-nowrap hover:text-on-surface">Premios</button>
+</div>
+<!-- Main Content -->
+<main class="flex-grow pt-32 pb-32 px-4 max-w-container-max mx-auto w-full">
+<!-- Dashboard Header -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
+<div>
+<h2 class="font-headline-lg-mobile text-on-surface mb-1">Mi Equipo</h2>
+<div class="flex items-center gap-2">
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 rounded font-label-sm">JORNADA 24</span>
+<span class="text-on-surface-variant font-body-md">En vivo</span>
+</div>
+</div>
+<div class="flex gap-3 w-full md:w-auto">
+<div class="flex-1 md:flex-initial bg-surface-container-lowest p-3 rounded-xl border border-outline-variant flex flex-col">
+<span class="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider">Valoración</span>
+<span class="text-primary font-bold text-headline-md">124 PTS</span>
+</div>
+<div class="flex-1 md:flex-initial bg-surface-container-lowest p-3 rounded-xl border border-outline-variant flex flex-col relative">
+<div class="absolute top-2 right-2 w-5 h-5 bg-error text-white flex items-center justify-center rounded-full text-[10px] font-bold">2</div>
+<span class="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider">Cambios</span>
+<span class="text-on-surface font-bold text-headline-md">Libres</span>
+</div>
+</div>
+</div>
+<!-- Pitch Area -->
+<div class="pitch-gradient w-full aspect-[3/4] md:aspect-[16/9] flex flex-col justify-between py-6 px-2 md:px-8 shadow-sm">
+<!-- Tactical Lines -->
+<div class="center-circle"></div>
+<div class="pitch-line w-full top-1/2 left-0"></div>
+<div class="pitch-line w-40 h-24 top-0 left-1/2 -translate-x-1/2 border-t-0"></div>
+<div class="pitch-line w-40 h-24 bottom-0 left-1/2 -translate-x-1/2 border-b-0"></div>
+<!-- Formation Layout (4-3-3) -->
+<!-- Forwards -->
+<div class="flex justify-around items-center z-10">
+<!-- Player -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="relative">
+<div class="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow group-hover:border-primary transition-colors">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFtXhlGJOExvdeUP83ZPsxIn2O9vpJOsOBLbhzdz_vdVioLHPRuWLl-l6UTR2RiIxKeSiil74MwkW-dKxZHDSr_sEM2Vas6A-PS_ePxTLC-gH4RjgiyJSQE_kWtnIMXjSk6SGaHAbL4JgxZp1dO6M3JgCcT0CpH47sCS8ULNPBxiEEPIyKxFl5CCmBTWFZvxfFjZZndvL9pk_NLndpN7T98sHIlZOuIMWt54li972wwFC33Nef2fOY174FA13Ca0ZwhF_M46Jjf0c"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary text-on-primary px-1 rounded-sm font-bold text-[9px]">99</div>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[70px]">
+<p class="font-bold text-[11px] text-on-surface truncate">Vini Jr.</p>
+<p class="text-[10px] text-primary font-bold">14 pts</p>
+</div>
+</div>
+<!-- Player -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="relative">
+<div class="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-white border-2 border-primary overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-d-fFMNYl3AUjK0CrRd0sIbbDs2nrzk3EH-fVly9QUogWpqta_IHkAsmV0kLsfQ1GXRaJHXJ1rIrCeRXrOoIgXtZ8z1zPyvPhVdUxDriKfRNw1C_6cIb1kRwVKPMTc7vVT26T43t-eDrgw4ACfne-zdF9vvCdG3202MGUpNiDKybbOOCeJE9g_ot_IBH7_rPHUzT7xxi8-Rol2fKEuddIbxWqexJOzB08W0TjK2q73T2GZ3eAtZFTS0lokIESyA4MfCFovrsoVNw"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-primary text-on-primary px-1 rounded-sm font-bold text-[9px]">82</div>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[70px]">
+<p class="font-bold text-[11px] text-on-surface truncate">Haaland</p>
+<p class="text-[10px] text-primary font-bold">8 pts</p>
+</div>
+</div>
+<!-- Player -->
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="relative">
+<div class="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABn56WZ2XEYtQGYppWRjvuHXmOHWdq7snFqGtwnP3gqTo0CsQ-Bgc_FlBr_z5Uqex84NvGNvySItE_hBh9nnFBVtYQaLcH-yRPpiEEPb6ST6qde-8SozIft3mgaIKWupAeYflHTlh6Qky-QpubNdehRRZdpuTgQRj2aeBye4IW96Ld43wtJc-IDCTsZjVBdVKA2F1zJhDuWCMUh_UowtO88WhpM2fVMyz9Hs7iEDqd9MLLX3eVsgv9W2sSNa0j1SldWsCVo5ycwV4"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-secondary text-white px-1 rounded-sm font-bold text-[9px]">45</div>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[70px]">
+<p class="font-bold text-[11px] text-on-surface truncate">Salah</p>
+<p class="text-[10px] text-on-surface-variant">2 pts</p>
+</div>
+</div>
+</div>
+<!-- Midfield -->
+<div class="flex justify-around items-center z-10">
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxiYPOQfJWIg0h-Upjwgpri4mpxlzDWXmyw7n9FbjwXc7KwYugJ6fTYi24JyXNEAMtpIVnprThUgxK4n8cYpBzzAkb262EjTtXVtijU9Wx4o_5XJULPe0CRWt2buhVilQkjW2au4jTfk2d6M7GXVVrx8Am-bosRGDRS5uu4TcVpYcm6Hns38n5Wn-zECAX000YURbZa4RkLcfyw8vUMZF6TAzf6pnEqSXAvMz2N5cj4jT-UrXEsOOFHzActhASlvaO4o0i_738L9A"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[10px] text-on-surface truncate">Bellingham</p>
+<p class="text-[9px] text-primary font-bold">6 pts</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border-2 border-primary overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxQ8hYUXzM49s91OWcTi5VZZIAmj27LzOPfIinW4cBLOcP9EwV8K0tgVnbxbEPtTwW5SoQ_i6Q09DHdlT0HTC_IWhOVzDJQU3UFl5G_ZFwLgDk4cEleYohlYuxRzZ0437aeZWjtWDDdYMTHCDM-vwIoab3E86w39bQ53RCFPoRwpIEoAHmkqlu_o8Rz8f-lorWRlrYnChlGmegipvcgZibS2g_EQqAXBVBhfDsOG-a5OmQigfrf6LSsa2E5iXJtL9jOaU5TJJqWa4"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[10px] text-on-surface truncate">De Bruyne</p>
+<p class="text-[9px] text-primary font-bold">10 pts</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBywpGApQ-fmGo2TrHcwefnrlYU8sRzky4R8ryT_LLlCRxS1L8Q9GzQQ3whc7c36IpLnLLzlR320jmQvdfAeXjbdkdxA5pTh3icxubU26kCX8NbcitLhjtg4lerwlDOG6u0zWxBUCVUZbt8PEQFF9jEQ5wseikKVdI2aLRvzOwscqBbm2FLGfB6UA0YUPlSuJOcS_rQKfQsDGmdESKHKhIwZdjPFt9JQC5xwDAs62JSyNIqGCowCqcfZxthigkvsJjEnpcfPUB6CMM"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[10px] text-on-surface truncate">Rodri</p>
+<p class="text-[9px] text-on-surface-variant">3 pts</p>
+</div>
+</div>
+</div>
+<!-- Defense -->
+<div class="flex justify-around items-center z-10">
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-dQZ5IcAr0aRjAZo-nBEsxOD27n-3J-KEkEhNi7G49Mx9mLbhpk0FnVxdwxUw5cubA0q1kPHFJBRqlIpZ2D_1YU-Q2bASM0hqsG_Bsa0Ocn--NR3C6PMc21sKDddLLXJkezcKGAWobVclx6rauqYMhBZV5ieXZK3oU64JC0JPzs0Jz2AaiGT7Wg-s72bvCn6oAkX_x7XGYHzFXQOS1xFZ-h_WqVppWLuQ7b0KYHYqcqcUKebJqlEpjXu8KCC8ca75wT2vq4bsojo"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[9px] text-on-surface truncate">Van Dijk</p>
+<p class="text-[8px] text-primary font-bold">5 pts</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuvnWoPLyqR8AKzVVBeOL8kBaK_6jaaAp7P3-Si4qWrnb8gJg5E3fMmP9nB_RtiQwmWDrwsK6sMbKZLme6HwzgQwTchSP8feCZVgZZ7FDtA0SO1IpI4lPCHPT5flJBtk4QCbRWp1sOEbkEvBffnP6l86vZAGsmehINPgjaDVrDKKfwytdO1HOwkPOkcqrZHF5cD6MlkXW9WhRHoRcy3x70ugjsPksX2qIxGpvkzwtxB3yywZdhNXOKeDVDWZE_SiV5JSotm7NlPCA"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[9px] text-on-surface truncate">Araujo</p>
+<p class="text-[8px] text-primary font-bold">7 pts</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPqPcvkB_SChmDpPrRAiHr81QBtxIOLzLWZ6NbzNPMA9BDRhK4Gnk3oNXL90ZwoyhGZJTN8Mw472mcytfkwXfIUTwDnGVoxV9Y8U2N_aUn6_FQ7WIUQ8WLKd1ZmaI2iZ7-GGyeyDYp9ls9tbu37tQ7u4s89ZsW06iewtnDO_2AJKC-wL3IXsvoGRAOpTbSXG0BEZJR5xJAVacV_uMRyPdFrJZJMo07irLfLPR8idTGxGSggjSmmunIv1OX1fq7TsXils0wceHvSP0"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[9px] text-on-surface truncate">Walker</p>
+<p class="text-[8px] text-on-surface-variant">2 pts</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white border border-outline-variant overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi4i8w2gajcgEVXXdr6fMJE0vNHdyYPKwnIGBtQZkXkBgGR60ZFY4BhKMd59w4wpQdBlXtTL-0hYMu4QphXVSx534umBqGaHAcylng6e9jnrSxA5BeAy1NMoIL72yz9wLA1-y7cDXgzfIlBdZpjmuceTau29PdmzIOizAjYV2JNDI64x2cNKetWNyAlghtSjB0olreAds_6ZIuxwLYQ1rmZP6r1F8lgOMYMMG79n_CT3tIZmiYFFZByoZ_hQa0UKNE8-7PLQHeER8"/>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[60px]">
+<p class="font-bold text-[9px] text-on-surface truncate">Davies</p>
+<p class="text-[8px] text-on-surface-variant">4 pts</p>
+</div>
+</div>
+</div>
+<!-- GK -->
+<div class="flex justify-center items-center z-10 pb-4">
+<div class="flex flex-col items-center gap-1 group cursor-pointer">
+<div class="relative">
+<div class="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-white border-2 border-primary overflow-hidden player-card-shadow">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYAPbQLPzeEvaENzSDW7h6JgC07YKI4nC1Tq4w3F1xcWN5B91qM3-rcr92jk7qRgcfRzqxVN5u1xLnLWkXavZdZhw55eJZjZljvGoXK3Pn0O60LH3MpGs1L3_q6bCOzIYDLz20DPP1iZ6CahnM3XaFrAfxmwXbPyrUu-b9rRgV9ikWxV3cqMhopRbu0nIabGLY-XDBynwc9TwpwEBlyYc2MuHCJ590TfFAEZUP_LwUo4zUFcddVwx3a-fdlY94uVAlA7MdgUoe0qE"/>
+</div>
+<div class="absolute -top-1 -left-1 bg-primary text-white p-0.5 rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[12px]">shield</span>
+</div>
+</div>
+<div class="bg-white px-2 py-0.5 rounded border border-outline-variant text-center min-w-[70px]">
+<p class="font-bold text-[10px] text-on-surface truncate">Ter Stegen</p>
+<p class="text-[9px] text-primary font-bold">9 pts</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bench Section -->
+<div class="mt-8">
+<div class="flex items-center justify-between mb-4 px-1">
+<h3 class="font-headline-md text-on-surface">Banquillo</h3>
+<button class="text-primary font-label-sm flex items-center gap-1 hover:underline">
+                    Gestionar <span class="material-symbols-outlined text-sm">settings</span>
+</button>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+<!-- Bench Player Card -->
+<div class="flex-shrink-0 w-24 bg-surface-container-lowest p-2 rounded-xl border border-outline-variant flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant bg-surface-container">
+<img class="w-full h-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCylarzUUYWAmCb72empSkEn_-KbIGCSscujS59xEfXe5gSING5jdjY99y9wp9JQ0wPF-hK_3HnZvuqJ40mDOF2u5YAeeJXQRJilom7V4a9IY5hewJrhNV2NBKS3zDM57iqxyX6MqgZ2XtSxkIaCAcO1XetnbOGVmTl4TSoN7CMegRjNjs46VH_YthcMDLUjF3OpTslxcrYZyAsCrihM-j9kzgdcSPwG2FBozy8fz4QrU2lxlGV02iQiN4hUgdEw06ZlgeEN8iqyEE"/>
+</div>
+<div class="text-center">
+<p class="font-bold text-[11px] text-on-surface">Courtois</p>
+<p class="text-[10px] text-on-surface-variant font-medium">POR</p>
+</div>
+</div>
+<div class="flex-shrink-0 w-24 bg-surface-container-lowest p-2 rounded-xl border border-outline-variant flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant bg-surface-container">
+<img class="w-full h-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_m5MdSbcC3yCAEiZvBaHm8EueQia0yuLjjBBSfeB-WmVDoHnRqMDyck7ywUHqVbY5sct5WU73BZMybnS5sMpjngpUax3hzXDIX3QRQnKxIczsDAW-7uGYfVOn5fy715KUriF3l74L_wCwyGEgIJD8peFeKNI-INr_OCj7HEDMxQjlgn6XVq8gOCZIEoDCKHAq5qxvXbFJxG-L0lgPXbrXUl1EcVJH4cQ7NC7eBg1gQjAAhnmIiC5MRxAUZ-nBnFiUqNAlTLOmyVc"/>
+</div>
+<div class="text-center">
+<p class="font-bold text-[11px] text-on-surface">Kimmich</p>
+<p class="text-[10px] text-on-surface-variant font-medium">MED</p>
+</div>
+</div>
+<div class="flex-shrink-0 w-24 bg-surface-container-lowest p-2 rounded-xl border border-outline-variant flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant bg-surface-container">
+<img class="w-full h-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjqAWk7wSssZRsRqfgFipcWUo5LCiKCM8m0eQn9mjD7AwBuagyaliEpT7F_X2KiIFmTQn7yeoUzrG-pxcxSM83r24EASs9gjPXnf-pUj5d1rFE_NTix6rhYfi362jMCRr5KknjsEWSYRFZr14_rlxv9njvrhOhRDbQbyqaAvdPiF6kNT0gkU_ZCYOL4v_GhtmrJ4oidEBbMVDbIrFpq_u6XbWYE-WMiD652EeZCmRLDgzr61X19V55QMJP79mXSnh4dG_OJcpcyKs"/>
+</div>
+<div class="text-center">
+<p class="font-bold text-[11px] text-on-surface">Foden</p>
+<p class="text-[10px] text-on-surface-variant font-medium">DEL</p>
+</div>
+</div>
+<!-- Add Slot -->
+<div class="flex-shrink-0 w-24 h-[104px] rounded-xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-outline text-[24px]">add_circle</span>
+<span class="font-bold text-[10px] text-outline uppercase tracking-wider">Fichar</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-20 bg-surface-container-lowest border-t border-outline-variant shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[11px] font-bold mt-1">Inicio</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[11px] font-bold mt-1">Análisis</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary px-4 py-1 relative" href="#">
+<span class="material-symbols-outlined" data-icon="sports_soccer" style="font-variation-settings: 'FILL' 1;">sports_soccer</span>
+<span class="text-[11px] font-extrabold mt-1">Fantasy</span>
+<div class="absolute -top-1 w-6 h-1 bg-primary rounded-full"></div>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+<span class="text-[11px] font-bold mt-1">Ligas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[11px] font-bold mt-1">Perfil</span>
+</a>
+</nav>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-xl shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</button>
+<script>
+    // Micro-interactions for player items
+    document.querySelectorAll('.cursor-pointer').forEach(el => {
+        el.addEventListener('mousedown', () => el.classList.add('scale-95'));
+        el.addEventListener('mouseup', () => el.classList.remove('scale-95'));
+        el.addEventListener('mouseleave', () => el.classList.remove('scale-95'));
+    });
+</script>
+</body></html>

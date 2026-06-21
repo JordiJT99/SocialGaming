@@ -1,0 +1,263 @@
+import { DatabaseSync } from "node:sqlite";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+const DB_PATH = resolve("data/playfulbet.db");
+mkdirSync(dirname(DB_PATH), { recursive: true });
+
+export const db = new DatabaseSync(DB_PATH);
+db.exec(`
+  PRAGMA journal_mode = WAL;
+  PRAGMA foreign_keys = ON;
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    points INTEGER NOT NULL DEFAULT 1500 CHECK(points >= 0),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS predictions (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    match_id TEXT NOT NULL,
+    selection TEXT NOT NULL CHECK(selection IN ('1', 'X', '2')),
+    points_bet INTEGER NOT NULL CHECK(points_bet > 0),
+    points_won INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS leagues (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL UNIQUE,
+    created_by INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS league_members (
+    league_id INTEGER NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (league_id, user_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS transactions (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS api_cache (
+    cache_key TEXT PRIMARY KEY,
+    status_code INTEGER NOT NULL,
+    headers TEXT NOT NULL,
+    body BLOB NOT NULL,
+    saved_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS sports_events (
+    event_id TEXT PRIMARY KEY,
+    sport TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    odds_payload TEXT,
+    odds_updated_at INTEGER,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS sports_sync (
+    sport TEXT PRIMARY KEY,
+    synced_at INTEGER NOT NULL,
+    blocked_until INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS odds_history (
+    id INTEGER PRIMARY KEY,
+    event_id TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS api_usage (
+    id INTEGER PRIMARY KEY,
+    endpoint TEXT NOT NULL,
+    sport TEXT NOT NULL,
+    status_code INTEGER NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+
+`);
+
+const columns = db.prepare("PRAGMA table_info(sports_events)").all().map((column) => column.name);
+if (!columns.includes("odds_updated_at")) {
+  db.exec("ALTER TABLE sports_events ADD COLUMN odds_updated_at INTEGER");
+}
+const syncColumns = db.prepare("PRAGMA table_info(sports_sync)").all().map((column) => column.name);
+if (!syncColumns.includes("blocked_until")) {
+  db.exec("ALTER TABLE sports_sync ADD COLUMN blocked_until INTEGER NOT NULL DEFAULT 0");
+}
+db.exec(`
+  CREATE INDEX IF NOT EXISTS idx_sports_events_sport ON sports_events(sport);
+  CREATE INDEX IF NOT EXISTS idx_sports_events_odds_age ON sports_events(sport, odds_updated_at);
+  CREATE INDEX IF NOT EXISTS idx_odds_history_event_time ON odds_history(event_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_api_usage_time ON api_usage(created_at DESC);
+`);
+
+const hashPassword = (password, salt = randomBytes(16).toString("hex")) =>
+  `${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
+
+const verifyPassword = (password, stored) => {
+  const [salt, hash] = stored.split(":");
+  const actual = scryptSync(password, salt, 64);
+  return timingSafeEqual(actual, Buffer.from(hash, "hex"));
+};
+
+const publicUser = (user) => user && ({
+  id: String(user.id),
+  username: user.username,
+  email: user.email,
+  points: user.points,
+  joinedAt: user.created_at,
+});
+
+export function createUser(username, email, password) {
+  const result = db.prepare(
+    "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
+  ).run(username.trim(), email.trim().toLowerCase(), hashPassword(password));
+  return publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid));
+}
+
+export function authenticate(email, password) {
+  const user = db.prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").get(email.trim());
+  return user && verifyPassword(password, user.password_hash) ? publicUser(user) : null;
+}
+
+export function createSession(userId) {
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+  db.prepare("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)").run(token, userId, expiresAt);
+  return { token, expiresAt };
+}
+
+export function getSessionUser(token) {
+  if (!token) return null;
+  db.prepare("DELETE FROM sessions WHERE expires_at <= ?").run(Date.now());
+  return publicUser(db.prepare(`
+    SELECT users.* FROM sessions
+    JOIN users ON users.id = sessions.user_id
+    WHERE sessions.token = ? AND sessions.expires_at > ?
+  `).get(token, Date.now()));
+}
+
+export const deleteSession = (token) =>
+  token && db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+
+export function getApiCache(key, maxAge) {
+  return db.prepare(
+    "SELECT status_code, headers, body FROM api_cache WHERE cache_key = ? AND saved_at > ?",
+  ).get(key, Date.now() - maxAge);
+}
+
+export function setApiCache(key, statusCode, headers, body) {
+  db.prepare(`
+    INSERT INTO api_cache (cache_key, status_code, headers, body, saved_at)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(cache_key) DO UPDATE SET
+      status_code = excluded.status_code,
+      headers = excluded.headers,
+      body = excluded.body,
+      saved_at = excluded.saved_at
+  `).run(key, statusCode, JSON.stringify(headers), body, Date.now());
+}
+
+export const getSportSync = (sport) =>
+  db.prepare("SELECT synced_at, blocked_until FROM sports_sync WHERE sport = ?").get(sport)
+  || { synced_at: 0, blocked_until: 0 };
+
+export const setSportSync = (sport, blockedUntil = 0) =>
+  db.prepare(`
+    INSERT INTO sports_sync (sport, synced_at, blocked_until) VALUES (?, ?, ?)
+    ON CONFLICT(sport) DO UPDATE SET
+      synced_at = excluded.synced_at,
+      blocked_until = excluded.blocked_until
+  `).run(sport, Date.now(), blockedUntil);
+
+export function saveSportsEvents(sport, events) {
+  const current = db.prepare("SELECT payload FROM sports_events WHERE event_id = ?");
+  const save = db.prepare(`
+    INSERT INTO sports_events (event_id, sport, payload, updated_at)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(event_id) DO UPDATE SET payload = excluded.payload, updated_at = excluded.updated_at
+  `);
+  for (const event of events) {
+    const payload = JSON.stringify(event);
+    if (current.get(String(event.id))?.payload !== payload) {
+      save.run(String(event.id), sport, payload, Date.now());
+    }
+  }
+}
+
+export const getEventsNeedingOdds = (sport, maxAge) =>
+  db.prepare(`
+    SELECT event_id FROM sports_events
+    WHERE sport = ?
+      AND (odds_payload IS NULL OR odds_updated_at < ?)
+      AND json_extract(payload, '$.status') IN ('pending', 'live')
+    ORDER BY updated_at DESC
+  `).all(sport, Date.now() - maxAge).map((row) => row.event_id);
+
+export function saveEventOdds(events) {
+  const current = db.prepare("SELECT odds_payload FROM sports_events WHERE event_id = ?");
+  const save = db.prepare(
+    "UPDATE sports_events SET odds_payload = ?, odds_updated_at = ? WHERE event_id = ?",
+  );
+  const history = db.prepare(
+    "INSERT INTO odds_history (event_id, payload, created_at) VALUES (?, ?, ?)",
+  );
+  for (const event of events) {
+    const id = String(event.id);
+    const payload = JSON.stringify(event);
+    if (current.get(id)?.odds_payload !== payload) {
+      history.run(id, payload, Date.now());
+    }
+    save.run(payload, Date.now(), id);
+  }
+}
+
+export const getStoredSportsEvents = (sport) =>
+  db.prepare(`
+    SELECT payload, odds_payload FROM sports_events
+    WHERE sport = ?
+    ORDER BY json_extract(payload, '$.date')
+  `).all(sport).map((row) => JSON.parse(row.odds_payload || row.payload));
+
+export const recordApiUsage = (endpoint, sport, statusCode, durationMs) =>
+  db.prepare(`
+    INSERT INTO api_usage (endpoint, sport, status_code, duration_ms, created_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(endpoint, sport, statusCode, durationMs, Date.now());
+
+export function cleanupSportsData() {
+  const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  db.prepare("DELETE FROM odds_history WHERE created_at < ?").run(ninetyDaysAgo);
+  db.prepare("DELETE FROM api_usage WHERE created_at < ?").run(ninetyDaysAgo);
+  db.prepare(`
+    DELETE FROM sports_events
+    WHERE updated_at < ? AND json_extract(payload, '$.status') = 'settled'
+  `).run(sevenDaysAgo);
+}

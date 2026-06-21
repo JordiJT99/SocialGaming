@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#d9dadb",
+                    "on-secondary-fixed": "#1a1c1e",
+                    "primary-fixed": "#99f5cf",
+                    "secondary-fixed": "#e2e2e5",
+                    "on-background": "#191c1d",
+                    "on-secondary-container": "#636467",
+                    "surface-container": "#edeeef",
+                    "on-primary-fixed": "#002116",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#211b00",
+                    "secondary": "#5d5e61",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-tint": "#006c4f",
+                    "primary-fixed-dim": "#7dd8b4",
+                    "inverse-primary": "#7dd8b4",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#f3f4f5",
+                    "primary": "#005840",
+                    "primary-container": "#007355",
+                    "tertiary-container": "#c4ab00",
+                    "secondary-container": "#e2e2e5",
+                    "on-primary-container": "#9af5cf",
+                    "surface-variant": "#e1e3e4",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#00513b",
+                    "background": "#f8f9fa",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c6c6c9",
+                    "outline": "#6e7a73",
+                    "on-secondary-fixed-variant": "#454749",
+                    "on-surface-variant": "#3e4944",
+                    "surface-container-highest": "#e1e3e4",
+                    "inverse-surface": "#2e3132",
+                    "surface-container-high": "#e7e8e9",
+                    "on-tertiary-fixed-variant": "#524600",
+                    "on-tertiary-container": "#4a3f00",
+                    "tertiary-fixed-dim": "#e3c600",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f8f9fa",
+                    "tertiary-fixed": "#ffe249",
+                    "on-surface": "#191c1d",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#bec9c2",
+                    "surface": "#f8f9fa",
+                    "tertiary": "#6d5e00"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-lg": "1.5rem",
+                    "container-max": "1280px",
+                    "stack-xs": "0.25rem",
+                    "stack-md": "1rem",
+                    "margin-desktop": "2rem",
+                    "gutter": "1rem",
+                    "stack-sm": "0.5rem",
+                    "margin-mobile": "1rem"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "odds-display": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "odds-display": ["15px", {"lineHeight": "16px", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-scale:active { transform: scale(0.95); }
+        .achievement-ring {
+            position: relative;
+            padding: 4px;
+            background: linear-gradient(135deg, #ffe249 0%, #c4ab00 100%);
+            border-radius: 9999px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24 md:pb-0">
+<!-- Top AppBar (from Shared Components) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flat no shadows">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a high-performance athlete in a minimalist environment. The lighting is focused and cinematic with deep forest green shadows and crisp white highlights, reflecting a corporate and authoritative sports brand identity. The user has a confident expression, symbolizing precision and mastery in sports analytics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjoGbhSjQNKP-ntpJa1tOIND2AbTIqs3ks6pkiqrv52WlXWYirVqjA8sjCJ-rHAurtLVmuXi4xSo04b1EQhqWsKwbJBJbdqG8Z8EMaGtHHIfvuG-f_8YNBJTnAAnWyRHktcNd5jc1v9rlAZw3Aqz02t5zIqnzJH_w5e-wNWLKyAyPIpxNDKTRBS7SZ4BXPob38fiuDgSvZoRCGMCQfM-yYa9EsI00f_UlJ11KfYnBo5caY8yRGKjHruOAsItxUw9tr6rHXEwYhqsY"/>
+</div>
+<h1 class="font-display-lg text-headline-lg-mobile md:text-display-lg font-extrabold text-primary dark:text-primary tracking-tighter">PROPHET</h1>
+</div>
+<button class="flex items-center gap-2 px-3 py-1 bg-surface-container-high rounded-full active:scale-95 transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-tertiary">monetization_on</span>
+<span class="font-label-sm text-on-surface-variant">540 Coins</span>
+</button>
+</header>
+<main class="max-w-container-max mx-auto px-margin-mobile pt-24 md:pt-32 pb-12">
+<!-- Profile Header Section -->
+<section class="flex flex-col md:flex-row items-center md:items-end justify-between gap-stack-lg mb-stack-lg">
+<div class="flex flex-col md:flex-row items-center gap-6">
+<div class="relative">
+<div class="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-primary p-1 bg-surface">
+<div class="w-full h-full rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close up of a modern digital user avatar set against a clean, technical background with subtle grid lines. The lighting is professional and high-key, using the brand's signature forest green and slate grey tones. The overall aesthetic is precision-driven and high-performance, resembling a high-end fintech trading platform profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqfjQ0LbCp3GEAuquHyAOkj2bPEhQQJh1Yt0jrjhiJGHxlQONkfJozr5YKKR3DVuTjkN-6PP7VB_lgfW0ZAfpb6LSL90z2M7h1o-Le-p8OLV6ovzoMyAWmCpsS_QaPwypExg56ZR2PJIZXqSu_SxUG8Id7viQ_59KU_Ykr8WAzvaBUa5cJR5m3NUWe__xwHK5Fo4LbSZW9Qm5s4pn_P9BWgOptrhZi9_KOyOqrlx3rRl9ATSuXmB4chqqS_jdX_DMWWsv8ach61rY"/>
+</div>
+</div>
+<div class="absolute bottom-1 right-1 bg-tertiary text-on-tertiary w-10 h-10 rounded-full flex items-center justify-center border-4 border-surface shadow-md">
+<span class="font-bold text-body-md">24</span>
+</div>
+</div>
+<div class="text-center md:text-left">
+<h2 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-1">Adrian Vega</h2>
+<p class="font-body-md text-on-surface-variant flex items-center justify-center md:justify-start gap-2">
+<span class="material-symbols-outlined text-body-md" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        Analista Pro • Miembro desde 2023
+                    </p>
+</div>
+</div>
+<button class="w-full md:w-auto px-8 py-3 bg-primary text-on-primary rounded-xl font-semibold flex items-center justify-center gap-2 active-scale transition-all shadow-sm">
+<span class="material-symbols-outlined">edit</span>
+                Editar Perfil
+            </button>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-stack-lg">
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl flex flex-col justify-between h-32">
+<span class="font-label-sm text-secondary uppercase tracking-wider">Acierto</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-primary">68.4</span>
+<span class="text-body-md text-primary font-semibold">%</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl flex flex-col justify-between h-32">
+<span class="font-label-sm text-secondary uppercase tracking-wider">Racha Actual</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-lg text-tertiary">W5</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl flex flex-col justify-between h-32">
+<span class="font-label-sm text-secondary uppercase tracking-wider">Predicciones</span>
+<span class="font-headline-lg text-on-surface">1,248</span>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl flex flex-col justify-between h-32">
+<span class="font-label-sm text-secondary uppercase tracking-wider">ROI</span>
+<div class="flex items-baseline gap-1 text-primary">
+<span class="font-headline-lg">+12.4</span>
+<span class="text-body-md font-semibold">%</span>
+</div>
+</div>
+</section>
+<!-- Achievements & Recent Activity -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-stack-lg">
+<!-- Achievements Showcase -->
+<div class="lg:col-span-1 space-y-stack-md">
+<h3 class="font-headline-md text-on-surface px-1">Vitrina de Logros</h3>
+<div class="bg-surface-container-low border border-outline-variant p-6 rounded-xl">
+<div class="grid grid-cols-3 gap-4">
+<div class="flex flex-col items-center gap-2 group">
+<div class="achievement-ring active-scale cursor-pointer">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+</div>
+<span class="font-label-sm text-on-surface-variant text-center">Elite</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-50 grayscale">
+<div class="p-1 rounded-full border-2 border-outline-variant">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl">workspace_premium</span>
+</div>
+</div>
+<span class="font-label-sm text-on-surface-variant text-center">100 Wins</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="achievement-ring active-scale cursor-pointer" style="background: linear-gradient(135deg, #c6c6c9 0%, #454749 100%);">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</div>
+<span class="font-label-sm text-on-surface-variant text-center">On Fire</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="achievement-ring active-scale cursor-pointer" style="background: linear-gradient(135deg, #99f5cf 0%, #005840 100%);">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+</div>
+</div>
+<span class="font-label-sm text-on-surface-variant text-center">Oracle</span>
+</div>
+<div class="flex flex-col items-center justify-center border-2 border-dashed border-outline-variant rounded-full w-16 h-16 mx-auto">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity -->
+<div class="lg:col-span-2 space-y-stack-md">
+<div class="flex justify-between items-center px-1">
+<h3 class="font-headline-md text-on-surface">Historial Reciente</h3>
+<button class="text-primary font-semibold font-body-md hover:underline">Ver Todo</button>
+</div>
+<div class="space-y-3">
+<!-- Won Activity -->
+<div class="bg-surface-container-lowest border-l-4 border-l-primary border-y border-r border-outline-variant p-4 rounded-r-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">sports_soccer</span>
+</div>
+<div>
+<p class="font-semibold text-on-surface">Real Madrid vs FC Barcelona</p>
+<p class="text-label-sm text-on-surface-variant">Resultado Final: Real Madrid Win</p>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-primary-container text-on-primary-container rounded font-odds-display text-xs mb-1">GANADO</span>
+<p class="font-odds-display text-primary">+142.50 Coins</p>
+</div>
+</div>
+<!-- Lost Activity -->
+<div class="bg-surface-container-lowest border-l-4 border-l-error border-y border-r border-outline-variant p-4 rounded-r-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">sports_basketball</span>
+</div>
+<div>
+<p class="font-semibold text-on-surface">Lakers vs Celtics</p>
+<p class="text-label-sm text-on-surface-variant">Over 220.5 Puntos</p>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-error-container text-on-error-container rounded font-odds-display text-xs mb-1">PERDIDO</span>
+<p class="font-odds-display text-error">-50.00 Coins</p>
+</div>
+</div>
+<!-- Won Activity -->
+<div class="bg-surface-container-lowest border-l-4 border-l-primary border-y border-r border-outline-variant p-4 rounded-r-xl flex items-center justify-between hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">sports_tennis</span>
+</div>
+<div>
+<p class="font-semibold text-on-surface">Nadal vs Djokovic</p>
+<p class="text-label-sm text-on-surface-variant">Nadal Gana 2-1</p>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block px-2 py-0.5 bg-primary-container text-on-primary-container rounded font-odds-display text-xs mb-1">GANADO</span>
+<p class="font-odds-display text-primary">+88.20 Coins</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (from Shared Components) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-safe h-20 bg-surface-container dark:bg-surface-container shadow-lg rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-label-sm text-label-sm">Predict</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">sports_soccer</span>
+<span class="font-label-sm text-label-sm">Fantasy</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:text-primary active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Leagues</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<!-- Desktop Sidebar Suggestion (Optional but fits Corporate style) -->
+<div class="hidden md:flex fixed left-0 top-16 h-[calc(100vh-64px)] w-64 bg-surface-container-low border-r border-outline-variant flex-col p-4">
+<div class="space-y-2">
+<div class="p-3 rounded-lg flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high cursor-pointer transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-semibold">Dashboard</span>
+</div>
+<div class="p-3 rounded-lg flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high cursor-pointer transition-colors">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-semibold">Mis Apuestas</span>
+</div>
+<div class="p-3 rounded-lg flex items-center gap-3 bg-primary-container text-on-primary-container font-semibold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span>Perfil Apex</span>
+</div>
+<div class="p-3 rounded-lg flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-high cursor-pointer transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-semibold">Ajustes</span>
+</div>
+</div>
+<div class="mt-auto bg-primary rounded-xl p-4 text-on-primary">
+<p class="font-label-sm uppercase opacity-80 mb-2">Siguiente Reto</p>
+<p class="font-bold mb-3">Gana 3 apuestas de Tenis seguidas</p>
+<div class="w-full bg-on-primary/20 h-1 rounded-full overflow-hidden">
+<div class="bg-on-primary h-full w-2/3"></div>
+</div>
+<p class="text-[10px] mt-2 text-right">2/3 completado</p>
+</div>
+</div>
+<script>
+        // Simple micro-interaction for achievement rings
+        document.querySelectorAll('.achievement-ring').forEach(ring => {
+            ring.addEventListener('mouseenter', () => {
+                ring.style.transform = 'translateY(-4px) scale(1.05)';
+                ring.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            });
+            ring.addEventListener('mouseleave', () => {
+                ring.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body></html>
