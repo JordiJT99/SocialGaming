@@ -209,6 +209,15 @@ export function saveSportsEvents(sport, events) {
       save.run(String(event.id), sport, payload, Date.now());
     }
   }
+
+  const keepIds = events.map((event) => String(event.id));
+  const placeholders = keepIds.map(() => "?").join(",") || "''";
+  db.prepare(`
+    DELETE FROM sports_events
+    WHERE sport = ?
+      AND json_extract(payload, '$.status') IN ('pending', 'live')
+      AND event_id NOT IN (${placeholders})
+  `).run(sport, ...keepIds);
 }
 
 export const getEventsNeedingOdds = (sport, maxAge) =>
@@ -217,7 +226,9 @@ export const getEventsNeedingOdds = (sport, maxAge) =>
     WHERE sport = ?
       AND (odds_payload IS NULL OR odds_updated_at < ?)
       AND json_extract(payload, '$.status') IN ('pending', 'live')
-    ORDER BY updated_at DESC
+    ORDER BY
+      CASE WHEN json_extract(payload, '$.status') = 'live' THEN 0 ELSE 1 END,
+      json_extract(payload, '$.date') ASC
   `).all(sport, Date.now() - maxAge).map((row) => row.event_id);
 
 export function saveEventOdds(events) {
@@ -245,19 +256,50 @@ export const getStoredSportsEvents = (sport) =>
     ORDER BY json_extract(payload, '$.date')
   `).all(sport).map((row) => JSON.parse(row.odds_payload || row.payload));
 
+export function getStoredSportsEvent(eventId) {
+  const row = db.prepare(`
+    SELECT payload, odds_payload, odds_updated_at
+    FROM sports_events
+    WHERE event_id = ?
+  `).get(String(eventId));
+  return row && {
+    event: JSON.parse(row.odds_payload || row.payload),
+    oddsUpdatedAt: row.odds_updated_at,
+  };
+}
+
 export const recordApiUsage = (endpoint, sport, statusCode, durationMs) =>
   db.prepare(`
     INSERT INTO api_usage (endpoint, sport, status_code, duration_ms, created_at)
     VALUES (?, ?, ?, ?, ?)
   `).run(endpoint, sport, statusCode, durationMs, Date.now());
 
+export const getApiUsageSince = (since) =>
+  db.prepare(`
+    SELECT sport, endpoint, COUNT(*) AS count
+    FROM api_usage
+    WHERE created_at >= ?
+    GROUP BY sport, endpoint
+    ORDER BY sport, endpoint
+  `).all(since);
+
+export const getSportsCoverage = () =>
+  db.prepare(`
+    SELECT sport, COUNT(*) AS events, SUM(odds_payload IS NOT NULL) AS with_odds
+    FROM sports_events
+    GROUP BY sport
+    ORDER BY sport
+  `).all();
+
 export function cleanupSportsData() {
   const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   db.prepare("DELETE FROM odds_history WHERE created_at < ?").run(ninetyDaysAgo);
   db.prepare("DELETE FROM api_usage WHERE created_at < ?").run(ninetyDaysAgo);
+  db.prepare("DELETE FROM api_cache WHERE saved_at < ?").run(sevenDaysAgo);
   db.prepare(`
     DELETE FROM sports_events
-    WHERE updated_at < ? AND json_extract(payload, '$.status') = 'settled'
+    WHERE updated_at < ?
+      AND json_extract(payload, '$.status') IN ('settled', 'finished')
   `).run(sevenDaysAgo);
 }

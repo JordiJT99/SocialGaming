@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { getCurrentUser, loadStore, makePrediction, saveStore } from "./data/store";
+import { getCurrentUser, loadStore, makePrediction, refundPrediction, resolvePrediction, saveStore } from "./data/store";
 import { fetchSportsData } from "./services/sportsData";
 import { fetchTheOddsData } from "./services/theOddsApi";
 import AppHeader from "./components/AppHeader";
@@ -26,10 +26,46 @@ export default function App() {
     loading: true,
     error: null,
   });
+  const [oddsStatus, setOddsStatus] = useState(null);
 
   useEffect(() => {
     saveStore(store);
   }, [store]);
+
+  useEffect(() => {
+    const finished = new Map(
+      sportsData.matches
+        .filter((match) => match.status === "finished" && match.result)
+        .map((match) => [match.id, match]),
+    );
+    if (!finished.size || !store.predictions.some((item) => item.status === "pending" && finished.has(item.matchId))) return;
+
+    setStore((previous) => {
+      const updated = {
+        ...previous,
+        users: previous.users.map((item) => ({ ...item })),
+        predictions: previous.predictions.map((item) => ({ ...item })),
+        transactions: [...previous.transactions],
+      };
+      updated.predictions
+        .filter((item) => item.status === "pending" && finished.has(item.matchId))
+        .forEach((item) => {
+          const match = finished.get(item.matchId);
+          resolvePrediction(updated, item.id, match.result, match.score);
+        });
+      return updated;
+    });
+  }, [sportsData.matches, store.predictions]);
+
+  const validatePrediction = useCallback(async ({ eventId, selection, offeredOdds, acceptChange = false, placedAt }) => {
+    const response = await fetch("/api/predictions/validate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ eventId, selection, offeredOdds, acceptChange, placedAt }),
+    });
+    const payload = await response.json();
+    return { response, payload };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -51,8 +87,18 @@ export default function App() {
     };
 
     loadSports();
+    const loadOddsStatus = () => fetch("/api/odds/status")
+      .then((response) => response.json())
+      .then(setOddsStatus)
+      .catch(() => {});
+    loadOddsStatus();
 
-    const refreshTimer = window.setInterval(() => loadSports(true), 30 * 1000);
+    const refreshTimer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadSports(true);
+        loadOddsStatus();
+      }
+    }, 30 * 1000);
 
     return () => {
       active = false;
@@ -60,7 +106,77 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const pendingItems = store.predictions.filter((item) =>
+      item.userId === "current_user"
+      && ["pending_quote", "needs_confirmation"].includes(item.status)
+      && item.oddsEventId,
+    );
+    if (!pendingItems.length) return;
+
+    let cancelled = false;
+    const checkPending = () => Promise.all(pendingItems.map((prediction) =>
+      validatePrediction({
+        eventId: prediction.oddsEventId,
+        selection: prediction.selection,
+        offeredOdds: prediction.offeredOdds,
+        placedAt: prediction.createdAt,
+      }).then((result) => ({ predictionId: prediction.id, ...result })),
+    )).then((results) => {
+      if (cancelled) return;
+      setStore((previous) => {
+        let changed = false;
+        const updated = {
+          ...previous,
+          predictions: previous.predictions.map((prediction) => {
+            const result = results.find((item) => item.predictionId === prediction.id);
+            if (!result) return prediction;
+            if (result.response.ok) {
+              changed = true;
+              return {
+                ...prediction,
+                status: "pending",
+                confirmedOdds: result.payload.odds,
+                confirmedAt: result.payload.validatedAt,
+                currentOdds: null,
+                lastValidationError: null,
+              };
+            }
+            if (result.payload.code === "ODDS_CHANGED") {
+              changed = true;
+              return {
+                ...prediction,
+                status: "needs_confirmation",
+                currentOdds: result.payload.currentOdds,
+                lastValidationError: result.payload.error,
+              };
+            }
+            if (result.payload.code === "ODDS_STALE" && prediction.status !== "pending_quote") {
+              changed = true;
+              return {
+                ...prediction,
+                status: "pending_quote",
+                lastValidationError: result.payload.error,
+              };
+            }
+            return prediction;
+          }),
+        };
+        if (changed) saveStore(updated);
+        return changed ? updated : previous;
+      });
+    }).catch(() => {});
+    checkPending();
+    const timer = window.setInterval(checkPending, 30 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [store.predictions, validatePrediction]);
+
   const triggerStoreChange = useCallback(() => setStore(loadStore()), []);
+
   const loadSport = useCallback(async (sport) => {
     const payload = await fetchTheOddsData(sport);
     setSportsData((previous) => {
@@ -78,6 +194,9 @@ export default function App() {
           ...match,
           odds: oddsMatch.odds,
           oddsSource: oddsMatch.oddsSource,
+          oddsEventId: oddsMatch.oddsEventId,
+          oddsUpdatedAt: oddsMatch.oddsUpdatedAt,
+          bettingOpen: oddsMatch.bettingOpen,
           homeBadge: match.homeBadge || oddsMatch.homeBadge,
           awayBadge: match.awayBadge || oddsMatch.awayBadge,
         };
@@ -86,14 +205,65 @@ export default function App() {
     });
   }, []);
 
-  const handlePredict = useCallback((matchId, selection, pointsBet) => {
+  const handlePredict = useCallback(async (matchId, selection, pointsBet, oddsEventId, offeredOdds, matchDetails = {}) => {
+    const balance = getCurrentUser(store)?.points || 0;
+    if (!Number.isInteger(pointsBet) || pointsBet <= 0) throw new Error("Introduce una cantidad valida");
+    if (pointsBet > balance) throw new Error("No tienes suficientes monedas");
+    const { response, payload: validation } = await validatePrediction({ eventId: oddsEventId, selection, offeredOdds });
+    if (!response.ok && !["ODDS_STALE", "ODDS_CHANGED"].includes(validation.code)) {
+      throw new Error(validation.error || "No se pudo validar la cuota");
+    }
+
     setStore((previous) => {
-      const updated = { ...previous, predictions: [...previous.predictions] };
-      makePrediction(updated, matchId, selection, pointsBet);
-      const user = getCurrentUser(updated);
-      updated.users = updated.users.map((item) => item.id === "current_user" ? user : item);
+      const updated = {
+        ...previous,
+        users: previous.users.map((item) => ({ ...item })),
+        predictions: [...previous.predictions],
+        transactions: [...previous.transactions],
+      };
+      makePrediction(updated, matchId, selection, pointsBet, {
+        ...matchDetails,
+        oddsEventId,
+        offeredOdds,
+        confirmedOdds: response.ok ? validation.odds : null,
+        currentOdds: validation.currentOdds || null,
+        status: response.ok ? "pending" : validation.code === "ODDS_CHANGED" ? "needs_confirmation" : "pending_quote",
+        lastValidationError: response.ok ? null : validation.error,
+      });
       saveStore(updated);
       return updated;
+    });
+    return validation;
+  }, [store, validatePrediction]);
+
+  const handleAcceptPendingChange = useCallback(async (predictionId) => {
+    const prediction = store.predictions.find((item) => item.id === predictionId);
+    if (!prediction) return;
+    const { response, payload } = await validatePrediction({
+      eventId: prediction.oddsEventId,
+      selection: prediction.selection,
+      offeredOdds: prediction.offeredOdds,
+      acceptChange: true,
+    });
+    if (!response.ok) throw new Error(payload.error || "No se pudo confirmar la cuota");
+    setStore((previous) => {
+      const updated = {
+        ...previous,
+        predictions: previous.predictions.map((item) =>
+          item.id === predictionId
+            ? { ...item, status: "pending", confirmedOdds: payload.odds, confirmedAt: payload.validatedAt, currentOdds: null, lastValidationError: null }
+            : item),
+      };
+      saveStore(updated);
+      return updated;
+    });
+  }, [store.predictions, validatePrediction]);
+
+  const handleCancelPendingChange = useCallback((predictionId) => {
+    setStore((previous) => {
+      const updated = { ...previous, predictions: [...previous.predictions], users: [...previous.users], transactions: [...previous.transactions] };
+      refundPrediction(updated, predictionId, "Prediccion cancelada por cambio de cuota");
+      return loadStore();
     });
   }, []);
 
@@ -106,14 +276,15 @@ export default function App() {
         <AppHeader user={user} />
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home sportsData={sportsData} />} />
-            <Route path="/dashboard" element={<Home sportsData={sportsData} />} />
-            <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} />} />
+            <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} />} />
+            <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} />} />
+            <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
+            <Route path="/live" element={<Predictions liveOnly store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
             <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} onSportSelect={loadSport} />} />
             <Route path="/ranking" element={<Ranking standings={sportsData.standings} sportsData={sportsData} />} />
             <Route path="/leagues" element={<Leagues store={store} onStoreChange={triggerStoreChange} allUsers={socialUsers} />} />
             <Route path="/leagues/:leagueId" element={<LeagueDetail store={store} allUsers={socialUsers} />} />
-            <Route path="/profile" element={<Profile store={store} user={user} />} />
+            <Route path="/profile" element={<Profile store={store} user={user} matches={sportsData.matches} onAcceptPendingChange={handleAcceptPendingChange} onCancelPendingChange={handleCancelPendingChange} />} />
             <Route path="/fantasy" element={<Fantasy />} />
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/earn" element={<Earn />} />

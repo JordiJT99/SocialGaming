@@ -54,7 +54,7 @@ export function getCurrentUser(store) {
   return store.users.find((u) => u.id === "current_user");
 }
 
-export function makePrediction(store, matchId, selection, pointsBet) {
+export function makePrediction(store, matchId, selection, pointsBet, extra = {}) {
   const prediction = {
     id: `pred_${Date.now()}`,
     userId: "current_user",
@@ -64,6 +64,7 @@ export function makePrediction(store, matchId, selection, pointsBet) {
     pointsWon: 0,
     status: "pending",
     createdAt: new Date().toISOString(),
+    ...extra,
   };
 
   store.predictions.push(prediction);
@@ -83,19 +84,50 @@ export function makePrediction(store, matchId, selection, pointsBet) {
   return prediction;
 }
 
-export function resolvePrediction(store, predictionId, matchResult) {
+export function updatePrediction(store, predictionId, patch) {
+  const prediction = store.predictions.find((item) => item.id === predictionId);
+  if (!prediction) return null;
+  Object.assign(prediction, patch);
+  saveStore(store);
+  return prediction;
+}
+
+export function refundPrediction(store, predictionId, description = "Prediccion cancelada") {
+  const prediction = store.predictions.find((item) => item.id === predictionId);
+  if (!prediction || prediction.status === "cancelled") return null;
+  const user = getCurrentUser(store);
+  user.points += prediction.pointsBet;
+  prediction.status = "cancelled";
+  prediction.pointsWon = 0;
+  prediction.cancelledAt = new Date().toISOString();
+  store.transactions.push({
+    id: `tx_${Date.now()}`,
+    type: "refund",
+    amount: prediction.pointsBet,
+    description,
+    createdAt: new Date().toISOString(),
+  });
+  saveStore(store);
+  return prediction;
+}
+
+export function resolvePrediction(store, predictionId, matchResult, matchScore = null) {
   const pred = store.predictions.find((p) => p.id === predictionId);
   if (!pred || pred.status !== "pending") return;
 
   const user = getCurrentUser(store);
   const isCorrect = pred.selection === matchResult;
+  const settledAt = new Date().toISOString();
+  pred.matchResult = matchResult;
+  pred.matchScore = matchScore;
+  pred.settledAt = settledAt;
 
   if (isCorrect) {
-    const multiplier = pred.selection === "X" ? 3 : 2;
-    const won = pred.pointsBet * multiplier;
+    const won = Math.round(pred.pointsBet * Number(pred.confirmedOdds || pred.offeredOdds || 1));
     pred.pointsWon = won;
     pred.status = "won";
     user.points += won;
+    user.totalEarned += won;
     user.correctCount += 1;
     user.streak += 1;
     if (user.streak > user.bestStreak) user.bestStreak = user.streak;
@@ -105,7 +137,7 @@ export function resolvePrediction(store, predictionId, matchResult) {
       type: "win",
       amount: won,
       description: `Acierto predicción #${pred.matchId}`,
-      createdAt: new Date().toISOString(),
+      createdAt: settledAt,
     });
   } else {
     pred.pointsWon = 0;
@@ -117,7 +149,7 @@ export function resolvePrediction(store, predictionId, matchResult) {
       type: "loss",
       amount: 0,
       description: `Fallaste predicción #${pred.matchId}`,
-      createdAt: new Date().toISOString(),
+      createdAt: settledAt,
     });
   }
 

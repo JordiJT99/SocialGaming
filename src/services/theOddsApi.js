@@ -2,20 +2,32 @@ const SPORT_NAMES = {
   football: "Fútbol",
   basketball: "Baloncesto",
   tennis: "Tenis",
+  baseball: "Béisbol",
+  "ice-hockey": "Hockey",
 };
 
+const SPORT_KEY_MAP = {
+  "ice-hockey": "hockey",
+};
+
+const BOOKMAKERS = ["Bet365", "DraftKings"];
+
 const extractOdds = (event) => {
-  const odds = event.bookmakers?.Bet365?.find((market) => market.name === "ML")?.odds?.[0];
-  if (!odds?.home || !odds?.away) return null;
-  return {
-    1: Number(odds.home),
-    ...(odds.draw ? { X: Number(odds.draw) } : {}),
-    2: Number(odds.away),
-  };
+  for (const bookmaker of BOOKMAKERS) {
+    const market = event.bookmakers?.[bookmaker]?.find((item) => item.name === "ML");
+    const odds = market?.odds?.[0];
+    if (!odds?.home || !odds?.away) continue;
+    return [{
+      1: Number(odds.home),
+      ...(odds.draw ? { X: Number(odds.draw) } : {}),
+      2: Number(odds.away),
+    }, market.updatedAt || null, bookmaker];
+  }
+  return null;
 };
 
 const normalizeEvent = (event, sport) => {
-  const odds = extractOdds(event);
+  const [odds, oddsUpdatedAt, bookmaker] = extractOdds(event) || [null, null, null];
   const scores = event.scores || {};
   const fullTime = scores.periods?.ft || {};
   const homeScore = fullTime.home ?? scores.home;
@@ -25,8 +37,9 @@ const normalizeEvent = (event, sport) => {
 
   return {
     id: `odds-${event.id}`,
+    oddsEventId: String(event.id),
     externalId: event.id,
-    sportKey: sport,
+    sportKey: SPORT_KEY_MAP[sport] || sport,
     sportName: SPORT_NAMES[sport],
     league: event.league?.name || SPORT_NAMES[sport],
     home: event.home,
@@ -38,7 +51,11 @@ const normalizeEvent = (event, sport) => {
     score: hasScore ? `${homeScore}-${awayScore}` : null,
     result: finished && hasScore ? homeScore > awayScore ? "1" : homeScore < awayScore ? "2" : "X" : null,
     odds,
-    oddsSource: odds ? "Odds API" : null,
+    oddsUpdatedAt,
+    bettingOpen: event.status === "pending"
+      && new Date(event.date).getTime() - Date.now() > 2 * 60 * 1000
+      && Date.now() - new Date(oddsUpdatedAt).getTime() <= 60 * 60 * 1000,
+    oddsSource: odds ? bookmaker : null,
     dataSource: "Odds API",
   };
 };

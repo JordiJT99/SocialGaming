@@ -52,10 +52,13 @@ export default function Sportsbook({ sportsData, onSportSelect }) {
                   <div className="event-markets">
                     {[["1", event.odds[1]], ...(event.odds.X ? [["X", event.odds.X]] : []), ["2", event.odds[2]]].map(([pick, odd]) => {
                       const selected = slip.some((item) => item.eventId === event.id && item.pick === pick);
-                      return <button className={selected ? "selected" : ""} onClick={() => togglePick(event, pick, odd)} key={pick}><span>{pick}</span><b>{odd.toFixed(2)}</b>{selected && <X size={12} />}</button>;
+                      return <button disabled={event.status === "live"} className={selected ? "selected" : ""} onClick={() => togglePick(event, pick, odd)} key={pick}><span>{pick}</span><b>{odd.toFixed(2)}</b>{selected && <X size={12} />}</button>;
                     })}
                   </div>
                 ) : <div className="odds-unavailable">Sin cuotas publicadas</div>}
+                {event.status === "live"
+                  ? <div className="odds-unavailable">Mercado cerrado durante el directo</div>
+                  : event.odds && !event.bettingOpen && <div className="odds-unavailable">La cuota se validara despues de enviar la apuesta</div>}
               </article>
             ))}
           </div>

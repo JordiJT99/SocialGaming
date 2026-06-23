@@ -18,6 +18,7 @@ export const ESPN_LEAGUES = [
   { sport: "soccer", league: "fra.1", name: "Ligue 1", sportKey: "football" },
   { sport: "soccer", league: "uefa.champions", name: "Champions League", sportKey: "football" },
   { sport: "basketball", league: "nba", name: "NBA", sportKey: "basketball" },
+  { sport: "basketball", league: "wnba", name: "WNBA", sportKey: "basketball" },
   { sport: "tennis", league: "atp", name: "ATP", sportKey: "tennis" },
   { sport: "tennis", league: "wta", name: "WTA", sportKey: "tennis" },
   { sport: "baseball", league: "mlb", name: "MLB", sportKey: "baseball" },
@@ -25,6 +26,20 @@ export const ESPN_LEAGUES = [
 ];
 
 const formatDate = (d) => d.toISOString().slice(0, 10).replace(/-/g, "");
+
+const TYPICAL_DURATION_MIN = {
+  football: 115,
+  basketball: 150,
+  tennis: 120,
+  baseball: 190,
+  hockey: 150,
+};
+
+const estimateEndsAt = (date, status, sportKey) => {
+  if (status !== "finished") return null;
+  const minutes = TYPICAL_DURATION_MIN[sportKey] || 120;
+  return new Date(new Date(date).getTime() + minutes * 60 * 1000).toISOString();
+};
 
 const buildDateRange = () => {
   const now = new Date();
@@ -84,6 +99,7 @@ const normalizeTeamEvent = (event, leagueConfig) => {
     homeBadge: home.team?.logo || null,
     awayBadge: away.team?.logo || null,
     date: event.date,
+    endsAt: estimateEndsAt(event.date, status, leagueConfig.sportKey),
     venue: comp.venue?.fullName || null,
     status,
     statusLabel: detail,
@@ -110,10 +126,20 @@ const normalizeTennisEvent = (event, leagueConfig) => {
       const status = parseStatus(comp.status);
       const detail = comp.status?.type?.detail || comp.status?.type?.description || "";
 
-      const linescoreText = (player) =>
-        (player.linescores || []).map((s) => s.value).join(" ");
-      const p1Score = linescoreText(p1);
-      const p2Score = linescoreText(p2);
+      const playerName = (player) =>
+        player.athlete?.displayName
+        || (player.athletes?.length ? player.athletes.map((a) => a.shortName || a.displayName).join(" / ") : null)
+        || null;
+
+      const p1Name = playerName(p1);
+      const p2Name = playerName(p2);
+      if (!p1Name || !p2Name) continue;
+
+      const sets = (p1.linescores || []).map((set, index) => {
+        const opponentSet = p2.linescores?.[index];
+        if (!opponentSet) return null;
+        return `${set.value}-${opponentSet.value}`;
+      }).filter(Boolean);
 
       matches.push({
         id: `espn-tennis-${comp.id}`,
@@ -122,16 +148,17 @@ const normalizeTennisEvent = (event, leagueConfig) => {
         sportName: "Tenis",
         league: `${leagueConfig.name} - ${event.name || ""}`.trim(),
         leagueLogo: null,
-        home: p1.athlete?.displayName || "?",
-        away: p2.athlete?.displayName || "?",
+        home: p1Name,
+        away: p2Name,
         homeBadge: p1.athlete?.flag?.href || null,
         awayBadge: p2.athlete?.flag?.href || null,
         date: comp.date || event.date,
+        endsAt: estimateEndsAt(comp.date || event.date, status, "tennis"),
         venue: comp.venue?.fullName || null,
         status,
         statusLabel: detail,
         elapsed: null,
-        score: p1Score || p2Score ? `${p1Score} / ${p2Score}` : null,
+        score: sets.length ? sets.join(", ") : null,
         result: status === "finished" ? (p1.winner ? "1" : "2") : null,
         odds: null,
         oddsSource: null,
@@ -152,6 +179,21 @@ async function fetchScoreboard(sport, league, dates) {
   return data.events || [];
 }
 
+const teamRequests = new Map();
+
+function fetchTeams({ sport, league }) {
+  if (sport !== "soccer") return [];
+  if (!teamRequests.has(league)) {
+    teamRequests.set(league, fetch(`${BASE}/${sport}/${league}/teams?limit=100`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => (data?.sports?.[0]?.leagues?.[0]?.teams || []).map(({ team }) => ({
+        names: [team.displayName, team.name, team.location, team.shortDisplayName].filter(Boolean),
+        badge: team.logos?.find((logo) => logo.rel?.includes("default"))?.href || team.logos?.[0]?.href || null,
+      })).filter((team) => team.badge)));
+  }
+  return teamRequests.get(league);
+}
+
 async function fetchLeague(leagueConfig) {
   const { sport, league } = leagueConfig;
   let events = await fetchScoreboard(sport, league, buildDateRange());
@@ -170,9 +212,13 @@ let activeRequest = null;
 export async function fetchEspnData(leagues = ESPN_LEAGUES) {
   if (activeRequest) return activeRequest;
 
-  activeRequest = Promise.allSettled(leagues.map(fetchLeague))
-    .then((results) => {
+  activeRequest = Promise.all([
+    Promise.allSettled(leagues.map(fetchLeague)),
+    Promise.allSettled(leagues.map(fetchTeams)),
+  ])
+    .then(([results, teamResults]) => {
       const matches = [];
+      const teams = [];
       const errors = [];
 
       results.forEach((result, i) => {
@@ -182,9 +228,15 @@ export async function fetchEspnData(leagues = ESPN_LEAGUES) {
           errors.push(`${leagues[i].name}: ${result.reason?.message}`);
         }
       });
+      teamResults.forEach((result) => {
+        if (result.status === "fulfilled") teams.push(...result.value);
+      });
+
+      const deduped = [...new Map(matches.map((match) => [match.id, match])).values()];
 
       return {
-        matches,
+        matches: deduped,
+        teams,
         standings: [],
         source: "ESPN",
         fetchedAt: new Date().toISOString(),

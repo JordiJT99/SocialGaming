@@ -293,6 +293,15 @@ button { cursor: pointer; }
 .apex-home-odds small { margin-bottom: 7px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
 .apex-home-odds b { color: var(--apex-primary); font-size: 18px; }
 .apex-home-odds button.selected b { color: white; }
+.apex-bet-confirm { margin-top: 12px; padding: 14px; border: 1px solid var(--apex-outline); border-radius: 6px; background: #f4f7f5; }
+.apex-bet-confirm > div { display: flex; justify-content: space-between; gap: 12px; }
+.apex-bet-confirm label { display: grid; grid-template-columns: 1fr 110px; align-items: center; gap: 12px; margin-top: 12px; font-size: 12px; font-weight: 700; }
+.apex-bet-confirm input { width: 100%; padding: 9px; border: 1px solid var(--apex-outline); border-radius: 4px; background: white; font: inherit; }
+.apex-bet-confirm > small { display: block; margin-top: 7px; color: var(--apex-muted); }
+.apex-bet-confirm footer { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-top: 12px; }
+.apex-bet-confirm footer button { min-height: 38px; border: 1px solid var(--apex-primary); border-radius: 4px; color: var(--apex-primary); background: white; font-weight: 700; }
+.apex-bet-confirm footer button:last-child { color: white; background: var(--apex-primary); }
+.apex-bet-confirm footer button:disabled { opacity: .5; }
 .apex-no-odds { padding: 16px; text-align: center; color: var(--apex-muted); background: var(--apex-low); }
 
 .apex-master-card {
@@ -316,8 +325,11 @@ button { cursor: pointer; }
 .apex-results-section article { display: grid; grid-template-columns: 1fr minmax(90px, 1.4fr) 55px minmax(90px, 1.4fr); align-items: center; gap: 12px; min-height: 62px; padding: 0 16px; border-top: 1px solid #e4e7e5; }
 .apex-results-section article:first-child { border-top: 0; }
 .apex-results-section article span { color: var(--apex-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.apex-results-section article > div { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .apex-results-section article strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
 .apex-results-section article b { color: var(--apex-primary); text-align: center; font-size: 17px; }
+.apex-results-section article .apex-team-badge { flex-shrink: 0; width: 26px; height: 26px; border-color: #b7bfba; background: var(--apex-mid); }
+.apex-results-section article .apex-team-badge b { font-size: 9px; }
 
 .apex-predict-page { max-width: 720px; }
 .apex-sport-tabs {
@@ -340,6 +352,11 @@ button { cursor: pointer; }
 .apex-predict-heading h1 { margin: 4px 0 0; font-size: 27px; line-height: 1.1; }
 .apex-predict-heading button { display: flex; align-items: center; gap: 6px; border: 0; color: var(--apex-primary); background: none; font-size: 12px; font-weight: 800; }
 .apex-prediction-list { display: grid; gap: 18px; }
+.apex-sport-section { margin-bottom: 34px; }
+.apex-sport-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.apex-sport-section-heading h2 { display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: 23px; }
+.apex-sport-section-heading h2 small { color: var(--apex-muted); font-size: 12px; font-weight: 500; }
+.apex-sport-section-heading button { border: 0; color: var(--apex-primary); background: none; font-weight: 800; text-transform: uppercase; }
 .apex-prediction-card {
   overflow: hidden; border: 1px solid var(--apex-outline); border-radius: 5px; background: white; box-shadow: var(--apex-shadow);
 }
@@ -634,13 +651,18 @@ button { cursor: pointer; }
 .apex-history { margin-top: 30px; }
 .apex-history > div { display: flex; align-items: center; justify-content: space-between; }
 .apex-history > div button { border: 0; color: var(--apex-primary); background: none; font-size: 16px; font-weight: 700; }
+.apex-quote-rule { margin: 8px 0 0; color: var(--apex-muted); font-size: 12px; line-height: 1.45; }
 .apex-history article { min-height: 92px; display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 16px; border: 1px solid var(--apex-outline); border-left: 4px solid var(--apex-primary); border-radius: 0 8px 8px 0; background: white; }
 .apex-history article.lost { border-left-color: var(--apex-error); }
+.apex-history article.empty { grid-template-columns: 1fr; min-height: 76px; }
 .apex-history article > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 6px; background: #e7f2ee; }
 .apex-history article.lost > span { background: var(--apex-high); }
 .apex-history article div strong, .apex-history article div small, .apex-history aside b, .apex-history aside em { display: block; }
 .apex-history article div strong { font-size: 14px; line-height: 1.35; }
 .apex-history article div small { margin-top: 3px; font-size: 11px; }
+.apex-history-match { display: flex; align-items: center; gap: 7px; }
+.apex-history-match img { width: 24px; height: 24px; object-fit: contain; }
+.apex-history-match strong { min-width: 0; }
 .apex-history aside { text-align: right; }
 .apex-history aside b { display: inline-block; padding: 4px 8px; color: white; background: var(--apex-primary-2); font-size: 10px; font-weight: 500; }
 .apex-history article.lost aside b { color: #93000a; background: var(--apex-error-bg); }
@@ -802,7 +824,7 @@ button { cursor: pointer; }
   .apex-home-page .apex-home-teams { grid-template-columns: 1fr 62px 1fr; }
   .apex-home-page .apex-team-badge { width: 50px; height: 50px; }
   .apex-home-page .apex-results-section article { grid-template-columns: 1fr 50px 1fr; }
-  .apex-home-page .apex-results-section article span { display: none; }
+  .apex-home-page .apex-results-section article > span { display: none; }
 
   .apex-predict-page { max-width: none; }
   .apex-prediction-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -860,7 +882,8 @@ button { cursor: pointer; }
   .apex-profile-hero { grid-area: hero; padding: 26px; border: 1px solid var(--apex-outline); border-radius: 10px; background: white; }
   .apex-profile-stats { grid-area: stats; margin: 0; grid-template-columns: repeat(2, 1fr); }
   .apex-achievements { grid-area: achievements; margin: 0; }
-  .apex-history { grid-area: history; margin: 0; }
+  .apex-profile-history-column { grid-area: history; display: grid; gap: 28px; }
+  .apex-profile-history-column .apex-history { margin: 0; }
 
   .apex-earn-page {
     display: grid;

@@ -6,21 +6,27 @@ import { oddsApi } from "./server/odds.js";
 
 const STATIC_CACHE_TTL = 60 * 60 * 1000;
 const MATCH_CACHE_TTL = 60 * 1000;
+const ESPN_CACHE_TTL = 15 * 1000;
 
 const isMatchEndpoint = (url) =>
   /^\/(football-data|api-football)\/(matches|fixtures|competitions\/[^/]+\/matches)\b/.test(url);
+
+const cacheTtl = (url) => {
+  if (url.startsWith("/espn/")) return ESPN_CACHE_TTL;
+  return isMatchEndpoint(url) ? MATCH_CACHE_TTL : STATIC_CACHE_TTL;
+};
 
 const sharedApiCache = {
   name: "shared-api-cache",
   configureServer(server) {
     server.middlewares.use(authApi());
     server.middlewares.use((req, res, next) => {
-      if (req.method !== "GET" || !/^\/(odds-api|football-data|api-football|sports-db)\b/.test(req.url)) {
+      if (req.method !== "GET" || !/^\/(odds-api|football-data|api-football|sports-db|espn)\b/.test(req.url)) {
         return next();
       }
 
       const cacheKey = req.url;
-      const ttl = isMatchEndpoint(req.url) ? MATCH_CACHE_TTL : STATIC_CACHE_TTL;
+      const ttl = cacheTtl(req.url);
       const cached = getApiCache(cacheKey, ttl);
       if (cached) {
         res.statusCode = cached.status_code;

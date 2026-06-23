@@ -28,6 +28,7 @@ const CORE_NAV = [
 ];
 
 const EXPLORE_NAV = [
+  { path: "/live", label: "En directo", icon: Radio },
   { path: "/sportsbook", label: "Cuotas y mercados", icon: Radio },
   { path: "/ranking", label: "Ranking global", icon: BarChart3 },
   { path: "/challenges", label: "Desafíos", icon: Swords },
@@ -39,6 +40,7 @@ const TITLES = {
   "/": "Tu jornada",
   "/dashboard": "Tu jornada",
   "/predictions": "Predicciones",
+  "/live": "En directo",
   "/fantasy": "Fantasy",
   "/leagues": "Ligas privadas",
   "/sportsbook": "Cuotas y mercados",
@@ -66,7 +68,7 @@ function NavItem({ item, onClick }) {
 export default function AppHeader({ user }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const isPredict = pathname === "/predictions";
+  const isPredict = pathname === "/predictions" || pathname === "/live";
   const isHome = pathname === "/" || pathname === "/dashboard";
   const title = TITLES[pathname] || (pathname.startsWith("/leagues/") ? "Detalle de liga" : "PROPHET");
 
