@@ -39,6 +39,110 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 
 .apex-bet-panel { max-width: 440px; }
 
+.challenge-countdown.urgent { animation: pulse-urgent 1.2s ease-in-out infinite; }
+.challenge-countdown.urgent strong { color: #ff3b30 !important; }
+@keyframes pulse-urgent { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.eventos-content { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 2rem; }
+
+.apex-profile-tabs { display: flex; gap: 0.3rem; margin: 0 0 1.5rem; padding: 0.25rem; background: var(--apex-low); border-radius: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.apex-profile-tabs::-webkit-scrollbar { display: none; }
+.apex-profile-tabs button { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.7rem; border: 0; border-radius: 9px; background: transparent; color: #4d5853; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.apex-profile-tabs button:hover { color: var(--apex-ink); }
+.apex-profile-tabs button.active { background: var(--apex-white); color: var(--apex-primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.apex-profile-tabs button em { margin-left: 0.1rem; padding: 0 0.35rem; min-width: 16px; height: 16px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--apex-primary); color: white; font-size: 9px; font-weight: 700; font-style: normal; }
+
+.apex-profile-content { display: flex; flex-direction: column; gap: 1.5rem; width: 100%; padding: 0 0 1rem; }
+.apex-section-title { font-size: 1.1rem; font-weight: 700; color: var(--apex-ink); margin: 0; }
+.apex-section-subtitle { font-size: 13px; color: var(--apex-muted); margin: -0.4rem 0 0; }
+
+.apex-history { background: var(--apex-white); border: 1px solid var(--apex-mid); border-radius: 16px; padding: 1.25rem 1.25rem 1rem; }
+.apex-history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.apex-history-head h2 { font-size: 1rem; font-weight: 700; color: var(--apex-ink); margin: 0; }
+.apex-history-count { padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--apex-low); color: var(--apex-muted); font-size: 12px; font-weight: 700; }
+.apex-link-btn { padding: 0; border: 0; background: transparent; color: var(--apex-primary-2); font-size: 13px; font-weight: 700; cursor: pointer; }
+.apex-quote-rule { font-size: 12px; color: var(--apex-muted); line-height: 1.5; margin: 0 0 0.75rem; padding: 0.6rem 0.75rem; background: var(--apex-low); border-radius: 8px; }
+
+.apex-empty-card { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 3rem 1.5rem; background: var(--apex-white); border: 1px dashed var(--apex-mid); border-radius: 16px; color: var(--apex-muted); text-align: center; }
+.apex-empty-card > svg { color: var(--apex-primary); opacity: 0.6; }
+.apex-empty-card > strong { font-size: 15px; color: var(--apex-ink); margin-top: 0.4rem; }
+.apex-empty-card > small { font-size: 12px; color: var(--apex-muted); max-width: 320px; }
+.apex-btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 0.7rem 1.3rem; border-radius: 10px; background: var(--apex-primary-2); color: white; text-decoration: none; font-size: 13px; font-weight: 700; margin-top: 0.5rem; }
+
+.apex-medals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+.apex-medal { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 1.25rem 0.75rem; border-radius: 14px; background: var(--apex-white); border: 1px solid var(--apex-mid); text-align: center; }
+.apex-medal > span { width: 60px; height: 60px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #c4ab00, #ffe249); color: white; }
+.apex-medal > b { font-size: 13px; color: var(--apex-ink); }
+.apex-medal > small { font-size: 11px; color: var(--apex-muted); line-height: 1.3; }
+.apex-medal.locked { opacity: 0.55; }
+.apex-medal.locked > span { background: var(--apex-low); color: var(--apex-muted); }
+.apex-medal.add { border-style: dashed; }
+.apex-medal.add > span { background: var(--apex-low); color: var(--apex-muted); }
+
+.apex-invite-banner { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1.1rem 1.3rem; border-radius: 14px; background: linear-gradient(135deg, #007355, #00a37a); color: white; flex-wrap: wrap; }
+.apex-invite-banner > div { display: flex; align-items: center; gap: 0.85rem; }
+.apex-invite-banner strong { display: block; font-size: 14px; }
+.apex-invite-banner small { display: block; font-size: 11px; opacity: 0.85; margin-top: 2px; }
+.apex-invite-banner button { padding: 0.6rem 1.2rem; border-radius: 999px; border: 0; background: white; color: var(--apex-primary); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.apex-invites-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.apex-invites-list > article { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; border-radius: 12px; background: var(--apex-white); border: 1px solid var(--apex-mid); }
+.apex-invites-list .apex-invite-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.apex-invites-list .apex-invite-info strong { font-size: 13px; color: var(--apex-ink); }
+.apex-invites-list .apex-invite-info small { font-size: 11px; color: var(--apex-muted); margin-top: 2px; }
+.apex-invite-avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, #005840, #007355); color: white; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+.apex-invite-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 10px; color: var(--apex-muted); }
+.apex-invite-stats b { color: var(--apex-ink); font-size: 11px; }
+.apex-invite-status { padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--apex-yellow); color: var(--apex-ink); font-size: 11px; font-weight: 800; flex-shrink: 0; }
+
+.apex-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; }
+.apex-stats-grid > article { display: flex; flex-direction: column; gap: 0.35rem; padding: 1.1rem 1.25rem; border-radius: 12px; background: var(--apex-white); border: 1px solid var(--apex-mid); }
+.apex-stats-grid > article > span { font-size: 11px; color: var(--apex-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+.apex-stats-grid > article > strong { font-size: 1.3rem; color: var(--apex-ink); font-weight: 800; line-height: 1.1; }
+.apex-stats-grid > article > strong em { font-size: 0.7rem; color: var(--apex-muted); font-weight: 600; font-style: normal; margin-left: 0.15rem; }
+
+.apex-streak-hero { display: flex; align-items: center; gap: 1rem; padding: 1.25rem 1.5rem; border-radius: 14px; background: linear-gradient(135deg, #ff6b57, #ff9a3c); color: white; }
+.apex-streak-hero > svg { flex-shrink: 0; }
+.apex-streak-hero > div { display: flex; flex-direction: column; }
+.apex-streak-hero > div > strong { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+.apex-streak-hero > div > small { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+
+.apex-streak-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; }
+.apex-streak-day { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.7rem 0.3rem; border-radius: 10px; background: var(--apex-low); color: var(--apex-muted); font-size: 11px; font-weight: 700; }
+.apex-streak-day > span { text-transform: uppercase; }
+.apex-streak-day > b { font-size: 14px; }
+.apex-streak-day.active { background: linear-gradient(135deg, #ff6b57, #ff9a3c); color: white; }
+
+.apex-streak-rewards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.6rem; }
+.apex-streak-rewards h3 { grid-column: 1 / -1; font-size: 0.95rem; font-weight: 700; color: var(--apex-ink); margin: 0.4rem 0 0.2rem; }
+.apex-streak-rewards > article { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.85rem 1rem; border-radius: 12px; background: var(--apex-white); border: 1px solid var(--apex-mid); position: relative; }
+.apex-streak-rewards > article > span { font-size: 11px; color: var(--apex-muted); font-weight: 700; text-transform: uppercase; }
+.apex-streak-rewards > article > b { font-size: 1.05rem; color: var(--apex-ink); font-weight: 800; }
+.apex-streak-rewards > article > em { font-size: 10px; color: var(--apex-muted); font-style: normal; font-weight: 600; }
+.apex-streak-rewards > article.claimed > em { color: var(--apex-primary); }
+.apex-streak-rewards > article.active { border-color: var(--apex-primary); background: rgba(0, 88, 64, 0.04); }
+.apex-streak-rewards > article.active > em { color: var(--apex-primary); }
+.apex-streak-rewards > article.locked { opacity: 0.55; }
+
+@media (max-width: 720px) {
+  .apex-profile-content { padding: 0 0 2rem; }
+  .apex-history { padding: 1rem; border-radius: 14px; }
+  .apex-medals-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.6rem; }
+  .apex-medal { padding: 1rem 0.6rem; }
+  .apex-medal > span { width: 50px; height: 50px; }
+  .apex-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .apex-stats-grid > article { padding: 0.85rem 1rem; }
+  .apex-stats-grid > article > strong { font-size: 1.1rem; }
+  .apex-invites-list > article { flex-wrap: wrap; padding: 0.75rem; }
+  .apex-invite-stats { width: 100%; flex-direction: row; justify-content: space-between; align-items: center; padding-top: 0.4rem; border-top: 1px solid var(--apex-low); }
+}
+
+@media (max-width: 520px) {
+  .apex-profile-tabs { margin: 0 0 1rem; }
+  .apex-profile-tabs button { padding: 0.5rem 0.7rem; font-size: 12px; }
+  .apex-profile-tabs button em { display: none; }
+}
+
 .side-nav, .top-bar, .mobile-bottom-nav, .nav-scrim { display: none !important; }
 .app-shell { min-height: 100vh; background: var(--apex-bg); }
 .app-main { min-height: 100vh; padding: 64px 0 94px !important; margin: 0 !important; background: var(--apex-bg); }
@@ -621,34 +725,33 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-ranking-table article div small { margin-top: 5px; color: #505854; font-size: 11px; font-weight: 800; letter-spacing: .08em; }
 .apex-ranking-table article em { color: var(--apex-primary); text-align: right; font-size: 20px; font-style: normal; }
 
-.apex-profile-page { max-width: 760px; }
-.apex-profile-hero { display: flex; flex-direction: column; align-items: center; padding-top: 10px; text-align: center; }
-.apex-profile-hero > div { position: relative; width: 132px; height: 132px; padding: 5px; box-sizing: border-box; border: 4px solid var(--apex-primary); border-radius: 14px; background: white; }
+.apex-profile-page { max-width: 1100px; margin: 0 auto; padding: 1rem 0 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.apex-profile-hero { display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem; background: var(--apex-white); border: 1px solid var(--apex-outline); border-radius: 16px; }
+.apex-profile-avatar-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
 .apex-profile-monogram {
   width: 100%;
   height: 100%;
   display: grid;
   place-items: center;
-  border-radius: 8px;
-  color: #b8e8d7;
-  background:
-    linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
-    linear-gradient(145deg, #173f35, #071a15);
-  background-size: 14px 14px, 14px 14px, auto;
-  font-size: 35px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: linear-gradient(135deg, #005840, #00a37a);
+  font-size: 28px;
   font-weight: 800;
 }
-.apex-profile-hero > div b { position: absolute; right: -5px; bottom: -5px; width: 39px; height: 39px; display: grid; place-items: center; border: 4px solid white; border-radius: 12px; color: white; background: #756600; }
-.apex-profile-hero h1 { margin: 28px 0 8px; font-size: 25px; }
-.apex-profile-hero p { margin: 0; color: #3e4944; }
-.apex-profile-hero > button { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 28px; border: 0; border-radius: 7px; color: white; background: var(--apex-primary-2); font-weight: 800; }
-.apex-profile-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 24px; }
-.apex-profile-stats article { min-height: 135px; display: flex; flex-direction: column; justify-content: space-between; padding: 24px 20px; border: 1px solid var(--apex-outline); border-radius: 9px; background: white; }
-.apex-profile-stats span { color: #555b58; letter-spacing: .04em; line-height: 1.45; }
-.apex-profile-stats strong { color: var(--apex-primary); font-size: 16px; font-weight: 500; }
-.apex-profile-stats .streak { color: #625500; }
-.apex-profile-stats .streak i { display: inline-block; width: 8px; height: 8px; margin-left: 4px; border-radius: 50%; background: var(--apex-primary-2); }
+.apex-profile-level { position: absolute; right: -4px; bottom: -4px; min-width: 28px; height: 28px; padding: 0 6px; display: grid; place-items: center; border: 3px solid white; border-radius: 999px; color: white; background: #c4ab00; font-size: 11px; font-weight: 800; }
+.apex-profile-info { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 0; }
+.apex-profile-info h1 { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--apex-ink); }
+.apex-profile-info p { margin: 0; color: var(--apex-muted); font-size: 13px; }
+.apex-profile-info > button { align-self: flex-start; display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.5rem 1rem; margin-top: 0.4rem; border: 0; border-radius: 8px; color: white; background: var(--apex-primary-2); font-size: 13px; font-weight: 700; cursor: pointer; }
+
+.apex-profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+.apex-profile-stats article { min-height: 96px; display: flex; flex-direction: column; justify-content: space-between; padding: 1rem 1.1rem; border: 1px solid var(--apex-outline); border-radius: 12px; background: white; }
+.apex-profile-stats span { color: var(--apex-muted); font-size: 10px; letter-spacing: 0.06em; line-height: 1.3; font-weight: 700; text-transform: uppercase; }
+.apex-profile-stats strong { color: var(--apex-primary); font-size: 1.4rem; font-weight: 800; line-height: 1.1; }
+.apex-profile-stats strong em { font-size: 0.7rem; color: var(--apex-muted); font-weight: 600; font-style: normal; margin-left: 0.15rem; }
+.apex-profile-stats .streak { color: #625500; display: inline-flex; align-items: center; }
+.apex-profile-stats .streak i { display: inline-block; width: 7px; height: 7px; margin-left: 4px; border-radius: 50%; background: var(--apex-primary-2); }
 .apex-achievements { margin-top: 30px; }
 .apex-achievements h2, .apex-history h2 { font-size: 17px; font-weight: 500; }
 .apex-achievements > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 12px; padding: 28px 20px; border: 1px solid var(--apex-outline); border-radius: 8px; background: var(--apex-low); }
@@ -761,7 +864,7 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-fantasy-page { max-width: 960px; }
   .apex-pitch { min-height: 760px; }
   .apex-leagues-page { max-width: 850px; }
-  .apex-profile-page { max-width: 960px; }
+  .apex-profile-page { max-width: 1100px; padding: 1.5rem 0 3rem; }
   .apex-profile-stats { grid-template-columns: repeat(4, 1fr); }
   .apex-reward-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -802,6 +905,15 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-sidebar-coins-total span { font-size: 11px; color: #9eb1aa; font-weight: 600; }
   .apex-sidebar-coins-pending { display: flex; align-items: baseline; gap: 5px; font-size: 11px; color: #9eb1aa; }
   .apex-sidebar-coins-pending b { color: #c4ab00; font-size: 12px; font-weight: 700; }
+  .apex-sidebar-streak { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 107, 87, 0.12); font-size: 11px; color: #c3dfd4; }
+  .apex-sidebar-streak b { color: #ff8a72; font-weight: 700; }
+  .apex-sidebar-level { margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid #2d3733; }
+  .apex-sidebar-level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 10px; color: #9eb1aa; }
+  .apex-sidebar-level-row span { color: #c3dfd4; }
+  .apex-sidebar-level-row b { color: #17a2b8; font-weight: 800; }
+  .apex-sidebar-level-row small { font-size: 9px; }
+  .apex-sidebar-progress { display: block; height: 5px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.1); }
+  .apex-sidebar-progress i { display: block; height: 100%; background: linear-gradient(90deg, #17a2b8, #39d98a); }
   .apex-desktop-sidebar nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
   .apex-desktop-sidebar nav small { margin: 14px 10px 6px; color: #7f968d; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
   .apex-desktop-sidebar nav a { min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 13px; font-weight: 600; position: relative; }
@@ -892,18 +1004,17 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-podium { min-height: 330px; }
 
   .apex-profile-page {
-    display: grid;
-    grid-template-columns: 330px minmax(0, 1fr);
-    grid-template-areas:
-      "hero stats"
-      "achievements history";
-    align-items: start;
-    gap: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 0 3rem;
   }
-  .apex-profile-hero { grid-area: hero; padding: 26px; border: 1px solid var(--apex-outline); border-radius: 10px; background: white; }
-  .apex-profile-stats { grid-area: stats; margin: 0; grid-template-columns: repeat(2, 1fr); }
-  .apex-achievements { grid-area: achievements; margin: 0; }
-  .apex-profile-history-column { grid-area: history; display: grid; gap: 28px; }
+  .apex-profile-hero { padding: 1.25rem 1.5rem; border: 1px solid var(--apex-outline); border-radius: 16px; background: var(--apex-white); }
+  .apex-profile-stats { margin: 0; grid-template-columns: repeat(3, 1fr); }
+  .apex-achievements { margin: 0; }
+  .apex-profile-history-column { display: grid; gap: 1.5rem; }
   .apex-profile-history-column .apex-history { margin: 0; }
 
   .apex-earn-page {
@@ -922,6 +1033,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 
 @media (max-width: 520px) {
   .apex-topbar { padding: 0 18px; }
+  .apex-topbar-video-cta { display: none; }
+  .eventos-content { padding: 0.75rem 0.75rem 1.5rem; }
   .apex-mobile-brand { gap: 10px; }
   .apex-mobile-brand strong { font-size: 25px; }
   .apex-coins small, .apex-level { display: none; }

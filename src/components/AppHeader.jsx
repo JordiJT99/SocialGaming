@@ -115,6 +115,19 @@ export default function AppHeader({ user, store }) {
                 <span>Coins pendientes</span>
               </div>
             </div>
+
+            <div className="apex-sidebar-streak" title="Racha de días">
+              <Flame size={14} style={{ color: "#ff6b57" }} />
+              <span>Racha <b>{user?.streak || 5} días</b></span>
+            </div>
+
+            <div className="apex-sidebar-level" title="Progreso de nivel">
+              <div className="apex-sidebar-level-row">
+                <span><b>Nivel 24</b> · Analista Pro</span>
+                <small>2.450 / 3.000 XP</small>
+              </div>
+              <span className="apex-sidebar-progress"><i style={{ width: "82%" }} /></span>
+            </div>
           </div>
         </div>
 
@@ -160,6 +173,12 @@ export default function AppHeader({ user, store }) {
         </div>
         <div className="apex-desktop-heading"><strong>{title}</strong><span>Deporte, predicciones y competición social</span></div>
         <div className="apex-top-actions">
+          {isHome && (
+            <NavLink to="/earn" className="apex-topbar-video-cta" aria-label="Mira un video y gana 15 coins">
+              <PlayCircle size={15} fill="#fff" stroke="#ff6b57" />
+              <span>Mira este video y gana <b>15 coins</b></span>
+            </NavLink>
+          )}
           <button className="apex-search-button desktop-only" type="button" aria-label="Buscar"><Search size={20} /></button>
           <span className="apex-coins"><CircleDollarSign size={19} /><b>{user?.points?.toLocaleString("es-ES") || "540"}</b><small>Coins</small></span>
           {isHome && <span className="apex-level">LVL 12</span>}
@@ -185,10 +204,10 @@ export default function AppHeader({ user, store }) {
           gap: "0.75rem",
           flexWrap: "wrap",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <Flame size={18} style={{ color: "#ff6b57", flexShrink: 0 }} />
             <span style={{ fontSize: "0.85rem", color: "#ffd" }}>
-              <strong style={{ color: "#ff6b57" }}>Te quedan {user.points} coins</strong> — ¡consigue más gratis!
+              <strong style={{ color: "#ff6b57" }}>Te quedan {user.points} coins</strong> — mira un video y consigue más gratis
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

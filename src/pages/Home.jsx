@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Flame, Gift, PlayCircle, Plus, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayCircle, Plus, Trophy } from "lucide-react";
 import BetConfirm from "../components/BetConfirm";
 import { matchPriority } from "./predictionPriority";
 
@@ -155,28 +155,12 @@ export default function Home({ sportsData, store, onPredict }) {
 
   return (
     <div className="apex-page apex-home-page">
-      <section className="apex-welcome">
-        <h1>¡Hola, Jordi! <span>👋</span></h1>
-        <p>¿Qué tal tu instinto hoy?</p>
-      </section>
-
-      <section className="apex-streak-card apex-card">
-        <div><Flame size={27} /><h2>Racha de 5 días</h2><Gift size={24} /></div>
-        <span className="apex-progress"><i style={{ width: "71%" }} /></span>
-        <footer><small>DÍA 5</small><b>COFRE EN 2 DÍAS</b></footer>
-      </section>
-
-      <section className="apex-level-card apex-card">
-        <div><span>PROGRESO DE NIVEL</span><strong>850 / 1000 XP</strong></div>
-        <span className="apex-progress"><i style={{ width: "85%" }} /></span>
-      </section>
-
-      <section className="apex-section">
-        <div className="apex-section-title"><h2>Resumen Semanal</h2><Link to="/dashboard">VER TODO</Link></div>
-        <div className="apex-week-card apex-card">
-          <div><strong>78%</strong><span>PRECISIÓN</span></div>
-          <div className="apex-chart">{[32, 52, 70, 42, 58, 48, 56].map((height, index) => <i key={index} style={{ height: `${height}px` }} />)}</div>
+      <section className="apex-welcome" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div>
+          <h1>¡Hola, Jordi! <span>👋</span></h1>
+          <p>¿Qué tal tu instinto hoy?</p>
         </div>
+        <WatchVideoCta />
       </section>
 
       {sportsData.loading && (

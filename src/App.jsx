@@ -291,7 +291,7 @@ export default function App() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/earn" element={<Earn />} />
             <Route path="/rewards" element={<Rewards user={user} />} />
-            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} />} />
+            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} />} />
             <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
