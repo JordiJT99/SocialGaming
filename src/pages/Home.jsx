@@ -1,8 +1,25 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Flame, Gift, Plus, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, Gift, PlayCircle, Plus, Trophy } from "lucide-react";
 import BetConfirm from "../components/BetConfirm";
 import { matchPriority } from "./predictionPriority";
+
+function WatchVideoCta({ reward = 15, compact = false }) {
+  return (
+    <Link to="/earn" className="apex-watch-video-cta" style={{
+      display: "inline-flex", alignItems: "center", gap: "0.6rem",
+      padding: compact ? "0.4rem 0.85rem" : "0.6rem 1.1rem",
+      borderRadius: "999px", textDecoration: "none",
+      background: "linear-gradient(135deg, #ff6b57, #ff9a3c)",
+      color: "#fff", fontSize: compact ? "0.78rem" : "0.85rem", fontWeight: 700,
+      boxShadow: "0 4px 14px rgba(255, 107, 87, 0.35)",
+      border: "none", flexShrink: 0,
+    }}>
+      <PlayCircle size={compact ? 16 : 18} fill="#fff" stroke="#ff6b57" />
+      <span>Mira este video y gana <b style={{ color: "#fff23d" }}>{reward} coins</b></span>
+    </Link>
+  );
+}
 
 const SECTIONS = [
   { key: "live", label: "En Directo", filter: (m) => m.status === "live" },

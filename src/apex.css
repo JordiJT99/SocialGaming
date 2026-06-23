@@ -31,6 +31,14 @@ body {
 button, input { font: inherit; }
 button { cursor: pointer; }
 
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #17a2b8; border: 3px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #17a2b8; border: 3px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 6px; }
+input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
+
+.apex-bet-panel { max-width: 440px; }
+
 .side-nav, .top-bar, .mobile-bottom-nav, .nav-scrim { display: none !important; }
 .app-shell { min-height: 100vh; background: var(--apex-bg); }
 .app-main { min-height: 100vh; padding: 64px 0 94px !important; margin: 0 !important; background: var(--apex-bg); }
@@ -49,6 +57,8 @@ button { cursor: pointer; }
   border-bottom: 1px solid var(--apex-outline);
   background: rgba(248, 249, 250, .97);
   backdrop-filter: blur(12px);
+  --apex-topbar-h: 64px;
+  --apex-sidebar-w: 0px;
 }
 
 .apex-mobile-brand, .apex-top-actions, .apex-coins {
@@ -781,17 +791,27 @@ button { cursor: pointer; }
   .apex-sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 22px; border-bottom: 1px solid #303936; }
   .apex-sidebar-brand .apex-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; color: #143b31; background: var(--apex-mint); font-weight: 900; }
   .apex-sidebar-brand strong { font-size: 21px; letter-spacing: .02em; }
-  .apex-sidebar-profile { display: flex; align-items: center; gap: 12px; margin: 18px 0 22px; padding: 12px; border: 1px solid #3a4541; border-radius: 8px; background: #222a27; }
-  .apex-sidebar-profile .apex-user-monogram { flex: 0 0 auto; }
-  .apex-sidebar-profile div { min-width: 0; }
-  .apex-sidebar-profile strong, .apex-sidebar-profile span { display: block; }
-  .apex-sidebar-profile strong { font-size: 13px; }
-  .apex-sidebar-profile span { margin-top: 4px; color: #9eb1aa; font-size: 10px; }
+  .apex-sidebar-profile { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 18px 0 18px; padding: 18px 12px 16px; border: 1px solid #3a4541; border-radius: 10px; background: linear-gradient(160deg, #1c2522, #222a27); text-align: center; }
+  .apex-sidebar-avatar { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #2dd4bf, #0ea5e9); color: white; text-decoration: none; box-shadow: 0 4px 16px rgba(20, 184, 166, .35); transition: transform .15s ease; }
+  .apex-sidebar-avatar:hover { transform: scale(1.05); }
+  .apex-sidebar-user { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+  .apex-sidebar-user > strong { font-size: 16px; color: white; font-weight: 700; }
+  .apex-sidebar-coins { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding-top: 8px; border-top: 1px solid #303936; }
+  .apex-sidebar-coins-total { display: flex; align-items: center; gap: 6px; color: #2dd4bf; font-size: 16px; }
+  .apex-sidebar-coins-total b { font-size: 18px; font-weight: 800; }
+  .apex-sidebar-coins-total span { font-size: 11px; color: #9eb1aa; font-weight: 600; }
+  .apex-sidebar-coins-pending { display: flex; align-items: baseline; gap: 5px; font-size: 11px; color: #9eb1aa; }
+  .apex-sidebar-coins-pending b { color: #c4ab00; font-size: 12px; font-weight: 700; }
   .apex-desktop-sidebar nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
   .apex-desktop-sidebar nav small { margin: 14px 10px 6px; color: #7f968d; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
-  .apex-desktop-sidebar nav a { min-height: 43px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 12px; font-weight: 600; }
+  .apex-desktop-sidebar nav a { min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 13px; font-weight: 600; position: relative; }
   .apex-desktop-sidebar nav a:hover { color: white; background: #25302c; }
   .apex-desktop-sidebar nav a.active { color: white; background: var(--apex-primary-2); }
+  .apex-sidebar-sport-filters { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px; }
+  .apex-sidebar-sport { min-height: 36px !important; padding: 0 12px !important; }
+  .apex-sidebar-sport-icon { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: white; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .apex-sidebar-sport-label { font-size: 13px; }
+  .apex-sidebar-badge { margin-left: auto; min-width: 22px; height: 22px; display: grid; place-items: center; padding: 0 6px; border-radius: 99px; background: var(--apex-primary-2); color: white; font-size: 11px; font-weight: 700; font-style: normal; }
   .apex-sidebar-challenge { margin-top: auto; padding: 15px; border-radius: 8px; color: white; background: var(--apex-primary); }
   .apex-sidebar-challenge > span, .apex-sidebar-challenge > strong, .apex-sidebar-challenge > small { display: block; }
   .apex-sidebar-challenge > span { margin-top: 10px; color: var(--apex-mint); font-size: 9px; font-weight: 800; letter-spacing: .09em; }
@@ -800,7 +820,8 @@ button { cursor: pointer; }
   .apex-sidebar-challenge > i u { display: block; width: 66%; height: 100%; background: var(--apex-mint); }
   .apex-sidebar-challenge > small { text-align: right; color: #c3e7d9; font-size: 9px; }
 
-  .apex-topbar { left: 248px; height: 72px; padding: 0 32px; border-color: #d7ddda; background: rgba(255,255,255,.97); }
+  .apex-topbar { left: 248px; height: 72px; padding: 0 32px; border-color: #d7ddda; background: rgba(255,255,255,.97); --apex-topbar-h: 72px; --apex-sidebar-w: 248px; }
+
   .apex-mobile-brand, .apex-mobile-menu-button, .apex-bottom-nav { display: none; }
   .apex-desktop-heading { display: flex; flex-direction: column; }
   .apex-desktop-heading strong { color: var(--apex-ink); font-size: 15px; }
@@ -907,6 +928,10 @@ button { cursor: pointer; }
   .apex-coins { min-height: 38px; }
   .apex-page { padding: 26px 18px 40px; }
   .apex-home-match { flex-basis: calc(100vw - 44px); }
+  .apex-bet-panel { margin: 0.75rem 12px !important; padding: 1.1rem !important; }
+  .apex-low-coins-banner { padding: 0.5rem 0.75rem !important; gap: 0.5rem !important; }
+  .apex-low-coins-banner > div:first-child { font-size: 0.78rem; }
+  .apex-low-coins-spacer { height: 64px !important; }
   .apex-podium { gap: 7px; padding-inline: 9px; }
   .apex-podium article > span { width: 65px; height: 65px; }
   .apex-podium article.winner > span { width: 105px; height: 105px; }

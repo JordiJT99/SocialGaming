@@ -16,6 +16,8 @@ import Sportsbook from "./pages/Sportsbook";
 import Challenges from "./pages/Challenges";
 import Earn from "./pages/Earn";
 import Rewards from "./pages/Rewards";
+import Eventos from "./pages/Eventos";
+import EventDetail from "./pages/EventDetail";
 
 export default function App() {
   const [store, setStore] = useState(() => loadStore());
@@ -273,7 +275,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <AppHeader user={user} />
+        <AppHeader user={user} store={store} />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} />} />
@@ -289,6 +291,8 @@ export default function App() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/earn" element={<Earn />} />
             <Route path="/rewards" element={<Rewards user={user} />} />
+            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} />} />
+            <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
