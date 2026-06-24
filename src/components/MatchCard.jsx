@@ -1,42 +1,25 @@
 import { CheckCircle2, SlidersHorizontal, TrendingUp, Trophy } from "lucide-react";
-import { useState } from "react";
-import BetConfirm from "./BetConfirm";
+import { Link } from "react-router-dom";
 
 function Crest({ src, name }) {
   return <span className="apex-match-crest"><b>{name.slice(0, 3).toUpperCase()}</b>{src && <img src={src} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>;
 }
 
-export default function MatchCard({ match, onPredict, existingPrediction, balance = 0 }) {
-  const [selected, setSelected] = useState(existingPrediction?.selection || null);
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+const SELECTION_LABELS = { "1": "Local", "X": "Empate", "2": "Visitante" };
+
+export default function MatchCard({ match, onAddToSlip, existingPrediction, slipItems = [] }) {
   const isFinished = match.status === "finished";
   const isLive = match.status === "live";
   const hasOdds = Boolean(match.odds);
   const options = match.odds ? ["1", ...(match.odds.X ? ["X"] : []), "2"] : [];
+  const inSlip = slipItems.find((item) => item.eventId === match.id);
   const pendingLabel = existingPrediction?.status === "pending_quote"
     ? "PENDIENTE DE VALIDACION"
     : existingPrediction?.status === "needs_confirmation"
       ? "CAMBIO PENDIENTE"
       : "TU PREDICCION";
 
-  const confirm = async (pointsBet) => {
-    if (!selected || isFinished || isLive || existingPrediction || submitting) return;
-    setSubmitting(true);
-    setError("");
-    try {
-      await onPredict?.(match.id, selected, pointsBet, match.oddsEventId, match.odds[selected], {
-        home: match.home,
-        away: match.away,
-        homeBadge: match.homeBadge,
-        awayBadge: match.awayBadge,
-      });
-    } catch (validationError) {
-      setError(validationError.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const pickLabel = inSlip ? SELECTION_LABELS[inSlip.selection] || inSlip.selection : null;
 
   return (
     <article className={`apex-prediction-card ${isLive ? "is-live" : ""} ${isFinished ? "is-finished" : ""}`}>
@@ -51,39 +34,34 @@ export default function MatchCard({ match, onPredict, existingPrediction, balanc
           <div><Crest src={match.awayBadge} name={match.away} /><strong>{match.away}</strong></div>
         </div>
 
-        {existingPrediction || (isLive && selected) ? (
+        {existingPrediction ? (
           <div className="apex-current-pick">
-            <div><small>{pendingLabel}</small><strong>{selected === "1" ? match.home : selected === "2" ? match.away : "Empate"} ({selected})</strong></div>
+            <div><small>{pendingLabel}</small><strong>{existingPrediction.selection === "1" ? match.home : existingPrediction.selection === "2" ? match.away : "Empate"} ({existingPrediction.selection})</strong></div>
             <CheckCircle2 size={21} />
             <button type="button" aria-label="Estadisticas"><TrendingUp size={22} /></button>
+          </div>
+        ) : inSlip ? (
+          <div className="apex-current-pick in-slip">
+            <div><small>EN TU CUPÓN</small><strong>{pickLabel} ({inSlip.selection})</strong></div>
+            <span className="apex-slip-odd">{inSlip.odd?.toFixed(2)}</span>
+            <Link to="/events" className="apex-slip-view">Ver cupón</Link>
           </div>
         ) : isFinished ? (
           <div className="apex-final-result"><CheckCircle2 size={19} /> Resultado oficial: {match.score}</div>
         ) : !isLive && options.length ? (
           <div className="apex-prediction-odds">
             {options.map((option) => (
-              <button disabled={submitting} key={option} type="button" className={selected === option ? "selected" : ""} onClick={() => setSelected(option)}>
+              <button key={option} type="button" onClick={() => onAddToSlip?.(match, option, match.odds[option])}>
                 <small>{option}</small><strong>{match.odds[option].toFixed(2)}</strong>
               </button>
             ))}
           </div>
         ) : (
-          <div className="apex-final-result muted">{isLive ? "Mercado suspendido durante el directo" : error || "Sin cuotas publicadas"}</div>
+          <div className="apex-final-result muted">{isLive ? "Mercado suspendido durante el directo" : "Sin cuotas publicadas"}</div>
         )}
-        {!isFinished && !isLive && hasOdds && !match.bettingOpen && !existingPrediction && (
+        {!isFinished && !isLive && hasOdds && !match.bettingOpen && !existingPrediction && !inSlip && (
           <div className="apex-final-result muted">La cuota se validara despues de enviar la apuesta</div>
         )}
-        {selected && !existingPrediction && !isLive && !isFinished && (
-          <BetConfirm
-            label={selected === "1" ? match.home : selected === "2" ? match.away : "Empate"}
-            odds={match.odds[selected]}
-            balance={balance}
-            submitting={submitting}
-            onCancel={() => setSelected(null)}
-            onConfirm={confirm}
-          />
-        )}
-        {error && <div className="apex-final-result muted">{error}</div>}
       </div>
       {!isLive && !isFinished && (
         <footer><button type="button">MODO AVANZADO <SlidersHorizontal size={15} /></button><span>⚡ Puntos: +240</span></footer>

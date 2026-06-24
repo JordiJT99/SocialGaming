@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   BarChart3,
+  ChevronDown,
   CircleDollarSign,
   Coins,
   Flame,
@@ -26,7 +27,6 @@ const CORE_NAV = [
   { path: "/events", label: "Eventos", shortLabel: "Eventos", icon: Trophy },
   { path: "/fantasy", label: "Fantasy", shortLabel: "Fantasy", icon: Goal },
   { path: "/leagues", label: "Ligas", shortLabel: "Ligas", icon: Users },
-  { path: "/profile", label: "Perfil", shortLabel: "Perfil", icon: Smile },
 ];
 
 const SPORT_FILTERS = [
@@ -79,6 +79,7 @@ function NavItem({ item, onClick }) {
 
 export default function AppHeader({ user, store }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [eventsExpanded, setEventsExpanded] = useState(false);
   const [dismissBanner, setDismissBanner] = useState(false);
   const { pathname } = useLocation();
   const isPredict = pathname === "/predictions" || pathname === "/live";
@@ -132,22 +133,41 @@ export default function AppHeader({ user, store }) {
         </div>
 
         <nav>
-          {CORE_NAV.map((item) => <NavItem key={item.path} item={item} />)}
+          <NavItem item={CORE_NAV[0]} />
 
-          <div className="apex-sidebar-sport-filters">
-            {SPORT_FILTERS.map((sport) => (
-              <NavLink
-                key={sport.key}
-                to={`/events?sport=${sport.key}`}
-                className="apex-sidebar-sport"
-              >
-                <span className="apex-sidebar-sport-icon" style={{ background: sport.color }}>
-                  {sport.label[0]}
-                </span>
-                <span className="apex-sidebar-sport-label">{sport.label}</span>
+          <button
+            type="button"
+            className={`apex-sidebar-toggle${eventsExpanded ? " open" : ""}`}
+            onClick={() => setEventsExpanded((p) => !p)}
+          >
+            <Trophy size={20} strokeWidth={2} />
+            <span>Eventos</span>
+            <ChevronDown size={16} className="apex-sidebar-chevron" />
+          </button>
+          {eventsExpanded && (
+            <div className="apex-sidebar-subnav">
+              <NavLink to="/events" end onClick={() => setEventsExpanded(false)} className="apex-sidebar-sport">
+                <span className="apex-sidebar-sport-icon" style={{ background: "#2dd4bf" }}>T</span>
+                <span className="apex-sidebar-sport-label">Todos los deportes</span>
               </NavLink>
-            ))}
-          </div>
+              {SPORT_FILTERS.map((sport) => (
+                <NavLink
+                  key={sport.key}
+                  to={`/events?sport=${sport.key}`}
+                  onClick={() => setEventsExpanded(false)}
+                  className="apex-sidebar-sport"
+                >
+                  <span className="apex-sidebar-sport-icon" style={{ background: sport.color }}>
+                    {sport.label[0]}
+                  </span>
+                  <span className="apex-sidebar-sport-label">{sport.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          <NavItem item={CORE_NAV[2]} />
+          <NavItem item={CORE_NAV[3]} />
 
           {SIDE_NAV.map((item) => {
             const Icon = item.icon;

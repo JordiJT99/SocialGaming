@@ -1,9 +1,7 @@
-import { useMemo, useState } from "react";
-import { AlertCircle, ChevronDown, CircleDot, Info, LoaderCircle, Minus, Plus, ShieldCheck, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, ChevronDown, CircleDot, Info, LoaderCircle, ShieldCheck, X } from "lucide-react";
 
-export default function Sportsbook({ sportsData, onSportSelect }) {
-  const [slip, setSlip] = useState([]);
-  const [stake, setStake] = useState(100);
+export default function Sportsbook({ sportsData, onSportSelect, onAddToSlip, slipItems = [] }) {
   const [sportFilter, setSportFilter] = useState("all");
   const sports = [
     { key: "football", name: "Football" },
@@ -14,14 +12,10 @@ export default function Sportsbook({ sportsData, onSportSelect }) {
     match.status !== "finished" &&
     (sportFilter === "all" || (match.sportKey || "football") === sportFilter),
   );
-  const totalOdds = useMemo(() => slip.reduce((total, pick) => total * pick.odd, 1), [slip]);
 
-  const togglePick = (event, pick, odd) => {
-    setSlip((current) => {
-      const withoutEvent = current.filter((item) => item.eventId !== event.id);
-      const exists = current.some((item) => item.eventId === event.id && item.pick === pick);
-      return exists ? withoutEvent : [...withoutEvent, { eventId: event.id, match: `${event.home} - ${event.away}`, pick, odd }];
-    });
+  const handlePick = (event, pick, odd) => {
+    if (event.status === "live") return;
+    onAddToSlip?.(event, pick, odd);
   };
 
   return (
@@ -51,8 +45,8 @@ export default function Sportsbook({ sportsData, onSportSelect }) {
                 {event.odds ? (
                   <div className="event-markets">
                     {[["1", event.odds[1]], ...(event.odds.X ? [["X", event.odds.X]] : []), ["2", event.odds[2]]].map(([pick, odd]) => {
-                      const selected = slip.some((item) => item.eventId === event.id && item.pick === pick);
-                      return <button disabled={event.status === "live"} className={selected ? "selected" : ""} onClick={() => togglePick(event, pick, odd)} key={pick}><span>{pick}</span><b>{odd.toFixed(2)}</b>{selected && <X size={12} />}</button>;
+                      const selected = slipItems.some((item) => item.eventId === event.id && item.selection === pick);
+                      return <button disabled={event.status === "live"} className={selected ? "selected" : ""} onClick={() => handlePick(event, pick, odd)} key={pick}><span>{pick}</span><b>{odd.toFixed(2)}</b>{selected && <X size={12} />}</button>;
                     })}
                   </div>
                 ) : <div className="odds-unavailable">Sin cuotas publicadas</div>}
@@ -63,19 +57,6 @@ export default function Sportsbook({ sportsData, onSportSelect }) {
             ))}
           </div>
         </main>
-
-        <aside className="bet-slip panel">
-          <div className="panel-heading"><div><span className="slip-count">{slip.length}</span><h2>Tu jugada</h2></div>{slip.length > 0 && <button onClick={() => setSlip([])}><Trash2 size={15} /></button>}</div>
-          {slip.length === 0 ? <div className="slip-empty"><Plus size={25} /><strong>Selecciona una cuota</strong><p>Las selecciones aparecerán aquí.</p></div> : (
-            <>
-              <div className="slip-picks">{slip.map((item) => <div key={item.eventId}><button onClick={() => setSlip((current) => current.filter((pick) => pick.eventId !== item.eventId))}><X size={12} /></button><span>{item.match}</span><strong>{item.pick} · {item.odd.toFixed(2)}</strong></div>)}</div>
-              <label className="stake-control"><span>Monedas en juego</span><div><button onClick={() => setStake(Math.max(50, stake - 50))}><Minus size={14} /></button><input value={stake} onChange={(event) => setStake(Number(event.target.value) || 0)} /><button onClick={() => setStake(stake + 50)}><Plus size={14} /></button></div></label>
-              <div className="slip-summary"><span>Cuota total <b>{totalOdds.toFixed(2)}</b></span><span>Premio potencial <strong>{Math.round(stake * totalOdds).toLocaleString("es-ES")} P</strong></span></div>
-              <button className="classic-button full">Jugar {stake.toLocaleString("es-ES")} coins</button>
-            </>
-          )}
-          <div className="slip-disclaimer"><Info size={14} /> Datos de cuotas: Odds API.</div>
-        </aside>
       </div>
     </div>
   );

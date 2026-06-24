@@ -1,22 +1,33 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, BarChart3, CheckCircle2, Clock, Minus, Plus, TrendingUp, XCircle } from "lucide-react";
+import { BarChart3, Brain, CheckCircle2, Clock, MapPin, TrendingUp, Trophy, XCircle } from "lucide-react";
+
+const SPORT_LABELS = {
+  football: "Fútbol",
+  basketball: "Baloncesto",
+  tennis: "Tenis",
+  baseball: "Béisbol",
+  hockey: "Hockey",
+  boxing: "Boxeo",
+  mma: "MMA",
+  esports: "e-Sports",
+};
 
 const MOCK_USERS = [
-  { id: "user2", username: "Marina", points: 17650, accuracy: 68 },
-  { id: "user3", username: "Alex", points: 16980, accuracy: 65 },
-  { id: "user4", username: "Claudia", points: 15320, accuracy: 70 },
-  { id: "user5", username: "Marc", points: 14890, accuracy: 63 },
-  { id: "user6", username: "Nora", points: 14210, accuracy: 67 },
-  { id: "user7", username: "Pablo", points: 13540, accuracy: 61 },
-  { id: "user8", username: "Laura", points: 12870, accuracy: 66 },
+  { id: "user2", username: "Marco Elite", points: 17650, accuracy: 89, avatar: "https://i.pravatar.cc/80?u=marco" },
+  { id: "user3", username: "DataQueen_88", points: 16980, accuracy: 84, avatar: "https://i.pravatar.cc/80?u=dataqueen" },
+  { id: "user4", username: "SharkPredictor", points: 15320, accuracy: 81, avatar: "https://i.pravatar.cc/80?u=shark" },
+  { id: "user5", username: "Marc", points: 14890, accuracy: 78, avatar: "https://i.pravatar.cc/80?u=marc" },
+  { id: "user6", username: "Nora", points: 14210, accuracy: 76, avatar: "https://i.pravatar.cc/80?u=nora" },
+  { id: "user7", username: "Pablo", points: 13540, accuracy: 73, avatar: "https://i.pravatar.cc/80?u=pablo" },
+  { id: "user8", username: "Laura", points: 12870, accuracy: 71, avatar: "https://i.pravatar.cc/80?u=laura" },
 ];
 
 const MOCK_SELECTIONS = ["1", "X", "2"];
 
-function Crest({ src, name }) {
-  return <span className="apex-match-crest"><b>{name?.slice(0, 3).toUpperCase() || "???"}</b>{src && <img src={src} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} />}</span>;
-}
+const MOCK_PERFORMANCE = ["W", "W", "L", "W", "W"];
+
+const MOCK_TREND = [30, 45, 35, 60, 55, 70, 85];
 
 function statusLabel(status) {
   switch (status) {
@@ -30,17 +41,9 @@ function statusLabel(status) {
   }
 }
 
-const MIN_BET = 50;
-
-export default function EventDetail({ sportsData, store, onPredict, user }) {
+export default function EventDetail({ sportsData, store, onAddToSlip, slipItems = [], user }) {
   const { eventId } = useParams();
   const event = sportsData.matches.find((m) => String(m.id) === eventId);
-  const [selectedPick, setSelectedPick] = useState(null);
-  const [amount, setAmount] = useState(MIN_BET);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  const balance = user?.points || 0;
 
   const existingPrediction = store.predictions.find(
     (p) => String(p.matchId) === eventId && p.userId === "current_user",
@@ -108,27 +111,6 @@ export default function EventDetail({ sportsData, store, onPredict, user }) {
     return { predictions: allPreds, ranking, distribution };
   }, [event, eventId, store.predictions, store.users]);
 
-  const handleConfirm = async () => {
-    if (!selectedPick || !event || submitting) return;
-    if (!Number.isInteger(amount) || amount < MIN_BET || amount > balance) return;
-    setSubmitting(true);
-    setError("");
-    try {
-      await onPredict?.(event.id, selectedPick, amount, event.oddsEventId, event.odds[selectedPick], {
-        home: event.home,
-        away: event.away,
-        homeBadge: event.homeBadge,
-        awayBadge: event.awayBadge,
-      });
-      setSelectedPick(null);
-      setAmount(MIN_BET);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   if (!event) {
     return (
       <div className="product-page">
@@ -141,319 +123,192 @@ export default function EventDetail({ sportsData, store, onPredict, user }) {
   const isFinished = event.status === "finished";
   const options = event.odds ? ["1", ...(event.odds.X ? ["X"] : []), "2"] : [];
   const totalDistCoins = Object.values(distribution).reduce((s, d) => s + d.coins, 0);
+  const sportName = SPORT_LABELS[event.sportKey] || event.sportKey || "Deporte";
+  const leagueName = event.league || event.tournament || "Liga";
+
+  const homePct = distribution["1"]?.pct || 50;
+  const awayPct = distribution["2"]?.pct || 50;
+  const totalVotes = totalDistCoins || 0;
+
+  const inSlip = slipItems.some((item) => item.eventId === event.id);
 
   return (
     <div className="product-page sportsbook-page">
-      <header className="product-hero sportsbook-hero" style={{ paddingBottom: "1rem" }}>
-        <Link to="/events" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-          <ArrowLeft size={16} /> Volver a eventos
-        </Link>
-        <div className="event-info" style={{ padding: "0" }}>
-          <span>{event.league || event.tournament || "Evento"}</span>
-          <small>
-            {new Date(event.date).toLocaleString("es-ES", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
-            {isLive && <span style={{ color: "var(--green)", marginLeft: "0.5rem" }}>● EN DIRECTO</span>}
-            {isFinished && <span style={{ color: "var(--text-muted)", marginLeft: "0.5rem" }}>FINALIZADO</span>}
-          </small>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "2rem", padding: "2rem 0 1.5rem" }}>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", flex: 1 }}>
-            <Crest src={event.homeBadge} name={event.home} />
-            <strong style={{ fontSize: "1.15rem", textAlign: "center", maxWidth: "200px" }}>{event.home}</strong>
+      <div className="apex-event-breadcrumb">
+        <Link to="/events">{sportName}</Link>
+        <span className="separator">›</span>
+        <Link to="/events">{leagueName}</Link>
+        <span className="separator">›</span>
+        <span>Detalle de Evento</span>
+      </div>
+
+      <div className="apex-event-detail-wrap">
+        <div className="apex-event-hero-card">
+          <div className="apex-event-teams">
+            <div className="apex-event-team">
+              <div className="apex-event-team-logo">
+                {event.homeBadge ? (
+                  <img src={event.homeBadge} alt={event.home} onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.parentElement.querySelector("b").style.display = "block"; }} />
+                ) : null}
+                <b style={{ display: event.homeBadge ? "none" : "block" }}>{event.home?.slice(0, 3).toUpperCase() || "???"}</b>
+              </div>
+              <div className="apex-event-team-name">{event.home}</div>
+              <div className="apex-event-team-label">Local</div>
+            </div>
+
+            <div className="apex-event-score-section">
+              {isLive && (
+                <div className="apex-event-live-badge">EN VIVO · Q3 04:12</div>
+              )}
+              {(isLive || isFinished) && event.score && (
+                <div className="apex-event-score">{event.score}</div>
+              )}
+              <div className="apex-event-venue">
+                <MapPin size={12} />
+                <span>Gainbridge Fieldhouse</span>
+              </div>
+            </div>
+
+            <div className="apex-event-team">
+              <div className="apex-event-team-logo">
+                {event.awayBadge ? (
+                  <img src={event.awayBadge} alt={event.away} onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.parentElement.querySelector("b").style.display = "block"; }} />
+                ) : null}
+                <b style={{ display: event.awayBadge ? "none" : "block" }}>{event.away?.slice(0, 3).toUpperCase() || "???"}</b>
+              </div>
+              <div className="apex-event-team-name">{event.away}</div>
+              <div className="apex-event-team-label">Visitante</div>
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.25rem", flexShrink: 0 }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em" }}>vs</span>
-            {(isLive || isFinished) && event.score && (
-              <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--text-bright)", lineHeight: 1 }}>{event.score}</div>
-            )}
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", flex: 1 }}>
-            <Crest src={event.awayBadge} name={event.away} />
-            <strong style={{ fontSize: "1.15rem", textAlign: "center", maxWidth: "200px" }}>{event.away}</strong>
+
+          <div className="apex-consensus-section">
+            <div className="apex-consensus-header">
+              <div className="apex-consensus-title">Consenso de la Comunidad</div>
+              <div className="apex-consensus-votes">{totalVotes.toLocaleString("es-ES")} votos</div>
+            </div>
+            <div className="apex-consensus-bar">
+              <div className="apex-consensus-bar-fill" style={{ width: `${homePct}%` }} />
+            </div>
+            <div className="apex-consensus-labels">
+              <span className="home">{homePct}% {event.home}</span>
+              <span className="away">{awayPct}% {event.away}</span>
+            </div>
           </div>
         </div>
 
-        {event.odds && (
-          <div style={{ padding: "0 0 0.5rem" }}>
-            <div className="event-markets" style={{ justifyContent: "center" }}>
-              {options.map((pick) => {
-                const dist = distribution[pick];
-                const pct = dist?.pct || 0;
-                const disabled = !!existingPrediction || isLive || isFinished;
-                return (
-                  <button
-                    type="button"
-                    key={pick}
-                    className={selectedPick === pick ? "selected" : existingPrediction?.selection === pick ? "selected" : ""}
-                    disabled={disabled}
-                    onClick={() => {
-                      setSelectedPick(selectedPick === pick ? null : pick);
-                      setAmount(MIN_BET);
-                      setError("");
-                    }}
-                    style={{ flexDirection: "column", gap: "0.25rem", position: "relative", overflow: "hidden" }}
-                  >
-                    <span>{pick}</span>
-                    <b>{event.odds[pick]?.toFixed(2) ?? "-"}</b>
-                    {totalDistCoins > 0 && (
-                      <small style={{ fontSize: "0.7rem", opacity: 0.7 }}>{pct}%</small>
-                    )}
-                    {totalDistCoins > 0 && (
-                      <span style={{ position: "absolute", bottom: 0, left: 0, height: "3px", width: `${pct}%`, background: "var(--accent)", borderRadius: "2px" }} />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            {totalDistCoins > 0 && (
-              <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-                {options.map((pick) => {
-                  const d = distribution[pick];
-                  return d ? (
-                    <span key={pick}>{pick}: {d.coins.toLocaleString("es-ES")} coins ({d.pct}%)</span>
-                  ) : null;
-                })}
+        <div className="apex-event-grid">
+          <div>
+            {event.odds && (
+              <div className="apex-odds-market-card">
+                <div className="apex-odds-market-header">
+                  <div className="apex-odds-market-title">Ganador del Partido (1X2)</div>
+                  <Link to="/sportsbook" className="apex-odds-market-link">Ver todos los mercados ›</Link>
+                </div>
+                <div className="apex-odds-buttons">
+                  {options.map((pick) => {
+                    const isHome = pick === "1";
+                    const isAway = pick === "2";
+                    const teamName = isHome ? event.home : isAway ? event.away : "Empate";
+                    const label = isHome ? "LOCAL" : isAway ? "VISITANTE" : "X";
+                    const disabled = !!existingPrediction || isLive || isFinished;
+                    const inSlipForPick = slipItems.some((item) => item.eventId === event.id && item.selection === pick);
+                    return (
+                      <button
+                        type="button"
+                        key={pick}
+                        className={`apex-odds-button ${inSlipForPick ? "selected" : ""}`}
+                        disabled={disabled}
+                        onClick={() => onAddToSlip?.(event, pick, event.odds[pick])}
+                      >
+                        <div className="apex-odds-button-label">{label}</div>
+                        <div className="apex-odds-button-team">{teamName}</div>
+                        <div className="apex-odds-button-value">{event.odds[pick]?.toFixed(2) ?? "-"}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {inSlip && (
+                  <div className="apex-odds-in-slip">✓ Añadido al cupón de apuesta</div>
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {existingPrediction && (
-          <div style={{ textAlign: "center", padding: "0.5rem", color: "var(--gold)", fontSize: "0.85rem" }}>
-            Ya tienes una predicción en este evento ({existingPrediction.selection} @ {Number(existingPrediction.confirmedOdds || existingPrediction.offeredOdds).toFixed(2)})
-          </div>
-        )}
-      </header>
-
-      {selectedPick && !existingPrediction && !isLive && !isFinished && event.odds?.[selectedPick] && (
-        <div className="apex-bet-panel" style={{
-          margin: "1rem auto", padding: "1.5rem",
-          background: "#0a3546", borderRadius: "16px",
-          border: "1px solid rgba(23, 162, 184, 0.3)",
-          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(23, 162, 184, 0.2)" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              <span style={{ fontWeight: 700, fontSize: "1.05rem", color: "#ffffff" }}>
-                {selectedPick === "1" ? event.home : selectedPick === "2" ? event.away : "Empate"}
-              </span>
-              <span style={{ fontSize: "0.72rem", color: "rgba(183, 227, 244, 0.6)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Tu selección</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.2rem" }}>
-              <b style={{ color: "#17a2b8", fontSize: "1.2rem" }}>@ {event.odds[selectedPick].toFixed(2)}</b>
-              <span style={{ fontSize: "0.72rem", color: "rgba(183, 227, 244, 0.6)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Cuota</span>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: "1.25rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.75rem" }}>
-              <span style={{ fontSize: "0.78rem", color: "rgba(183, 227, 244, 0.7)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Cantidad</span>
-              <span style={{
-                fontSize: "1.5rem", fontWeight: 800, color: amount >= MIN_BET && amount <= balance ? "#ffffff" : "#ff6b57",
-                fontVariantNumeric: "tabular-nums",
-              }}>
-                {amount.toLocaleString("es-ES")} <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "rgba(183, 227, 244, 0.6)" }}>coins</span>
-              </span>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-              <button type="button"
-                disabled={amount <= MIN_BET}
-                onClick={() => setAmount(Math.max(MIN_BET, amount - 50))}
-                style={{
-                  width: "44px", height: "44px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                  borderRadius: "10px", border: "1px solid rgba(23, 162, 184, 0.4)",
-                  background: amount <= MIN_BET ? "rgba(255,255,255,0.03)" : "rgba(23, 162, 184, 0.15)",
-                  color: amount <= MIN_BET ? "rgba(183, 227, 244, 0.4)" : "#ffffff",
-                  cursor: amount <= MIN_BET ? "not-allowed" : "pointer",
-                  transition: "all 0.15s",
-                }}
-              >
-                <Minus size={18} />
-              </button>
-
-              <div style={{ flex: 1, position: "relative", height: "8px", display: "flex", alignItems: "center" }}>
-                <div style={{
-                  position: "absolute", left: 0, right: 0, height: "6px",
-                  background: "rgba(23, 162, 184, 0.15)", borderRadius: "99px",
-                }} />
-                <div style={{
-                  position: "absolute", left: 0, height: "6px",
-                  width: `${Math.min(100, Math.max(0, ((amount - MIN_BET) / Math.max(1, balance - MIN_BET)) * 100))}%`,
-                  background: "linear-gradient(90deg, #17a2b8, #39d98a)", borderRadius: "99px",
-                }} />
-                <input
-                  type="range"
-                  min={MIN_BET}
-                  max={Math.max(MIN_BET, balance)}
-                  step="50"
-                  value={Math.min(amount, Math.max(MIN_BET, balance))}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  style={{
-                    position: "relative", width: "100%", height: "24px",
-                    appearance: "none", WebkitAppearance: "none",
-                    background: "transparent", cursor: "pointer", margin: 0, padding: 0,
-                  }}
-                />
+            <div className="apex-info-cards">
+              <div className="apex-info-card">
+                <div className="apex-info-card-title">
+                  <BarChart3 size={16} />
+                  Rendimiento Reciente
+                </div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-muted, #6b7280)", marginBottom: "0.5rem" }}>Últimos 5 partidos</div>
+                <div className="apex-wl-badges">
+                  {MOCK_PERFORMANCE.map((result, i) => (
+                    <div key={i} className={`apex-wl-badge ${result === "W" ? "win" : "loss"}`}>
+                      {result}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <button type="button"
-                disabled={amount >= balance}
-                onClick={() => setAmount(Math.min(balance, amount + 50))}
-                style={{
-                  width: "44px", height: "44px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                  borderRadius: "10px", border: "1px solid rgba(23, 162, 184, 0.4)",
-                  background: amount >= balance ? "rgba(255,255,255,0.03)" : "rgba(23, 162, 184, 0.15)",
-                  color: amount >= balance ? "rgba(183, 227, 244, 0.4)" : "#ffffff",
-                  cursor: amount >= balance ? "not-allowed" : "pointer",
-                  transition: "all 0.15s",
-                }}
-              >
-                <Plus size={18} />
-              </button>
-            </div>
-
-            <div style={{ display: "flex", gap: "0.4rem" }}>
-              {[{ label: "Mín", val: MIN_BET }, { label: "¼", val: Math.floor(balance / 4) }, { label: "½", val: Math.floor(balance / 2) }, { label: "Máx", val: balance }].map((preset) => {
-                const isActive = amount === preset.val;
-                return (
-                  <button key={preset.label} type="button"
-                    onClick={() => setAmount(Math.max(MIN_BET, Math.min(balance, preset.val)))}
-                    style={{
-                      flex: 1, padding: "0.5rem", fontSize: "0.78rem", fontWeight: 700,
-                      borderRadius: "8px",
-                      border: isActive ? "1px solid #17a2b8" : "1px solid rgba(183, 227, 244, 0.2)",
-                      background: isActive ? "#17a2b8" : "rgba(255,255,255,0.03)",
-                      color: isActive ? "#ffffff" : "rgba(183, 227, 244, 0.8)",
-                      cursor: "pointer", transition: "all 0.15s",
-                    }}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
+              <div className="apex-info-card">
+                <div className="apex-info-card-title">
+                  <TrendingUp size={16} />
+                  Tendencia de Apuestas
+                </div>
+                <div className="apex-trend-chart">
+                  {MOCK_TREND.map((value, i) => (
+                    <div key={i} className="apex-trend-bar" style={{ height: `${value}%` }} />
+                  ))}
+                </div>
+                <div className="apex-trend-text">
+                  Incremento del 15% en el volumen de apuestas en los últimos 10 min.
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            padding: "0.85rem 1rem", borderRadius: "10px",
-            background: "rgba(23, 162, 184, 0.08)",
-            border: "1px solid rgba(23, 162, 184, 0.2)",
-            marginBottom: "1.25rem",
-          }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
-              <span style={{ fontSize: "0.7rem", color: "rgba(183, 227, 244, 0.6)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Saldo</span>
-              <b style={{ fontSize: "0.95rem", color: "#ffffff" }}>{balance.toLocaleString("es-ES")}</b>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.15rem" }}>
-              <span style={{ fontSize: "0.7rem", color: "rgba(183, 227, 244, 0.6)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Posible retorno</span>
-              <b style={{ fontSize: "1.1rem", color: "#39d98a" }}>
-                {Number.isInteger(amount) && amount >= MIN_BET && amount <= balance
-                  ? Math.round(amount * event.odds[selectedPick]).toLocaleString("es-ES")
-                  : 0} <span style={{ fontSize: "0.75rem", fontWeight: 500 }}>coins</span>
-              </b>
-            </div>
-          </div>
-
-          {error && <div style={{ color: "#ff6b57", fontSize: "0.85rem", marginBottom: "0.75rem", textAlign: "center", padding: "0.5rem", background: "rgba(255, 107, 87, 0.1)", borderRadius: "8px" }}>{error}</div>}
-
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button type="button"
-              onClick={() => { setSelectedPick(null); setError(""); }}
-              style={{
-                padding: "0.8rem 1.2rem", borderRadius: "10px",
-                border: "1px solid rgba(183, 227, 244, 0.2)",
-                background: "transparent", color: "rgba(183, 227, 244, 0.8)",
-                cursor: "pointer", fontWeight: 600, fontSize: "0.9rem",
-              }}
-            >
-              Cancelar
-            </button>
-            <button type="button"
-              disabled={!Number.isInteger(amount) || amount < MIN_BET || amount > balance || submitting}
-              onClick={handleConfirm}
-              style={{
-                flex: 1, padding: "0.8rem", borderRadius: "10px", border: "none",
-                background: amount >= MIN_BET && amount <= balance ? "#17a2b8" : "rgba(183, 227, 244, 0.15)",
-                color: amount >= MIN_BET && amount <= balance ? "#ffffff" : "rgba(183, 227, 244, 0.5)",
-                cursor: amount >= MIN_BET && amount <= balance ? "pointer" : "not-allowed",
-                fontWeight: 700, fontSize: "0.95rem",
-                boxShadow: amount >= MIN_BET && amount <= balance ? "0 4px 12px rgba(23, 162, 184, 0.4)" : "none",
-                transition: "all 0.15s",
-              }}
-            >
-              {submitting ? "Validando..." : "Confirmar apuesta"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gap: "1.5rem", padding: "1.5rem 1rem", maxWidth: "800px", margin: "0 auto" }}>
-        <section>
-          <h2 style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem", marginBottom: "1rem" }}>
-            <BarChart3 size={18} /> Ranking de apuestas
-          </h2>
-          {ranking.length === 0 ? (
-            <p className="empty-state">No hay apuestas en este evento.</p>
-          ) : (
-            <div className="ranking-table compact">
-              {ranking.map((row) => {
-                const StatusIcon = statusLabel(row.predictions?.[0]?.status || "pending").icon;
-                return (
-                  <div key={row.id} className={`ranking-row ${row.id === "current_user" ? "is-me" : ""}`}>
-                    <span className="rank-number">#{row.rank}</span>
-                    <span className="rank-avatar">{row.username?.[0]?.toUpperCase() || "?"}</span>
-                    <span className="rank-name" style={{ flex: 1 }}>{row.username}</span>
-                    <span className="rank-stats">
-                      <span className="rank-points">{row.totalBet.toLocaleString("es-ES")} coins</span>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                        {row.selections.join(", ")}
-                      </span>
-                    </span>
-                    {row.predictions?.[0] && (
-                      <StatusIcon size={16} style={{ color: statusLabel(row.predictions[0].status).color, marginLeft: "0.5rem" }} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <h2 style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem", marginBottom: "1rem" }}>
-            <Clock size={18} /> Historial de apuestas
-          </h2>
-          {predictions.length === 0 ? (
-            <p className="empty-state">No hay actividad en este evento.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {predictions.map((pred) => {
-                const Icon = statusLabel(pred.status).icon;
-                const user = [...MOCK_USERS, store.users.find((u) => u.id === "current_user")].find((u) => u?.id === pred.userId);
-                return (
-                  <div key={pred.id} className="bet-event" style={{ padding: "0.75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <span className="rank-avatar" style={{ width: "32px", height: "32px" }}>
-                        {user?.username?.[0]?.toUpperCase() || "?"}
-                      </span>
-                      <div>
-                        <strong style={{ fontSize: "0.9rem" }}>{user?.username || "Anónimo"}</strong>
-                        <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                          <span>{pred.selection} @ {Number(pred.confirmedOdds || pred.offeredOdds || 0).toFixed(2)}</span>
-                          <span>·</span>
-                          <span>{pred.pointsBet.toLocaleString("es-ES")} coins</span>
-                        </div>
+          <div>
+            <div className="apex-predictors-card">
+              <div className="apex-predictors-header">
+                <div className="apex-predictors-title">
+                  <Trophy size={16} />
+                  Top Predictores
+                </div>
+                <div className="apex-predictors-live">EN VIVO</div>
+              </div>
+              <div className="apex-predictors-list">
+                {ranking.slice(0, 3).map((row) => (
+                  <div key={row.id} className="apex-predictor-item">
+                    <div className="apex-predictor-avatar">
+                      {row.avatar
+                        ? <img src={row.avatar} alt="" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "block"; }} />
+                        : null}
+                      <span style={{ display: row.avatar ? "none" : "block" }}>{row.username?.[0]?.toUpperCase() || "?"}</span>
+                    </div>
+                    <div className="apex-predictor-info">
+                      <div className="apex-predictor-name">{row.username}</div>
+                      <div className="apex-predictor-stats">
+                        ROI: {(row.accuracy * 0.2).toFixed(1)}% · {row.accuracy}% Precisión
                       </div>
                     </div>
-                    <Icon size={18} style={{ color: statusLabel(pred.status).color, flexShrink: 0 }} />
+                    <div className="apex-predictor-profit">+{(row.totalBet / 1000).toFixed(1)}k</div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <button className="apex-predictors-button">Ver Ranking Completo</button>
             </div>
-          )}
-        </section>
+
+            <div className="apex-ai-card">
+              <div className="apex-ai-card-title">
+                <Brain size={16} />
+                IA Apex Prediction
+              </div>
+              <div className="apex-ai-card-text">
+                Basado en 25,000 simulaciones, {event.home} tiene un 78.4% de probabilidad de ganar por &gt;6 puntos.
+              </div>
+              <button className="apex-ai-card-button">SEGUIR PREDICCIÓN</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

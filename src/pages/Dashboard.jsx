@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ChartNoAxesCombined, Clock3, Coins, Flame } from "lucide-react";
 import MatchCard from "../components/MatchCard";
 
-export default function Dashboard({ store, matches, standings, onPredict, user, sportsData }) {
+export default function Dashboard({ store, matches, standings, onAddToSlip, slipItems = [], user, sportsData }) {
   const upcoming = matches.filter((match) => match.status === "upcoming" && new Date(match.date) > new Date()).slice(0, 4);
   const finished = matches.filter((match) => match.status === "finished").slice(0, 3);
   const userPredictions = store.predictions.filter((prediction) => prediction.userId === "current_user");
@@ -49,7 +49,8 @@ export default function Dashboard({ store, matches, standings, onPredict, user, 
                 key={match.id}
                 match={match}
                 existingPrediction={store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === "current_user")}
-                onPredict={onPredict}
+                onAddToSlip={onAddToSlip}
+                slipItems={slipItems}
               />
             ))}
           </div>
@@ -61,7 +62,8 @@ export default function Dashboard({ store, matches, standings, onPredict, user, 
                 key={match.id}
                 match={match}
                 existingPrediction={store.predictions.find((prediction) => prediction.matchId === match.id && prediction.userId === "current_user")}
-                onPredict={onPredict}
+                onAddToSlip={onAddToSlip}
+                slipItems={slipItems}
               />
             ))}
           </div>

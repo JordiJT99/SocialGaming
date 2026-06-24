@@ -4,6 +4,7 @@ import { getCurrentUser, loadStore, makePrediction, refundPrediction, resolvePre
 import { fetchSportsData } from "./services/sportsData";
 import { fetchTheOddsData } from "./services/theOddsApi";
 import AppHeader from "./components/AppHeader";
+import BetSlip from "./components/BetSlip";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Predictions from "./pages/Predictions";
@@ -30,6 +31,9 @@ export default function App() {
     error: null,
   });
   const [oddsStatus, setOddsStatus] = useState(null);
+  const [slipItems, setSlipItems] = useState([]);
+  const [slipOpen, setSlipOpen] = useState(false);
+  const [slipSubmitting, setSlipSubmitting] = useState(false);
 
   useEffect(() => {
     saveStore(store);
@@ -270,6 +274,59 @@ export default function App() {
     });
   }, []);
 
+  const addToSlip = useCallback((event, selection, odd) => {
+    setSlipItems((prev) => {
+      if (prev.some((item) => item.eventId === event.id)) return prev;
+      return [...prev, {
+        eventId: event.id,
+        home: event.home,
+        away: event.away,
+        homeBadge: event.homeBadge,
+        awayBadge: event.awayBadge,
+        league: event.league || event.tournament,
+        sport: event.sportKey,
+        selection,
+        odd,
+        oddsEventId: event.oddsEventId,
+      }];
+    });
+    setSlipOpen(true);
+  }, []);
+
+  const removeSlipItem = useCallback((index) => {
+    setSlipItems((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const clearSlip = useCallback(() => {
+    setSlipItems([]);
+  }, []);
+
+  const handleConfirmSlip = useCallback(async (amount, mode) => {
+    if (slipItems.length === 0 || slipSubmitting) return;
+    setSlipSubmitting(true);
+    try {
+      if (mode === "multiple" && slipItems.length > 1) {
+        const combinedOdds = slipItems.reduce((acc, item) => acc * item.odd, 1);
+        const first = slipItems[0];
+        await handlePredict(first.eventId, first.selection, amount, first.oddsEventId, combinedOdds, {
+          home: first.home, away: first.away, homeBadge: first.homeBadge, awayBadge: first.awayBadge,
+        });
+      } else {
+        for (const item of slipItems) {
+          await handlePredict(item.eventId, item.selection, amount, item.oddsEventId, item.odd, {
+            home: item.home, away: item.away, homeBadge: item.homeBadge, awayBadge: item.awayBadge,
+          });
+        }
+      }
+      setSlipItems([]);
+      setSlipOpen(false);
+    } catch (err) {
+      window.alert(err.message || "No se pudo confirmar la apuesta");
+    } finally {
+      setSlipSubmitting(false);
+    }
+  }, [slipItems, slipSubmitting, handlePredict]);
+
   const user = getCurrentUser(store);
   const socialUsers = [user].filter(Boolean);
 
@@ -280,11 +337,11 @@ export default function App() {
         <OnboardingTour />
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
-            <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
-            <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
-            <Route path="/live" element={<Predictions liveOnly store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
-            <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} onSportSelect={loadSport} />} />
+            <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
+            <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
+            <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} onAddToSlip={addToSlip} slipItems={slipItems} />} />
+            <Route path="/live" element={<Predictions liveOnly store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} onAddToSlip={addToSlip} slipItems={slipItems} />} />
+            <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} onSportSelect={loadSport} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
             <Route path="/ranking" element={<Ranking standings={sportsData.standings} sportsData={sportsData} />} />
             <Route path="/leagues" element={<Leagues store={store} onStoreChange={triggerStoreChange} allUsers={socialUsers} />} />
             <Route path="/leagues/:leagueId" element={<LeagueDetail store={store} allUsers={socialUsers} />} />
@@ -293,11 +350,21 @@ export default function App() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/earn" element={<Earn />} />
             <Route path="/rewards" element={<Rewards user={user} />} />
-            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} onPredict={handlePredict} user={user} />} />
-            <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
+            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
+            <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        <BetSlip
+          open={slipOpen}
+          onClose={() => setSlipOpen(false)}
+          items={slipItems}
+          onRemoveItem={removeSlipItem}
+          onClear={clearSlip}
+          onConfirm={handleConfirmSlip}
+          user={user}
+          submitting={slipSubmitting}
+        />
       </div>
     </BrowserRouter>
   );

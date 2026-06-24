@@ -9,7 +9,7 @@ const ICONS = { football: Goal, basketball: Dribbble, baseball: CircleDot, tenni
 const SPORT_ORDER = ["football", "basketball", "tennis", "baseball", "hockey"];
 const SPORT_NAMES = { football: "Fútbol", basketball: "Baloncesto", tennis: "Tenis", baseball: "Béisbol", hockey: "Hockey" };
 
-export default function Predictions({ store, onPredict, onSportSelect, matches, sportsData, oddsStatus, liveOnly = false }) {
+export default function Predictions({ store, onSportSelect, matches, sportsData, oddsStatus, liveOnly = false, onAddToSlip, slipItems = [] }) {
   const [searchParams] = useSearchParams();
   const resultsMode = searchParams.get("status") === "finished";
   const [sportFilter, setSportFilter] = useState("all");
@@ -111,13 +111,13 @@ export default function Predictions({ store, onPredict, onSportSelect, matches, 
               <div key={league} className="apex-league-group">
                 <h3 className="apex-league-heading">{league}<small>{leagueMatches.length} partidos</small></h3>
                 <div className="apex-prediction-list">
-                  {leagueMatches.map((match) => (
+                    {leagueMatches.map((match) => (
                     <MatchCard
                       key={match.id}
                       match={match}
                       existingPrediction={store.predictions.find((p) => p.matchId === match.id && p.userId === "current_user")}
-                      onPredict={onPredict}
-                      balance={store.users.find((user) => user.id === "current_user")?.points || 0}
+                      onAddToSlip={onAddToSlip}
+                      slipItems={slipItems}
                     />
                   ))}
                 </div>

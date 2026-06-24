@@ -1,6 +1,6 @@
-const CACHE_KEY = "playfulbet:sports-news:v5";
+const CACHE_KEY = "playfulbet:sports-news:v6";
 const CACHE_TTL = 5 * 60 * 1000;
-const MAX_AGE_MS = 2 * 24 * 60 * 60 * 1000;
+const MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
 
 const SPORT_IMAGE = {
   "Mundial": "https://a.espncdn.com/i/leaguelogos/soccer/500/4.png",
@@ -26,17 +26,6 @@ const SPORT_IMAGE = {
 };
 
 const sportImageFor = (sport) => SPORT_IMAGE[sport] || null;
-
-const PRIORITY = {
-  "Mundial": 1, "Champions League": 2, "Eurocopa": 3,
-  "LaLiga": 4, "Premier League": 5, "Serie A": 6, "Bundesliga": 7, "Ligue 1": 8,
-  "NBA": 9, "Euroliga": 10,
-  "Grand Slam": 11, "ATP": 12, "WTA": 13,
-  "MLB": 14, "NHL": 15,
-  "Fútbol": 16, "Baloncesto": 17, "Tenis": 18, "Béisbol": 19, "Hockey": 20,
-};
-
-const POPULAR = ["Mundial", "Champions League", "LaLiga", "Premier League", "NBA", "Grand Slam", "ATP", "MLB", "Fútbol", "Baloncesto", "Tenis"];
 
 const FALLBACK = [
   { id: "fb-mundial",   title: "Mundial 2026: grupos definidos tras el sorteo en Miami",                   summary: "Las 32 selecciones ya conocen sus rivales en la fase de grupos del torneo más importante del mundo.",                       url: "https://www.espn.com/soccer/", sport: "Mundial" },
@@ -89,10 +78,10 @@ const extractSport = (a) => {
   if (a.sport?.name) return a.sport.name;
   if (a.sport) return typeof a.sport === "string" ? a.sport : a.sport.name || a.sport.description;
   if (Array.isArray(a.categories) && a.categories.length) {
-    const cat = a.categories[0];
-    if (cat.league?.name) return cat.league.name;
-    if (cat.description) return cat.description;
-    if (cat.name) return cat.name;
+    const leagueCat = a.categories.find((c) => c.type === "league" && c.description);
+    if (leagueCat?.description) return leagueCat.description;
+    const firstWithDesc = a.categories.find((c) => c.description);
+    if (firstWithDesc) return firstWithDesc.description;
   }
   if (a.type === "Tennis") return "Grand Slam";
   if (a.type === "Basketball") return "NBA";
@@ -125,52 +114,20 @@ const parseArticle = (a, defaultSport) => {
   };
 };
 
-function ensureVariety(articles) {
-  const now = Date.now();
-  const result = articles
-    .map((a) => ({ ...a, image: a.image || sportImageFor(a.sport) }))
-    .filter((a) => {
-      const t = new Date(a.publishedAt).getTime();
-      return Number.isFinite(t) && (now - t) <= MAX_AGE_MS;
-    });
-
-  for (const wanted of POPULAR) {
-    const count = result.filter((a) => a.sport === wanted).length;
-    if (count < 2) {
-      const fill = FALLBACK.filter((fb) => fb.sport === wanted && !result.find((r) => r.id === fb.id)).slice(0, 2 - count);
-      result.push(...fill.map((fb) => ({ ...fb, publishedAt: new Date(now).toISOString(), image: sportImageFor(fb.sport) })));
-    }
+function ensureFallback(articles) {
+  if (articles.length > 0) {
+    return articles
+      .map((a) => ({ ...a, image: a.image || sportImageFor(a.sport) }))
+      .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
+      .slice(0, 16);
   }
-
-  if (result.length < 12) {
-    const extra = FALLBACK.filter((fb) => !result.find((r) => r.id === fb.id));
-    result.push(...extra.map((fb) => ({ ...fb, publishedAt: new Date(now).toISOString(), image: sportImageFor(fb.sport) })));
-  }
-
-  const seen = new Set();
-  const deduped = [];
-  for (const item of result) { if (!seen.has(item.id)) { seen.add(item.id); deduped.push(item); } }
-
-  const priority = (s) => PRIORITY[s] || 99;
-  deduped.sort((a, b) => {
-    const pa = priority(a.sport), pb = priority(b.sport);
-    if (pa !== pb) return pa - pb;
-    return new Date(b.publishedAt) - new Date(a.publishedAt);
-  });
-
-  const mixed = [];
-  const q = [...deduped];
-  let last = null, cons = 0;
-  while (q.length) {
-    let i = 0;
-    while (i < q.length && q[i].sport === last && cons >= 1) i++;
-    if (i >= q.length) i = 0;
-    const a = q.splice(i, 1)[0];
-    cons = a.sport === last ? cons + 1 : 1;
-    last = a.sport;
-    mixed.push(a);
-  }
-  return mixed;
+  const now = new Date().toISOString();
+  return FALLBACK.slice(0, 16).map((fb) => ({
+    ...fb,
+    image: sportImageFor(fb.sport),
+    publishedAt: now,
+    isFallback: true,
+  }));
 }
 
 async function fetchGeneralNews() {
@@ -267,17 +224,13 @@ export async function fetchSportsNews({ force = false } = {}) {
   const articles = [];
   r.forEach((rr) => { if (rr.status === "fulfilled") articles.push(...rr.value); });
 
-  if (articles.length < 6) {
+  if (articles.length < 4) {
     const general = await fetchGeneralNews();
     articles.push(...general);
   }
 
-  if (articles.length < 6) {
-    const scoreboard = await fetchNewsFromScoreboards();
-    articles.push(...scoreboard);
-  }
-
-  const final = ensureVariety(articles);
+  const final = ensureFallback(articles);
+  const usedFallback = articles.length === 0;
   writeCache(final);
-  return { articles: final.slice(0, 16), cached: false, source: "ESPN" };
+  return { articles: final, cached: false, source: "ESPN", usedFallback };
 }
