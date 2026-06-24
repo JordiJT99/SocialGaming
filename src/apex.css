@@ -483,8 +483,10 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-home-teams > span { color: #6f7b75; text-align: center; font-size: 16px; font-weight: 700; }
 .apex-home-teams > span.live-score { color: var(--apex-primary); font-size: 24px; }
 .apex-home-teams > span small { display: block; margin-top: 5px; color: var(--apex-ink); font-size: 11px; }
-.apex-home-odds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.apex-home-odds { display: flex; gap: 10px; }
 .apex-home-odds button {
+  flex: 1;
+  min-width: 0;
   min-height: 78px; border: 1px solid #c8cecb; border-radius: 5px; background: var(--apex-mid);
 }
 .apex-home-odds button.selected { color: white; border-color: var(--apex-primary); background: var(--apex-primary); }
@@ -1069,8 +1071,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-home-page .apex-welcome h1 { font-size: 33px; font-weight: 700; }
   .apex-home-page .apex-welcome p { font-size: 15px; color: var(--apex-muted); }
   .apex-home-columns { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
-  .apex-home-main { grid-column: 1; min-width: 0; }
-  .apex-home-sidebar { grid-column: 2; position: sticky; top: 72px; align-self: start; min-width: 0; max-height: calc(100vh - 72px - 20px); overflow: hidden; }
+  .apex-home-main { grid-column: 1; grid-row: 1; min-width: 0; }
+  .apex-home-sidebar { grid-column: 2; grid-row: 1; position: sticky; top: 72px; align-self: start; min-width: 0; max-height: calc(100vh - 72px - 20px); overflow: hidden; }
   .apex-home-page .apex-streak-card, .apex-home-page .apex-level-card { max-width: 700px; }
   .apex-home-page .apex-master-card { max-width: none; }
   .apex-sport-section .apex-horizontal-matches { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }

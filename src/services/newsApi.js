@@ -1,5 +1,31 @@
-const CACHE_KEY = "playfulbet:sports-news:v4";
+const CACHE_KEY = "playfulbet:sports-news:v5";
 const CACHE_TTL = 5 * 60 * 1000;
+const MAX_AGE_MS = 2 * 24 * 60 * 60 * 1000;
+
+const SPORT_IMAGE = {
+  "Mundial": "https://a.espncdn.com/i/leaguelogos/soccer/500/4.png",
+  "Champions League": "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png",
+  "Eurocopa": "https://a.espncdn.com/i/leaguelogos/soccer/500/74.png",
+  "LaLiga": "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png",
+  "Premier League": "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png",
+  "Serie A": "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png",
+  "Bundesliga": "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png",
+  "Ligue 1": "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png",
+  "Fútbol": "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png",
+  "NBA": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
+  "Baloncesto": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
+  "Euroliga": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
+  "Grand Slam": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+  "ATP": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+  "WTA": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+  "Tenis": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+  "MLB": "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
+  "Béisbol": "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
+  "NHL": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
+  "Hockey": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
+};
+
+const sportImageFor = (sport) => SPORT_IMAGE[sport] || null;
 
 const PRIORITY = {
   "Mundial": 1, "Champions League": 2, "Eurocopa": 3,
@@ -84,32 +110,41 @@ const safeDate = (d) => {
 const parseArticle = (a, defaultSport) => {
   const title = a.headline || a.title || a.name;
   if (!title) return null;
+  const published = a.published || a.publishedAt || a.lastModified || a.date;
   return {
-    id: String(a.id || `n-${Math.random().toString(36).slice(2, 10)}`),
+    id: String(a.id || `${defaultSport || ""}-${title.replace(/[^a-z0-9]/gi, "").slice(0, 30)}`),
     title: String(title).trim(),
     summary: (a.description || a.summary || "").trim() || null,
-    url: a.links?.web?.href || a.link || null,
-    image: extractImages(a),
+    url: a.links?.web?.href || a.link || "#",
+    image: Array.isArray(a.images) && a.images.length
+      ? (a.images.find((img) => img.width >= 600 && img.url) || a.images[0])?.url || null
+      : null,
     source: "ESPN",
     sport: extractSport(a) || defaultSport || "Fútbol",
-    publishedAt: safeDate(a.published || a.publishedAt || a.lastModified || a.date),
+    publishedAt: published ? new Date(published).toISOString() : new Date().toISOString(),
   };
 };
 
 function ensureVariety(articles) {
-  const result = [...articles];
+  const now = Date.now();
+  const result = articles
+    .map((a) => ({ ...a, image: a.image || sportImageFor(a.sport) }))
+    .filter((a) => {
+      const t = new Date(a.publishedAt).getTime();
+      return Number.isFinite(t) && (now - t) <= MAX_AGE_MS;
+    });
 
   for (const wanted of POPULAR) {
     const count = result.filter((a) => a.sport === wanted).length;
     if (count < 2) {
       const fill = FALLBACK.filter((fb) => fb.sport === wanted && !result.find((r) => r.id === fb.id)).slice(0, 2 - count);
-      result.push(...fill);
+      result.push(...fill.map((fb) => ({ ...fb, publishedAt: new Date(now).toISOString(), image: sportImageFor(fb.sport) })));
     }
   }
 
   if (result.length < 12) {
     const extra = FALLBACK.filter((fb) => !result.find((r) => r.id === fb.id));
-    result.push(...extra);
+    result.push(...extra.map((fb) => ({ ...fb, publishedAt: new Date(now).toISOString(), image: sportImageFor(fb.sport) })));
   }
 
   const seen = new Set();

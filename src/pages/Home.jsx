@@ -224,9 +224,9 @@ export default function Home({ sportsData, store, onPredict, user }) {
             )}
             {!news.loading && !news.error && (
               <div className="apex-news-list">
-                {news.articles.slice(0, 12).filter((a) => a.url).map((article) => (
+                {news.articles.slice(0, 12).map((article) => (
                   <a key={article.id} href={article.url} target="_blank" rel="noopener noreferrer" className="apex-news-card">
-                    {article.image ? <img src={article.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : <span className="apex-news-icon">{article.sport.slice(0, 2).toUpperCase()}</span>}
+                    {article.image ? <img src={article.image} alt="" loading="lazy" onError={(e) => { const s = document.createElement("span"); s.className = "apex-news-icon"; s.textContent = article.sport.slice(0, 2).toUpperCase(); e.currentTarget.replaceWith(s); }} /> : <span className="apex-news-icon">{article.sport.slice(0, 2).toUpperCase()}</span>}
                     <div>
                       <span className="apex-news-meta">{article.sport} · {(() => { const d = new Date(article.publishedAt); return !isNaN(d.getTime()) ? d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }) : ""; })()}</span>
                       <strong>{article.title}</strong>

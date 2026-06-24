@@ -204,7 +204,7 @@ export default function App() {
           awayBadge: match.awayBadge || oddsMatch.awayBadge,
         };
       });
-      return { ...previous, matches: [...matches, ...incoming.values()], error: null };
+      return { ...previous, matches, error: null };
     });
   }, []);
 
