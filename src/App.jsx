@@ -18,6 +18,7 @@ import Earn from "./pages/Earn";
 import Rewards from "./pages/Rewards";
 import Eventos from "./pages/Eventos";
 import EventDetail from "./pages/EventDetail";
+import OnboardingTour from "./components/OnboardingTour";
 
 export default function App() {
   const [store, setStore] = useState(() => loadStore());
@@ -276,10 +277,11 @@ export default function App() {
     <BrowserRouter>
       <div className="app-shell">
         <AppHeader user={user} store={store} />
+        <OnboardingTour />
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} />} />
-            <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} />} />
+            <Route path="/" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
+            <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
             <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
             <Route path="/live" element={<Predictions liveOnly store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} />} />
             <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} onSportSelect={loadSport} />} />
@@ -291,7 +293,7 @@ export default function App() {
             <Route path="/challenges" element={<Challenges />} />
             <Route path="/earn" element={<Earn />} />
             <Route path="/rewards" element={<Rewards user={user} />} />
-            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} />} />
+            <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} onPredict={handlePredict} user={user} />} />
             <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onPredict={handlePredict} user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, PlayCircle, Plus, Trophy } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Flame, Newspaper, PlayCircle, Plus, Target as TargetIcon, Trophy } from "lucide-react";
 import BetConfirm from "../components/BetConfirm";
+import { fetchSportsNews } from "../services/newsApi";
 import { matchPriority } from "./predictionPriority";
 
 function WatchVideoCta({ reward = 15, compact = false }) {
@@ -133,7 +134,23 @@ function MatchSection({ label, matches, limit = 6, linkTo, store, onPredict }) {
   );
 }
 
-export default function Home({ sportsData, store, onPredict }) {
+export default function Home({ sportsData, store, onPredict, user }) {
+  const [news, setNews] = useState({ articles: [], loading: true, error: null, source: "ESPN" });
+
+  useEffect(() => {
+    let active = true;
+    fetchSportsNews()
+      .then((payload) => {
+        if (!active) return;
+        setNews({ articles: payload.articles, loading: false, error: null, source: payload.source });
+      })
+      .catch((error) => {
+        if (!active) return;
+        setNews((previous) => ({ ...previous, loading: false, error: error.message }));
+      });
+    return () => { active = false; };
+  }, []);
+
   const sections = useMemo(() =>
     SECTIONS.map((section) => ({
       ...section,
@@ -153,56 +170,140 @@ export default function Home({ sportsData, store, onPredict }) {
       .slice(0, 10);
   }, [sportsData.matches]);
 
+  const recap = useMemo(() => {
+    const myPredictions = (store?.predictions || []).filter((p) => p.userId === "current_user");
+    const recent = myPredictions.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const settled = recent.filter((p) => p.status === "won" || p.status === "lost");
+    const last7 = settled.slice(0, 7);
+    const wins = last7.filter((p) => p.status === "won").length;
+    const losses = last7.length - wins;
+    const pending = myPredictions.filter((p) => ["pending", "pending_quote", "needs_confirmation"].includes(p.status)).length;
+    const confirmNeeded = myPredictions.filter((p) => p.status === "needs_confirmation").length;
+    return { wins, losses, pending, confirmNeeded, last7 };
+  }, [store?.predictions]);
+
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Buenos días";
+    if (h < 19) return "Buenas tardes";
+    return "Buenas noches";
+  }, []);
+
   return (
     <div className="apex-page apex-home-page">
-      <section className="apex-welcome" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-        <div>
-          <h1>¡Hola, Jordi! <span>👋</span></h1>
-          <p>¿Qué tal tu instinto hoy?</p>
+      <div className="apex-home-columns">
+        <aside className="apex-home-sidebar">
+          {results.length > 0 && (
+            <section className="apex-panel apex-results-panel">
+              <div className="apex-section-title"><h2>Últimos Resultados</h2><Link to="/predictions?status=finished">VER TODO</Link></div>
+              <div className="apex-results-list">
+                {results.map((match) => (
+                  <article key={match.id}>
+                    <span className="apex-result-league">{match.league}</span>
+                    <div className="apex-result-teams">
+                      <div><TeamBadge src={match.homeBadge} name={match.home} /><strong>{match.home}</strong></div>
+                      <b className="apex-result-score">{match.score}</b>
+                      <div><TeamBadge src={match.awayBadge} name={match.away} /><strong>{match.away}</strong></div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="apex-panel apex-news-panel">
+            <div className="apex-section-title">
+              <h2><Newspaper size={18} /> Noticias Deportivas</h2>
+              <small className="apex-news-source">{news.loading ? "Cargando..." : news.source}</small>
+            </div>
+            {news.loading && (
+              <div className="apex-news-loading"><i /><i /><i /><span>Cargando noticias...</span></div>
+            )}
+            {!news.loading && news.error && (
+              <div className="apex-news-error"><span>No se pudieron cargar las noticias.</span><small>{news.error}</small></div>
+            )}
+            {!news.loading && !news.error && (
+              <div className="apex-news-list">
+                {news.articles.slice(0, 12).filter((a) => a.url).map((article) => (
+                  <a key={article.id} href={article.url} target="_blank" rel="noopener noreferrer" className="apex-news-card">
+                    {article.image ? <img src={article.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : <span className="apex-news-icon">{article.sport.slice(0, 2).toUpperCase()}</span>}
+                    <div>
+                      <span className="apex-news-meta">{article.sport} · {(() => { const d = new Date(article.publishedAt); return !isNaN(d.getTime()) ? d.toLocaleDateString("es-ES", { day: "numeric", month: "short" }) : ""; })()}</span>
+                      <strong>{article.title}</strong>
+                      {article.summary && <p>{article.summary}</p>}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
+          </section>
+        </aside>
+
+        <div className="apex-home-main">
+          <section className="apex-welcome" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+            <div>
+              <h1>¡{greeting}, {user?.username || "Jordi"}! <span>👋</span></h1>
+              <p>¿Qué tal tu instinto hoy?</p>
+            </div>
+            <WatchVideoCta />
+          </section>
+          <section className="apex-recap">
+            <article className="apex-recap-card">
+              <div className="apex-recap-icon win"><CheckCircle2 size={18} /></div>
+              <div>
+                <span>Últimos 7</span>
+                <strong><span style={{ color: "#39d98a" }}>{recap.wins}W</span> · <span style={{ color: "#ff6b57" }}>{recap.losses}L</span></strong>
+              </div>
+            </article>
+            <article className="apex-recap-card">
+              <div className="apex-recap-icon streak"><Flame size={18} /></div>
+              <div>
+                <span>Racha</span>
+                <strong>{user?.streak || 0} días</strong>
+              </div>
+            </article>
+            <article className="apex-recap-card">
+              <div className="apex-recap-icon pending"><Clock size={18} /></div>
+              <div>
+                <span>Pendientes</span>
+                <strong>{recap.pending} {recap.confirmNeeded > 0 && <em style={{ color: "#ff6b57", fontSize: "0.75rem" }}>· {recap.confirmNeeded} por confirmar</em>}</strong>
+              </div>
+            </article>
+            <article className="apex-recap-card">
+              <div className="apex-recap-icon accuracy"><TargetIcon size={18} /></div>
+              <div>
+                <span>Acierto</span>
+                <strong>{user?.accuracy || 0}%</strong>
+              </div>
+            </article>
+          </section>
+
+          {sportsData.loading && (
+            <section className="apex-section"><div className="apex-home-loading"><i /><i /><i /><span>Sincronizando partidos...</span></div></section>
+          )}
+          {!sportsData.loading && sportsData.error && (
+            <section className="apex-section"><div className="apex-home-loading error"><span>No se pudieron cargar los eventos.</span><small>{sportsData.error}</small></div></section>
+          )}
+
+          {sections.map((section) => (
+            <MatchSection
+              key={section.key}
+              label={section.label}
+              matches={section.matches}
+              limit={section.key === "live" ? 10 : 6}
+              linkTo="/predictions"
+              store={store}
+              onPredict={onPredict}
+            />
+          ))}
+
+          <section className="apex-master-card">
+            <div><h2>Reto de Maestros</h2><p>Adivina 3 resultados exactos y gana 2,000 monedas.</p><Link to="/challenges">PARTICIPAR AHORA</Link></div>
+            <Trophy size={118} />
+            <button type="button" aria-label="Abrir reto"><Plus size={26} /></button>
+          </section>
         </div>
-        <WatchVideoCta />
-      </section>
-
-      {sportsData.loading && (
-        <section className="apex-section"><div className="apex-home-loading"><i /><i /><i /><span>Sincronizando partidos...</span></div></section>
-      )}
-      {!sportsData.loading && sportsData.error && (
-        <section className="apex-section"><div className="apex-home-loading error"><span>No se pudieron cargar los eventos.</span><small>{sportsData.error}</small></div></section>
-      )}
-
-      {sections.map((section) => (
-        <MatchSection
-          key={section.key}
-          label={section.label}
-          matches={section.matches}
-          limit={section.key === "live" ? 10 : 6}
-          linkTo="/predictions"
-          store={store}
-          onPredict={onPredict}
-        />
-      ))}
-
-      <section className="apex-master-card">
-        <div><h2>Reto de Maestros</h2><p>Adivina 3 resultados exactos y gana 2,000 monedas.</p><Link to="/challenges">PARTICIPAR AHORA</Link></div>
-        <Trophy size={118} />
-        <button type="button" aria-label="Abrir reto"><Plus size={26} /></button>
-      </section>
-
-      {results.length > 0 && (
-        <section className="apex-results-section">
-          <div className="apex-section-title"><h2>Últimos Resultados</h2><Link to="/predictions?status=finished">VER TODO</Link></div>
-          <div>
-            {results.map((match) => (
-              <article key={match.id}>
-                <span>{match.league}</span>
-                <div><TeamBadge src={match.homeBadge} name={match.home} /><strong>{match.home}</strong></div>
-                <b>{match.score}</b>
-                <div><TeamBadge src={match.awayBadge} name={match.away} /><strong>{match.away}</strong></div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+      </div>
     </div>
   );
 }
