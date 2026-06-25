@@ -2649,3 +2649,314 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-section-title h2 { font-size: 0.9rem; }
   .apex-section-title a { font-size: 0.75rem; }
 }
+
+/* =============================================
+   COMPREHENSIVE RESPONSIVE FIXES
+   ============================================= */
+
+/* Large screens: 1440px+ */
+@media (min-width: 1440px) {
+  .eventos-content { max-width: 1200px; }
+  .apex-event-detail-wrap { max-width: 1200px; }
+  .apex-profile-page { max-width: 1200px; }
+  .apex-home-page { max-width: 1400px; }
+}
+
+/* Very large screens: 1920px+ */
+@media (min-width: 1920px) {
+  .eventos-content { max-width: 1400px; }
+  .apex-event-detail-wrap { max-width: 1400px; }
+  .apex-home-page { max-width: 1600px; }
+  .apex-home-stats-row { max-width: 1200px; }
+  .apex-compact-matches-grid { max-width: 1200px; margin-left: auto; margin-right: auto; }
+  .apex-home-news-grid { max-width: 1200px; margin-left: auto; margin-right: auto; }
+}
+
+/* Tablet: 768px - 1024px */
+@media (max-width: 1024px) {
+  .apex-profile-hero { flex-direction: column; text-align: center; gap: 0.75rem; padding: 1.5rem 1rem; }
+  .apex-profile-info h1 { font-size: 1.5rem; }
+  .apex-profile-info p { font-size: 0.85rem; }
+  .apex-profile-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .apex-profile-tabs { flex-wrap: wrap; gap: 0.4rem; }
+  .apex-profile-tabs button { font-size: 0.78rem; padding: 0.5rem 0.7rem; }
+
+  .apex-event-hero-card { padding: 1.25rem 1rem; }
+  .apex-event-teams { gap: 0.75rem; }
+  .apex-event-team-logo { width: 72px; height: 72px; }
+  .apex-event-team-logo b { font-size: 1.3rem; }
+  .apex-event-team-name { font-size: 0.85rem; }
+  .apex-event-score { font-size: 2.25rem; }
+  .apex-event-live-badge { font-size: 0.65rem; padding: 0.25rem 0.7rem; }
+
+  .eventos-content { padding: 0.75rem 1rem 1.5rem; }
+  .market-toolbar { overflow-x: auto; flex-wrap: nowrap; }
+  .market-sports { flex-wrap: nowrap; }
+  .market-sports button { white-space: nowrap; flex-shrink: 0; }
+}
+
+/* Mobile: 768px and below */
+@media (max-width: 768px) {
+  .apex-page { padding: 4px 12px 90px; }
+
+  /* Profile */
+  .apex-profile-page { padding: 0.75rem 0 2rem; gap: 1rem; }
+  .apex-profile-hero { flex-direction: column; text-align: center; gap: 0.6rem; padding: 1.25rem 0.75rem; }
+  .apex-profile-avatar-wrap { width: 80px; height: 80px; }
+  .apex-profile-monogram { font-size: 1.5rem; }
+  .apex-profile-level { font-size: 0.65rem; padding: 0.15rem 0.4rem; bottom: -4px; right: -4px; }
+  .apex-profile-info h1 { font-size: 1.3rem; }
+  .apex-profile-info p { font-size: 0.8rem; }
+  .apex-profile-info button { font-size: 0.8rem; padding: 0.45rem 0.9rem; }
+  .apex-profile-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem; }
+  .apex-profile-stat-card { padding: 0.6rem 0.75rem; }
+  .apex-profile-stat-card b { font-size: 1.2rem; }
+  .apex-profile-tabs { flex-wrap: wrap; gap: 0.3rem; padding: 0.25rem; }
+  .apex-profile-tabs button { font-size: 0.72rem; padding: 0.4rem 0.6rem; flex: 1 1 auto; min-width: 0; }
+  .apex-profile-tabs button svg { display: none; }
+  .apex-profile-content { padding: 0.75rem; }
+  .apex-section-title { font-size: 0.9rem; }
+  .apex-section-subtitle { font-size: 0.8rem; }
+  .apex-empty-card { padding: 1.5rem 1rem; }
+  .apex-empty-card strong { font-size: 0.95rem; }
+  .apex-history article { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem; }
+  .apex-history article > div { min-width: 0; flex: 1 1 100%; order: 2; }
+  .apex-history article > aside { order: 1; text-align: left; display: flex; gap: 0.5rem; align-items: center; }
+  .apex-history article > aside b { font-size: 0.65rem; }
+  .apex-history article > aside em { margin-top: 0; font-size: 0.85rem; }
+  .apex-history article > span:first-child { order: 0; }
+  .apex-quote-rule { font-size: 0.75rem; }
+  .apex-streak-grid { grid-template-columns: repeat(7, 1fr) !important; gap: 0.2rem; }
+  .apex-streak-grid > div { width: 100% !important; height: auto !important; }
+  .apex-medal { width: 100% !important; }
+  .apex-invites-list { grid-template-columns: 1fr !important; }
+  .apex-achievements-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .apex-progress-bar { width: 100% !important; }
+
+  /* EventDetail */
+  .apex-event-breadcrumb { font-size: 0.75rem; padding: 0 0.5rem; flex-wrap: wrap; }
+  .apex-event-detail-wrap { padding: 0; }
+  .apex-event-hero-card { padding: 1rem 0.75rem; border-radius: 0; }
+  .apex-event-teams { gap: 0.5rem; }
+  .apex-event-team-logo { width: 60px; height: 60px; }
+  .apex-event-team-logo b { font-size: 1.1rem; }
+  .apex-event-team-name { font-size: 0.78rem; }
+  .apex-event-team-label { font-size: 0.65rem; }
+  .apex-event-score-section { min-width: 0; }
+  .apex-event-live-badge { font-size: 0.6rem; padding: 0.2rem 0.5rem; }
+  .apex-event-score { font-size: 1.75rem; }
+  .apex-event-venue { font-size: 0.7rem; }
+  .apex-consensus-section { margin-top: 1rem; padding-top: 1rem; }
+  .apex-consensus-title { font-size: 0.65rem; }
+  .apex-consensus-votes { font-size: 0.7rem; }
+  .apex-consensus-labels { font-size: 0.7rem; }
+  .apex-event-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .apex-odds-market-card { padding: 0.75rem; }
+  .apex-odds-market-title { font-size: 0.85rem; }
+  .apex-odds-market-link { font-size: 0.7rem; }
+  .apex-odds-buttons { grid-template-columns: 1fr; }
+  .apex-odds-button { padding: 0.75rem; }
+  .apex-odds-button-value { font-size: 1.3rem; }
+  .apex-info-cards { grid-template-columns: 1fr; }
+  .apex-info-card { padding: 0.75rem; }
+  .apex-wl-badges { gap: 0.3rem; }
+  .apex-wl-badge { width: 26px; height: 26px; font-size: 0.65rem; }
+  .apex-trend-chart { height: 50px; }
+  .apex-predictors-card { margin-bottom: 0.75rem; }
+  .apex-predictors-header { padding: 0.75rem 1rem; }
+  .apex-predictors-title { font-size: 0.8rem; }
+  .apex-predictors-list { padding: 0.25rem 0.75rem; }
+  .apex-predictor-item { padding: 0.5rem 0; gap: 0.5rem; }
+  .apex-predictor-name { font-size: 0.75rem; }
+  .apex-predictor-stats { font-size: 0.65rem; }
+  .apex-predictor-profit { font-size: 0.75rem; }
+  .apex-predictors-button { margin: 0 0.75rem 0.75rem; padding: 0.55rem; font-size: 0.75rem; }
+  .apex-ai-card { padding: 1rem; }
+  .apex-ai-card-title { font-size: 0.8rem; }
+  .apex-ai-card-text { font-size: 0.75rem; }
+  .apex-ai-card-button { padding: 0.65rem; font-size: 0.75rem; }
+
+  /* Eventos */
+  .apex-event-search { padding: 0 0.75rem; margin-bottom: 0.5rem; }
+  .apex-event-search-input { font-size: 0.85rem; padding: 0.6rem 0; }
+  .apex-event-search-count { font-size: 0.65rem; }
+  .eventos-content { padding: 0.5rem 0.75rem 1.5rem; }
+  .market-toolbar { padding: 0.4rem 0; gap: 0.3rem; }
+  .market-sports { gap: 0.25rem; }
+  .market-sports button { font-size: 0.7rem; padding: 0.35rem 0.6rem; }
+  .event-list { gap: 0.5rem; }
+  .bet-event { border-radius: 8px; }
+  .event-info { padding: 0.5rem 0.75rem 0.3rem !important; }
+  .event-info > div span { font-size: 0.6rem !important; }
+  .event-info > div small { font-size: 0.7rem !important; }
+  .event-teams { padding: 0.4rem 0.75rem; gap: 0.5rem; }
+  .event-teams strong { font-size: 0.8rem !important; }
+  .event-markets { padding: 0.4rem 0.75rem 0.75rem !important; gap: 0.35rem !important; }
+  .odds-chip { padding: 0.4rem 0.5rem !important; min-width: 60px !important; }
+  .odds-chip span { font-size: 0.65rem !important; }
+  .odds-chip b { font-size: 0.85rem !important; }
+
+  /* Challenges */
+  .apex-challenge-page { padding: 0.75rem 0 2rem; }
+  .apex-challenge-hero { flex-direction: column; text-align: center; gap: 0.75rem; padding: 1.5rem 1rem; }
+  .apex-challenge-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .apex-challenge-card { padding: 1rem; }
+  .apex-countdown { flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+  .apex-countdown > div { min-width: 50px; padding: 0.5rem 0.6rem; }
+  .apex-countdown b { font-size: 1.4rem; }
+  .apex-participant-list { grid-template-columns: repeat(2, 1fr); }
+
+  /* Earn */
+  .apex-earn-page { padding: 0.75rem 0 2rem; }
+  .apex-earn-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-earn-hero h1 { font-size: 1.5rem; }
+  .apex-mission-list { grid-template-columns: 1fr; gap: 0.75rem; }
+  .apex-mission-card { padding: 1rem; }
+  .apex-offerwall-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .apex-offerwall-item { padding: 0.75rem 0.5rem; }
+  .apex-featured-offers article { grid-template-columns: 72px 1fr; }
+  .apex-featured-offers article > button { grid-column: 1 / -1; }
+
+  /* Rewards */
+  .apex-rewards-page { padding: 0.75rem 0 2rem; }
+  .apex-rewards-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-reward-list { grid-template-columns: 1fr; gap: 0.75rem; }
+  .apex-reward-list article { padding: 1rem; }
+  .apex-reward-coin-icon { width: 48px; height: 48px; }
+
+  /* Fantasy */
+  .apex-fantasy-page { padding: 0.75rem 0 2rem; }
+  .apex-fantasy-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-fantasy-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .apex-pitch { min-height: auto; padding: 1rem; }
+
+  /* Leagues */
+  .apex-leagues-page { padding: 0.75rem 0 2rem; }
+  .apex-leagues-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-league-list { grid-template-columns: 1fr; gap: 0.75rem; }
+  .apex-league-card { padding: 1rem; }
+  .apex-league-detail-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-league-ranking { margin-inline: 0; padding: 1rem; }
+  .apex-league-ranks { grid-template-columns: 1fr; }
+  .apex-league-ranks article { grid-template-columns: 32px 48px 1fr auto; }
+
+  /* Ranking */
+  .apex-ranking-page { padding: 0.75rem 0 2rem; }
+  .apex-ranking-hero { flex-direction: column; text-align: center; padding: 1.5rem 1rem; }
+  .apex-ranking-tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .apex-ranking-tabs button { white-space: nowrap; flex-shrink: 0; }
+  .apex-leaderboard { grid-template-columns: 1fr; gap: 0.5rem; }
+  .apex-leaderboard > article { padding: 0.75rem; }
+
+  /* Sportsbook */
+  .sportsbook-layout { grid-template-columns: 1fr; gap: 1rem; }
+  .bet-slip.panel { position: static; max-height: none; }
+  .competition-filter { display: none; }
+  .market-toolbar { flex-wrap: wrap; }
+  .event-list .bet-event { padding: 0.5rem; }
+  .event-markets { flex-wrap: wrap; }
+
+  /* Dashboard */
+  .apex-dashboard { padding: 0.75rem 0 2rem; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .stat-card { padding: 0.6rem 0.75rem; }
+  .dash-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .dash-main, .dash-side { min-width: 0; }
+  .mini-standings > div { padding: 0.4rem 0.5rem; font-size: 0.75rem; }
+  .mini-standings img { width: 20px; height: 20px; }
+  .apex-prediction-list { grid-template-columns: 1fr; }
+  .apex-prediction-list .apex-prediction-card.is-live { grid-column: 1; }
+  .apex-prediction-card { padding: 0.75rem; }
+  .apex-prediction-teams { gap: 0.5rem; }
+  .apex-prediction-teams strong { font-size: 0.75rem; }
+  .apex-prediction-odds { flex-wrap: wrap; gap: 0.3rem; }
+  .apex-prediction-odds button { flex: 1 1 30%; min-width: 0; padding: 0.4rem 0.2rem; }
+  .apex-prediction-odds button small { font-size: 0.55rem; }
+  .apex-prediction-odds button b { font-size: 0.8rem; }
+
+  /* Header search overlay */
+  .apex-header-search-overlay { padding: 60px 8px 8px; }
+  .apex-header-search-panel { max-height: calc(100vh - 80px); border-radius: 12px; }
+  .apex-header-search-input-wrap { padding: 0.75rem 0.9rem; }
+  .apex-header-search-input { font-size: 0.95rem; }
+  .apex-header-search-item { padding: 0.7rem 0.9rem; }
+  .apex-header-search-item-main strong { font-size: 0.82rem; }
+  .apex-header-search-item-main small { font-size: 0.7rem; }
+
+  /* BetSlip */
+  .apex-betslip { max-width: 100%; border-radius: 16px 16px 0 0; }
+  .apex-betslip-header { padding: 0.85rem 1rem; }
+  .apex-betslip-body { padding: 0.85rem 1rem; }
+  .apex-betslip-footer { padding: 0.85rem 1rem 1rem; }
+  .apex-betslip-amount-input input { font-size: 1rem; }
+  .apex-betslip-presets button { font-size: 0.7rem; padding: 0.4rem 0.2rem; }
+  .apex-betslip-confirm { padding: 0.75rem; font-size: 0.85rem; }
+  .apex-betslip-totals b { font-size: 0.8rem; }
+  .apex-betslip-win-value { font-size: 1rem; }
+}
+
+/* Small mobile: 480px and below (iPhone SE) */
+@media (max-width: 480px) {
+  .apex-page { padding: 4px 8px 90px; }
+
+  .apex-profile-hero { padding: 1rem 0.5rem; }
+  .apex-profile-avatar-wrap { width: 70px; height: 70px; }
+  .apex-profile-info h1 { font-size: 1.15rem; }
+  .apex-profile-stats { gap: 0.4rem; }
+  .apex-profile-stat-card { padding: 0.5rem 0.5rem; }
+  .apex-profile-stat-card b { font-size: 1rem; }
+  .apex-profile-stat-card span { font-size: 0.6rem; }
+  .apex-profile-tabs button { font-size: 0.65rem; padding: 0.35rem 0.4rem; }
+
+  .apex-event-team-logo { width: 50px; height: 50px; }
+  .apex-event-team-logo b { font-size: 0.95rem; }
+  .apex-event-team-name { font-size: 0.7rem; }
+  .apex-event-score { font-size: 1.5rem; }
+  .apex-event-live-badge { font-size: 0.55rem; padding: 0.15rem 0.4rem; }
+  .apex-event-venue { font-size: 0.65rem; }
+  .apex-consensus-labels { font-size: 0.65rem; }
+
+  .apex-odds-button-value { font-size: 1.1rem; }
+  .apex-odds-button-team { font-size: 0.7rem; }
+  .apex-odds-button-label { font-size: 0.6rem; }
+
+  .apex-info-card-title { font-size: 0.8rem; }
+  .apex-wl-badge { width: 22px; height: 22px; font-size: 0.6rem; }
+  .apex-trend-chart { height: 40px; }
+
+  .apex-predictor-avatar { width: 32px; height: 32px; font-size: 0.75rem; }
+  .apex-predictor-name { font-size: 0.7rem; }
+  .apex-predictor-stats { font-size: 0.6rem; }
+  .apex-predictor-profit { font-size: 0.7rem; }
+
+  .apex-ai-card-text { font-size: 0.7rem; }
+  .apex-ai-card-button { font-size: 0.7rem; padding: 0.55rem; }
+
+  .apex-event-search-input { font-size: 0.8rem; }
+
+  .market-sports button { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
+  .event-teams strong { font-size: 0.75rem !important; }
+  .odds-chip { min-width: 55px !important; padding: 0.35rem 0.4rem !important; }
+  .odds-chip b { font-size: 0.8rem !important; }
+
+  .apex-home-stats-row { gap: 0.35rem; }
+  .apex-home-stat { padding: 0.5rem 0.5rem; gap: 0.35rem; }
+  .apex-home-stat-icon { width: 24px; height: 24px; }
+  .apex-home-stat > div > strong { font-size: 0.85rem; }
+
+  .apex-mira-y-gana { padding: 0.75rem 0.75rem; }
+  .apex-mira-y-gana h2 { font-size: 0.9rem; }
+  .apex-mira-y-gana p { font-size: 0.65rem; }
+  .apex-mira-y-gana-cta { padding: 0.35rem 0.7rem; font-size: 0.7rem; }
+
+  .apex-compact-match { padding: 0.6rem 0.6rem; }
+  .apex-compact-match-team strong { font-size: 0.65rem; }
+  .apex-compact-match-vs b { font-size: 0.9rem; }
+  .apex-compact-match-odds button small { font-size: 0.5rem; }
+  .apex-compact-match-odds button b { font-size: 0.8rem; }
+
+  .stats-row .stat-card { padding: 0.5rem; }
+  .stats-row .stat-value-lg { font-size: 1rem; }
+  .stats-row .stat-label { font-size: 0.6rem; }
+  .stat-icon { width: 28px; height: 28px; }
+}
