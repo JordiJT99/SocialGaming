@@ -2353,7 +2353,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-home-stat-icon.rank { background: rgba(255, 193, 7, 0.14); color: #ffc107; }
 .apex-home-stat > div { display: flex; flex-direction: column; min-width: 0; }
 .apex-home-stat > div > span { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--apex-muted, #6b7280); font-weight: 700; }
-.apex-home-stat > div > strong { font-size: 1.15rem; color: var(--apex-ink, #111827); font-weight: 800; line-height: 1.1; margin-top: 2px; }
+.apex-home-stat > div > strong { font-size: 1.5rem; color: var(--apex-ink, #111827); font-weight: 800; line-height: 1.1; margin-top: 2px; }
+.apex-home-stat > div > small { font-size: 0.68rem; color: var(--apex-muted, #9ca3af); font-weight: 500; margin-top: 1px; }
 
 .apex-mira-y-gana {
   display: flex;
@@ -2503,6 +2504,22 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   color: var(--apex-muted, #6b7280);
   margin-bottom: 0.5rem;
   padding-left: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.apex-home-date-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--apex-primary, #1a5c3a);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .apex-home-news-grid {
@@ -2593,7 +2610,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-home-stats-row { gap: 0.5rem; }
   .apex-home-stat { padding: 0.7rem 0.8rem; gap: 0.5rem; }
   .apex-home-stat-icon { width: 32px; height: 32px; }
-  .apex-home-stat > div > strong { font-size: 1rem; }
+  .apex-home-stat > div > strong { font-size: 1.2rem; }
+  .apex-home-stat > div > small { font-size: 0.62rem; }
   .apex-home-stat > div > span { font-size: 9px; }
 
   /* Mira y Gana: compact */
@@ -2636,7 +2654,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-home-stats-row { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
   .apex-home-stat { padding: 0.6rem 0.7rem; gap: 0.4rem; border-radius: 10px; }
   .apex-home-stat-icon { width: 28px; height: 28px; border-radius: 8px; }
-  .apex-home-stat > div > strong { font-size: 0.95rem; }
+  .apex-home-stat > div > strong { font-size: 1.1rem; }
+  .apex-home-stat > div > small { font-size: 0.6rem; }
   .apex-home-stat > div > span { font-size: 8px; letter-spacing: 0.03em; }
 
   .apex-home-tabs button { padding: 0.45rem 0.6rem; font-size: 0.75rem; }
@@ -2942,7 +2961,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-home-stats-row { gap: 0.35rem; }
   .apex-home-stat { padding: 0.5rem 0.5rem; gap: 0.35rem; }
   .apex-home-stat-icon { width: 24px; height: 24px; }
-  .apex-home-stat > div > strong { font-size: 0.85rem; }
+  .apex-home-stat > div > strong { font-size: 0.95rem; }
+  .apex-home-stat > div > small { display: none; }
 
   .apex-mira-y-gana { padding: 0.75rem 0.75rem; }
   .apex-mira-y-gana h2 { font-size: 0.9rem; }
