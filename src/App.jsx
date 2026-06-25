@@ -370,7 +370,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-shell">
+      <div className={`app-shell ${slipOpen ? "slip-open" : ""}`}>
         <AppHeader user={user} store={store} sportsData={sportsData} />
         <OnboardingTour />
         <main className="app-main">

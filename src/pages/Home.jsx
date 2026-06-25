@@ -77,7 +77,7 @@ function CompactMatchCard({ match, onAddToSlip, slipItems = [], existingPredicti
           <strong>{match.away}</strong>
         </div>
       </div>
-      {!isFinished && options.length ? (
+      {!isFinished && !isLive && options.length ? (
         <div className="apex-compact-match-odds" onClick={(e) => e.preventDefault()}>
           {options.map(([key, label, odd]) => {
             const selected = inSlip?.selection === key;
@@ -89,6 +89,8 @@ function CompactMatchCard({ match, onAddToSlip, slipItems = [], existingPredicti
             );
           })}
         </div>
+      ) : isLive ? (
+        <div className="apex-compact-match-live-note">Mercado cerrado</div>
       ) : null}
     </Link>
   );

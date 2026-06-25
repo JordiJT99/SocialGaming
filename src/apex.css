@@ -296,6 +296,91 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   font-weight: 800;
 }
 .apex-search-button { display: grid; place-items: center; border: 0; color: inherit; background: transparent; }
+.apex-header-search-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 1 360px;
+  min-width: 0;
+  max-width: 380px;
+  height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.apex-header-search-inline:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+.apex-header-search-inline span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apex-header-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: center;
+}
+.apex-header-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  color: #6b7280;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+  transition: color 0.15s;
+  background: transparent;
+}
+.apex-header-tab:hover { color: #111827; }
+.apex-header-tab.active { color: #047857; }
+.apex-header-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: -1px;
+  height: 2px;
+  background: #047857;
+  border-radius: 2px;
+}
+.apex-header-bell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  background: #fff;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.apex-header-bell:hover { background: #f9fafb; border-color: #d1d5db; }
+.apex-header-bell-dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #fff;
+}
+.mobile-only { display: none; }
 .apex-topbar.predict-header { color: white; border-color: #006247; background: var(--apex-primary); }
 .apex-topbar.predict-header .apex-mobile-brand strong { color: white; }
 .apex-topbar.predict-header .apex-user-monogram { border: 2px solid var(--apex-mint); border-radius: 12px; }
@@ -1043,9 +1128,11 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-sidebar-home-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 92, 58, 0.4); }
   .apex-desktop-sidebar nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
   .apex-desktop-sidebar nav small { margin: 14px 10px 6px; color: #7f968d; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
-  .apex-desktop-sidebar nav a { min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 13px; font-weight: 600; position: relative; }
-  .apex-desktop-sidebar nav a:hover { color: white; background: #25302c; }
+  .apex-desktop-sidebar nav a { min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 13px; font-weight: 600; position: relative; transition: color 0.15s, background 0.15s; }
+  .apex-desktop-sidebar nav a:hover { color: white; background: rgba(45, 212, 191, 0.08); }
+  .apex-desktop-sidebar nav a:hover::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: #2dd4bf; }
   .apex-desktop-sidebar nav a.active { color: white; background: var(--apex-primary-2); }
+  .apex-desktop-sidebar nav a.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: #2dd4bf; }
   .apex-sidebar-toggle {
     all: unset; min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; box-sizing: border-box; transition: background .15s, color .15s;
   }
@@ -1074,7 +1161,11 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-desktop-heading strong { color: var(--apex-ink); font-size: 15px; }
   .apex-desktop-heading span { margin-top: 3px; color: #75817b; font-size: 11px; }
   .apex-profile-link { display: block; text-decoration: none; }
-  .desktop-only { display: grid; }
+  .desktop-only { display: flex; }
+
+  .app-shell.slip-open .app-main { padding-right: 360px !important; transition: padding-right 0.25s ease; }
+  .app-shell .app-main { transition: padding-right 0.25s ease; }
+  .mobile-only { display: none; }
   .apex-search-button { width: 38px; height: 38px; border: 1px solid var(--apex-outline); border-radius: 7px; }
   .apex-topbar.predict-header { color: var(--apex-ink); border-color: #d7ddda; background: rgba(255,255,255,.97); }
   .apex-topbar.predict-header .apex-coins { color: var(--apex-ink); border: 1px solid var(--apex-outline); background: var(--apex-mid); }
@@ -1742,6 +1833,12 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   display: none;
 }
 
+@media (min-width: 769px) {
+  .apex-betslip-overlay {
+    display: none;
+  }
+}
+
 .apex-betslip {
   position: fixed;
   z-index: 200;
@@ -1749,7 +1846,7 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   right: 0;
   bottom: 0;
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
   background: #ffffff;
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -2210,6 +2307,728 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 }
 .apex-header-search-see-all:hover { background: #f3f4f6; }
 
+/* Sportsbook Redesign */
+.apex-sportsbook-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 2rem;
+}
+.apex-sportsbook-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #0d4a3a 0%, #1a5c3a 60%, #2dd4bf 130%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.apex-sportsbook-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 90% 20%, rgba(45, 212, 191, 0.2), transparent 50%),
+    radial-gradient(circle at 10% 80%, rgba(255, 255, 255, 0.06), transparent 50%);
+  pointer-events: none;
+}
+.apex-sportsbook-hero > * { position: relative; z-index: 1; }
+.apex-sportsbook-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #bbf7d0;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  margin-bottom: 0.6rem;
+}
+.apex-sportsbook-hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  line-height: 1.1;
+}
+.apex-sportsbook-hero p {
+  font-size: 0.92rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 520px;
+  line-height: 1.5;
+}
+.apex-sportsbook-hero-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.apex-sportsbook-hero-badge svg { color: #bbf7d0; flex-shrink: 0; }
+.apex-sportsbook-hero-badge strong { display: block; font-size: 0.85rem; }
+.apex-sportsbook-hero-badge span { display: block; font-size: 0.7rem; color: rgba(255, 255, 255, 0.7); }
+
+.apex-sportsbook-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  color: #075985;
+}
+.apex-sportsbook-help svg { color: #0ea5e9; flex-shrink: 0; margin-top: 2px; }
+.apex-sportsbook-help strong { display: block; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.apex-sportsbook-help p { margin: 0; font-size: 0.82rem; line-height: 1.4; color: #0c4a6e; }
+
+.apex-section-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.apex-quiniela-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.apex-quiniela-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.4fr) minmax(70px, 0.8fr) minmax(180px, 1.6fr) minmax(180px, 1.2fr);
+  gap: 0.85rem;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  position: relative;
+}
+.apex-quiniela-row:hover {
+  border-color: #2dd4bf;
+  background: #f9fafb;
+  transform: translateY(-1px);
+}
+.apex-quiniela-row-league {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.apex-quiniela-row-league-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.apex-quiniela-row-league > div { min-width: 0; }
+.apex-quiniela-row-league strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.apex-quiniela-row-league small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apex-quiniela-row-when {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.apex-quiniela-row-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  min-width: 52px;
+}
+.apex-quiniela-row-date span { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: #6b7280; }
+.apex-quiniela-row-date strong { font-size: 0.95rem; font-weight: 800; color: #111827; line-height: 1; margin: 1px 0; }
+.apex-quiniela-row-date small { font-size: 0.6rem; color: #6b7280; text-transform: uppercase; }
+.apex-quiniela-row-time {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.apex-quiniela-row-match {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.apex-quiniela-row-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+.apex-quiniela-row-team.away { justify-content: flex-end; flex-direction: row-reverse; }
+.apex-quiniela-row-team .apex-match-crest {
+  width: 26px;
+  height: 26px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  flex-shrink: 0;
+}
+.apex-quiniela-row-team .apex-match-crest b { font-size: 0.55rem; color: #6b7280; position: relative; z-index: 1; }
+.apex-quiniela-row-team .apex-match-crest img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.apex-quiniela-row-team span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.apex-quiniela-row-vs {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.apex-quiniela-row-market {
+  display: flex;
+  justify-content: flex-end;
+}
+.apex-quiniela-row-final-inline {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+.apex-quiniela-row-final-inline strong {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1f2937;
+  letter-spacing: 0.02em;
+}
+.apex-quiniela-row-odds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 220px;
+}
+.apex-quiniela-row-odds button {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0.3rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.15s;
+  text-align: center;
+  box-sizing: border-box;
+}
+.apex-quiniela-row-odds button:hover {
+  border-color: #2dd4bf;
+  background: #ecfdf5;
+}
+.apex-quiniela-row-odds button.selected {
+  background: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+.apex-quiniela-row-odds button small {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.7;
+}
+.apex-quiniela-row-odds button b {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+.apex-quiniela-row-closed {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+  width: 100%;
+  max-width: 220px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .apex-sportsbook-content { padding: 1rem; }
+  .apex-sportsbook-hero { flex-direction: column; align-items: flex-start; padding: 1.25rem 1.25rem; }
+  .apex-sportsbook-hero h1 { font-size: 1.75rem; }
+  .apex-sportsbook-hero-badge { width: 100%; }
+  .apex-quiniela-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .apex-quiniela-row-league { grid-column: 1; }
+  .apex-quiniela-row-when { grid-column: 1; justify-content: flex-start; }
+  .apex-quiniela-row-match { grid-column: 1; }
+  .apex-quiniela-row-market { grid-column: 1; }
+  .apex-quiniela-row-odds { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .apex-sportsbook-hero h1 { font-size: 1.5rem; }
+  .apex-sportsbook-hero p { font-size: 0.82rem; }
+  .apex-quiniela-row-team span { font-size: 0.78rem; }
+}
+
+/* Slip open: compact grid for medium desktops */
+@media (min-width: 1024px) and (max-width: 1320px) {
+  .app-shell.slip-open .apex-quiniela-row {
+    grid-template-columns: minmax(120px, 1.2fr) minmax(60px, 0.7fr) minmax(160px, 1.4fr) minmax(160px, 1fr);
+    gap: 0.6rem;
+    padding: 0.7rem 0.75rem;
+  }
+  .app-shell.slip-open .apex-quiniela-row-league strong { font-size: 0.75rem; }
+  .app-shell.slip-open .apex-quiniela-row-league small { font-size: 0.65rem; }
+  .app-shell.slip-open .apex-quiniela-row-league-icon { width: 30px; height: 30px; font-size: 0.95rem; }
+  .app-shell.slip-open .apex-quiniela-row-team span { font-size: 0.78rem; }
+  .app-shell.slip-open .apex-quiniela-row-team .apex-match-crest { width: 22px; height: 22px; }
+  .app-shell.slip-open .apex-quiniela-row-odds button { padding: 0.4rem 0.2rem; }
+  .app-shell.slip-open .apex-quiniela-row-odds button b { font-size: 0.78rem; }
+  .app-shell.slip-open .apex-quiniela-row-date { padding: 0.25rem 0.4rem; min-width: 44px; }
+  .app-shell.slip-open .apex-quiniela-row-date strong { font-size: 0.85rem; }
+  .app-shell.slip-open .apex-quiniela-row-time { font-size: 0.7rem; }
+}
+
+/* Smaller slip on smaller screens */
+@media (min-width: 1200px) and (max-width: 1320px) {
+  .app-shell.slip-open .apex-betslip { max-width: 320px; }
+  .app-shell.slip-open .app-main { padding-right: 320px !important; }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .app-shell.slip-open .apex-betslip { max-width: 300px; }
+  .app-shell.slip-open .app-main { padding-right: 300px !important; }
+}
+
+/* Eventos Redesign */
+.apex-eventos-sport-filter {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.apex-eventos-sport-filter button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--apex-muted, #6b7280);
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  transition: all 0.15s;
+}
+.apex-eventos-sport-filter button:hover { color: var(--apex-ink, #111827); border-color: #d1d5db; }
+.apex-eventos-sport-filter button.active {
+  background: var(--apex-primary, #1a5c3a);
+  color: #ffffff;
+  border-color: var(--apex-primary, #1a5c3a);
+}
+.apex-eventos-sport-icon { font-size: 0.95rem; }
+
+.apex-eventos-section { margin-bottom: 1.5rem; }
+
+.apex-eventos-view-tabs {
+  display: inline-flex;
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  border-radius: 10px;
+  padding: 0.2rem;
+  gap: 0.2rem;
+}
+.apex-eventos-view-tabs button {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--apex-muted, #6b7280);
+  cursor: pointer;
+}
+.apex-eventos-view-tabs button.active {
+  background: var(--apex-primary, #1a5c3a);
+  color: #ffffff;
+}
+
+.apex-eventos-filter-info {
+  font-size: 0.78rem;
+  color: var(--apex-muted, #6b7280);
+  margin-bottom: 0.5rem;
+}
+.apex-eventos-filter-info strong { color: var(--apex-ink, #111827); }
+
+/* Live match cards - compact info style with horizontal scroll */
+.apex-live-cards-grid {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+.apex-live-cards-grid::-webkit-scrollbar { height: 6px; }
+.apex-live-cards-grid::-webkit-scrollbar-track { background: transparent; }
+.apex-live-cards-grid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+.apex-live-cards-grid::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.apex-live-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  color: #374151;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  position: relative;
+  overflow: hidden;
+  min-width: 320px;
+  max-width: 360px;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.apex-live-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #ef4444;
+}
+.apex-live-card:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+.apex-live-card-league {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+}
+.apex-live-card-league-name {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+.apex-live-badge-sm {
+  font-size: 0.5rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: #ef4444;
+  color: #fff;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  animation: apexLivePulse 1.5s ease-in-out infinite;
+}
+@keyframes apexLivePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.apex-live-card-body {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.apex-live-card-team {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.apex-live-card-team .apex-match-crest {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  width: 22px;
+  height: 22px;
+  position: relative;
+  flex-shrink: 0;
+}
+.apex-live-card-team .apex-match-crest b { color: #6b7280; font-size: 0.5rem; position: relative; z-index: 1; }
+.apex-live-card-team .apex-match-crest img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.apex-live-card-team-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+  color: #1f2937;
+}
+.apex-live-card-score {
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+  min-width: 30px;
+  color: #1f2937;
+}
+.apex-live-card-closed {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #9ca3af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.apex-fav-btn {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #d1d5db;
+  flex-shrink: 0;
+}
+.apex-fav-btn:hover { color: #fbbf24; }
+
+/* Upcoming table */
+.apex-upcoming-table {
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.apex-upcoming-table-header {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #f9fafb;
+  border-bottom: 1px solid var(--apex-outline, #e5e7eb);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--apex-muted, #6b7280);
+}
+.apex-upcoming-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
+}
+.apex-upcoming-row:last-child { border-bottom: none; }
+.apex-upcoming-row:hover { background: #f9fafb; }
+.apex-upcoming-row-match {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.apex-upcoming-row-flags {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.apex-upcoming-row-vs {
+  font-size: 0.7rem;
+  color: var(--apex-muted, #9ca3af);
+  font-weight: 700;
+}
+.apex-upcoming-row-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.apex-upcoming-row-names strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--apex-ink, #111827);
+}
+.apex-upcoming-row-names span {
+  display: none;
+}
+.apex-upcoming-row-time {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.apex-upcoming-row-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 42px;
+  text-align: center;
+}
+.apex-upcoming-row-day {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--apex-muted, #6b7280);
+}
+.apex-upcoming-row-date strong {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--apex-ink, #111827);
+}
+.apex-upcoming-row-date small {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--apex-muted, #6b7280);
+}
+.apex-upcoming-row-clock {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--apex-ink, #111827);
+}
+.apex-upcoming-row-market {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.apex-upcoming-row-market-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--apex-muted, #6b7280);
+}
+.apex-upcoming-row-odds {
+  display: flex;
+  gap: 0.3rem;
+}
+.apex-upcoming-row-odds button {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 5px;
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  background: #f9fafb;
+  text-align: center;
+  min-width: 40px;
+  transition: all 0.15s;
+}
+.apex-upcoming-row-odds button:hover { background: #e8f5e9; border-color: var(--apex-primary, #1a5c3a); }
+.apex-upcoming-row-odds button.selected { background: var(--apex-primary, #1a5c3a); color: #ffffff; border-color: var(--apex-primary, #1a5c3a); }
+.apex-upcoming-row-odds small { font-size: 0.55rem; font-weight: 700; color: inherit; opacity: 0.75; }
+.apex-upcoming-row-odds b { font-size: 0.78rem; font-weight: 800; color: inherit; }
+
+.apex-upcoming-row.is-finished { opacity: 0.85; }
+.apex-upcoming-row.is-finished:hover { opacity: 1; }
+.apex-upcoming-row-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+.apex-upcoming-row-final-score {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1f2937;
+  background: #f3f4f6;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.apex-eventos-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.apex-eventos-load-more button {
+  all: unset;
+  cursor: pointer;
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--apex-muted, #6b7280);
+  transition: all 0.15s;
+}
+.apex-eventos-load-more button:hover { background: #f3f4f6; color: var(--apex-ink, #111827); }
+
 .apex-event-search {
   position: relative;
   display: flex;
@@ -2494,6 +3313,17 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-compact-match-odds button:disabled { opacity: 0.6; cursor: not-allowed; }
 .apex-compact-match-odds small { display: block; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; color: inherit; opacity: 0.75; }
 .apex-compact-match-odds b { display: block; font-size: 0.95rem; color: inherit; margin-top: 1px; }
+.apex-compact-match-live-note {
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--apex-muted, #6b7280);
+  background: #f3f4f6;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
 
 .apex-home-date-group { margin-bottom: 1rem; }
 .apex-home-date-label {
@@ -2780,6 +3610,24 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-info-card { padding: 0.75rem; }
   .apex-wl-badges { gap: 0.3rem; }
   .apex-wl-badge { width: 26px; height: 26px; font-size: 0.65rem; }
+
+  /* Eventos Redesign - Mobile */
+  .apex-eventos-sport-filter { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .apex-eventos-sport-filter::-webkit-scrollbar { display: none; }
+  .apex-eventos-sport-filter button { white-space: nowrap; flex-shrink: 0; padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+  .apex-live-cards-grid { grid-template-columns: 1fr; }
+  .apex-live-card-body { gap: 0.3rem; }
+  .apex-live-card-team-name { font-size: 0.65rem; }
+  .apex-live-card-score { font-size: 1.2rem; }
+  .apex-upcoming-table-header { display: none; }
+  .apex-upcoming-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  .apex-upcoming-row-time { justify-content: flex-start; }
+  .apex-upcoming-row-odds { flex-wrap: wrap; }
+  .apex-upcoming-row-odds button { flex: 1 1 30%; min-width: 50px; }
   .apex-trend-chart { height: 50px; }
   .apex-predictors-card { margin-bottom: 0.75rem; }
   .apex-predictors-header { padding: 0.75rem 1rem; }

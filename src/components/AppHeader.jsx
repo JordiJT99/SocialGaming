@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
+  Bell,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
   CircleDollarSign,
   Coins,
@@ -82,7 +85,7 @@ export default function AppHeader({ user, store, sportsData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsExpanded, setEventsExpanded] = useState(false);
   const [dismissBanner, setDismissBanner] = useState(false);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const isPredict = pathname === "/predictions" || pathname === "/live";
   const isHome = pathname === "/" || pathname === "/dashboard";
   const title = TITLES[pathname] || (pathname.startsWith("/leagues/") ? "Detalle de liga" : "PROPHET");
@@ -242,7 +245,40 @@ export default function AppHeader({ user, store, sportsData }) {
           <UserAvatar user={user} compact />
           <strong>PROPHET</strong>
         </div>
-        <div className="apex-desktop-heading"><strong>{title}</strong><span>Deporte, predicciones y competición social</span></div>
+        <div className="apex-header-search-inline desktop-only" onClick={() => setSearchOpen(true)}>
+          <Search size={18} />
+          <span>Buscar eventos, ligas, equipos…</span>
+        </div>
+        <nav className="apex-header-tabs desktop-only">
+          <NavLink
+            to="/events?tab=live"
+            className={({ isActive }) => {
+              const tab = new URLSearchParams(search).get("tab");
+              return `apex-header-tab ${pathname === "/events" && tab === "live" ? "active" : ""}`;
+            }}
+          >
+            <Radio size={15} /> En Vivo
+          </NavLink>
+          <NavLink
+            to="/events"
+            end
+            className={({ isActive }) => {
+              const tab = new URLSearchParams(search).get("tab");
+              return `apex-header-tab ${(isActive && tab !== "live" && tab !== "finished") ? "active" : ""}`;
+            }}
+          >
+            <Calendar size={15} /> Próximos
+          </NavLink>
+          <NavLink
+            to="/events?tab=finished"
+            className={({ isActive }) => {
+              const tab = new URLSearchParams(search).get("tab");
+              return `apex-header-tab ${pathname === "/events" && tab === "finished" ? "active" : ""}`;
+            }}
+          >
+            <CheckCircle2 size={15} /> Resultados
+          </NavLink>
+        </nav>
         <div className="apex-top-actions">
           {isHome && (
             <NavLink to="/earn" className="apex-topbar-video-cta" aria-label="Mira un video y gana 15 coins">
@@ -250,9 +286,13 @@ export default function AppHeader({ user, store, sportsData }) {
               <span>Mira este video y gana <b>15 coins</b></span>
             </NavLink>
           )}
-          <button className="apex-search-button desktop-only" type="button" aria-label="Buscar eventos" onClick={() => setSearchOpen(true)}><Search size={20} /></button>
-          <span className="apex-coins"><CircleDollarSign size={19} /><b>{user?.points?.toLocaleString("es-ES") || "540"}</b><small>Coins</small></span>
+          <button className="apex-search-button mobile-only" type="button" aria-label="Buscar eventos" onClick={() => setSearchOpen(true)}><Search size={20} /></button>
+          <span className="apex-coins"><CircleDollarSign size={19} /><b>{(user?.points || 0).toLocaleString("es-ES")}</b><small>Coins</small></span>
           {isHome && <span className="apex-level">LVL 12</span>}
+          <button type="button" className="apex-header-bell" aria-label="Notificaciones">
+            <Bell size={19} />
+            <span className="apex-header-bell-dot" />
+          </button>
           <NavLink to="/profile" className="apex-profile-link" aria-label="Abrir perfil"><UserAvatar user={user} compact /></NavLink>
           <button className="apex-mobile-menu-button" type="button" aria-label="Abrir menu" onClick={() => setMenuOpen(true)}><Menu size={22} /></button>
         </div>
