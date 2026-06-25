@@ -7,12 +7,37 @@ function MatchName({ item, matches }) {
   const away = item.away || match?.away;
   const homeBadge = item.homeBadge || match?.homeBadge;
   const awayBadge = item.awayBadge || match?.awayBadge;
+  const matchDate = item.matchDate || item.date || match?.date;
+
+  let dateLabel = null;
+  if (matchDate) {
+    const d = new Date(matchDate);
+    if (!isNaN(d.getTime())) {
+      const now = new Date();
+      const diffMs = d.getTime() - now.getTime();
+      const diffDays = Math.round(diffMs / (24 * 60 * 60 * 1000));
+      const time = d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+      const day = d.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+      if (diffDays === 0) {
+        dateLabel = `Hoy · ${time}`;
+      } else if (diffDays === 1) {
+        dateLabel = `Mañana · ${time}`;
+      } else if (diffDays === -1) {
+        dateLabel = `Ayer · ${time}`;
+      } else if (diffDays > 0 && diffDays <= 7) {
+        dateLabel = `${day} · ${time}`;
+      } else {
+        dateLabel = `${day} · ${time}`;
+      }
+    }
+  }
 
   return (
     <span className="apex-history-match">
       {homeBadge && <img src={homeBadge} alt="" />}
       <strong>{home && away ? `${home} vs ${away}` : item.matchId}</strong>
       {awayBadge && <img src={awayBadge} alt="" />}
+      {dateLabel && <em className="apex-history-date">{dateLabel}</em>}
     </span>
   );
 }
@@ -103,27 +128,33 @@ export default function Profile({ store, user, matches, onAcceptPendingChange, o
             </div>
             <p className="apex-quote-rule">Si la cuota lleva más de 5 minutos sin revisarse, quedará pendiente. Un cambio de hasta 0,20 se acepta automáticamente; si es mayor, tendrás que confirmarlo aquí.</p>
             {pendingItems.length === 0 && <article className="empty"><div><strong>No hay cuotas pendientes</strong><small>Las apuestas que necesiten validacion apareceran aqui.</small></div></article>}
-            {pendingItems.map((item) => (
-              <article key={item.id} className={item.status === "needs_confirmation" ? "lost" : "won"}>
-                <span>{item.selection}</span>
-                <div>
-                  <MatchName item={item} matches={matches} />
-                  <small>
-                    {item.status === "pending_quote"
-                      ? "Esperando cuota fresca del proveedor"
-                      : `La cuota paso de ${Number(item.offeredOdds).toFixed(2)} a ${Number(item.currentOdds || item.offeredOdds).toFixed(2)}`}
-                  </small>
-                </div>
-                <aside>
-                  {item.status === "needs_confirmation" ? (
-                    <>
-                      <button type="button" onClick={() => onAcceptPendingChange?.(item.id)}>Confirmar</button>
-                      <button type="button" onClick={() => onCancelPendingChange?.(item.id)}>Cancelar</button>
-                    </>
-                  ) : <b>PENDIENTE</b>}
-                </aside>
-              </article>
-            ))}
+            {pendingItems.map((item) => {
+              const offered = Number(item.offeredOdds || 0);
+              const current = Number(item.currentOdds || item.offeredOdds || 0);
+              const potentialWin = offered > 0 ? Math.round(item.pointsBet * current) : 0;
+              return (
+                <article key={item.id} className={item.status === "needs_confirmation" ? "lost" : "won"}>
+                  <span>{item.selection}</span>
+                  <div>
+                    <MatchName item={item} matches={matches} />
+                    <small>
+                      {item.status === "pending_quote"
+                        ? `Esperando cuota fresca · Apuesta ${item.pointsBet} coins · Ganancia posible +${potentialWin} coins`
+                        : `Cuota paso de ${offered.toFixed(2)} a ${current.toFixed(2)} · Ganancia posible +${potentialWin} coins`}
+                    </small>
+                  </div>
+                  <aside>
+                    <b className="apex-history-odds">@{current.toFixed(2)}</b>
+                    {item.status === "needs_confirmation" ? (
+                      <>
+                        <button type="button" onClick={() => onAcceptPendingChange?.(item.id)}>Confirmar</button>
+                        <button type="button" onClick={() => onCancelPendingChange?.(item.id)}>Cancelar</button>
+                      </>
+                    ) : <em className="apex-history-potential">+{potentialWin} coins</em>}
+                  </aside>
+                </article>
+              );
+            })}
           </section>
           <section className="apex-history">
             <div className="apex-history-head">
@@ -131,20 +162,27 @@ export default function Profile({ store, user, matches, onAcceptPendingChange, o
               <button className="apex-link-btn">Ver Todo</button>
             </div>
             {recentItems.length === 0 && <article className="empty"><div><strong>Sin jugadas aún</strong><small>Cuando hagas una predicción aparecerá aquí.</small></div></article>}
-            {recentItems.map((item) => (
-              <article key={item.id} className={item.status === "won" ? "won" : item.status === "lost" ? "lost" : ""}>
-                <span>{item.selection}</span>
-                <div>
-                  <MatchName item={item} matches={matches} />
-                  <small>
-                    {["won", "lost"].includes(item.status)
-                      ? `Elegiste ${selectionLabel(item)} · Resultado ${item.matchScore || item.matchResult || "-"} · Cuota ${Number(item.confirmedOdds || item.offeredOdds).toFixed(2)}`
-                      : item.status === "pending" ? "Apuesta activa" : item.status === "pending_quote" ? "Pendiente de validacion" : item.status === "needs_confirmation" ? "Esperando tu confirmacion" : item.status === "cancelled" ? "Cancelada y reembolsada" : item.status}
-                  </small>
-                </div>
-                <aside><b>{statusLabel(item.status)}</b><em>{item.status === "won" ? `+${item.pointsWon}` : item.status === "lost" ? `-${item.pointsBet}` : item.pointsBet} Coins</em></aside>
-              </article>
-            ))}
+            {recentItems.map((item) => {
+              const betOdds = Number(item.confirmedOdds || item.offeredOdds || 0);
+              const potentialWin = betOdds > 0 ? Math.round(item.pointsBet * betOdds) : 0;
+              return (
+                <article key={item.id} className={item.status === "won" ? "won" : item.status === "lost" ? "lost" : ""}>
+                  <span>{item.selection}</span>
+                  <div>
+                    <MatchName item={item} matches={matches} />
+                    <small>
+                      {["won", "lost"].includes(item.status)
+                        ? `Elegiste ${selectionLabel(item)} · Resultado ${item.matchScore || item.matchResult || "-"} · Cuota ${betOdds.toFixed(2)} · Ganancia ${item.status === "won" ? `+${item.pointsWon}` : `-${item.pointsBet}`} coins`
+                        : item.status === "pending" ? `Apuesta activa · Cuota ${betOdds.toFixed(2)} · Ganancia posible +${potentialWin} coins` : item.status === "pending_quote" ? `Pendiente de validacion · Cuota ${betOdds.toFixed(2)}` : item.status === "needs_confirmation" ? `Esperando tu confirmacion · Cuota paso de ${Number(item.offeredOdds).toFixed(2)} a ${Number(item.currentOdds || item.offeredOdds).toFixed(2)}` : item.status === "cancelled" ? `Cancelada y reembolsada · Cuota ${betOdds.toFixed(2)}` : `${item.status} · Cuota ${betOdds.toFixed(2)}`}
+                    </small>
+                  </div>
+                  <aside>
+                    <b className="apex-history-odds">@{betOdds > 0 ? betOdds.toFixed(2) : "—"}</b>
+                    {item.status === "won" ? <em className="apex-history-win">+{item.pointsWon} coins</em> : item.status === "lost" ? <em className="apex-history-loss">-{item.pointsBet} coins</em> : <em className="apex-history-potential">+{potentialWin} coins</em>}
+                  </aside>
+                </article>
+              );
+            })}
           </section>
         </div>
       )}

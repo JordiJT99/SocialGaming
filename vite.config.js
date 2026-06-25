@@ -4,7 +4,7 @@ import { authApi } from "./server/auth.js";
 import { getApiCache, setApiCache } from "./server/database.js";
 import { oddsApi } from "./server/odds.js";
 
-const STATIC_CACHE_TTL = 60 * 60 * 1000;
+const STATIC_CACHE_TTL = 2 * 60 * 1000;
 const MATCH_CACHE_TTL = 60 * 1000;
 const ESPN_CACHE_TTL = 15 * 1000;
 
@@ -21,7 +21,7 @@ const sharedApiCache = {
   configureServer(server) {
     server.middlewares.use(authApi());
     server.middlewares.use((req, res, next) => {
-      if (req.method !== "GET" || !/^\/(odds-api|football-data|api-football|sports-db|espn)\b/.test(req.url)) {
+      if (req.method !== "GET" || !/^\/(odds-api|football-data|api-football|sports-db|espn|jolpi|motogp)\b/.test(req.url)) {
         return next();
       }
 
@@ -109,6 +109,20 @@ export default defineConfig(({ mode }) => {
               const separator = proxyReq.path.includes("?") ? "&" : "?";
               proxyReq.path = `${proxyReq.path}${separator}apiKey=${encodeURIComponent(oddsApiKey)}`;
             });
+          },
+        },
+        "/jolpi": {
+          target: "https://api.jolpi.ca",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/jolpi/, ""),
+        },
+        "/motogp": {
+          target: "https://www.motogp.com",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/motogp/, ""),
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Playfulbet Sports App)",
+            "Accept": "text/html",
           },
         },
       },

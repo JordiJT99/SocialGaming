@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { getCurrentUser, loadStore, makePrediction, refundPrediction, resolvePrediction, saveStore } from "./data/store";
+import { getCurrentUser, loadStore, makePrediction, refundPrediction, resolvePrediction, saveStore, deriveResult, expireOldPrediction } from "./data/store";
 import { fetchSportsData } from "./services/sportsData";
 import { fetchTheOddsData } from "./services/theOddsApi";
 import AppHeader from "./components/AppHeader";
@@ -20,6 +20,33 @@ import Rewards from "./pages/Rewards";
 import Eventos from "./pages/Eventos";
 import EventDetail from "./pages/EventDetail";
 import OnboardingTour from "./components/OnboardingTour";
+
+function OddsBudgetPill({ status }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (!status) return null;
+  const used = status.usedLastHour || 0;
+  const budget = status.internalBudget || 95;
+  const remaining = Math.max(0, budget - used);
+  const resetMs = Math.max(0, (status.rateLimitResetAt || status.nextRefreshAt || 0) - now);
+  const min = Math.floor(resetMs / 60000);
+  const sec = Math.floor((resetMs % 60000) / 1000);
+  const reset = resetMs > 0 ? `${min}m ${sec.toString().padStart(2, "0")}s` : "ahora";
+  const tone = remaining > 30 ? "ok" : remaining > 10 ? "warn" : "danger";
+
+  return (
+    <div className={`apex-odds-pill apex-odds-pill-${tone}`} title="Reset real del cupo de Odds API (ventana de 1h del proveedor)">
+      <span className="apex-odds-pill-dot" />
+      <span><b>{used}</b>/{budget} req</span>
+      <span className="apex-odds-pill-sep">·</span>
+      <span>↻ {reset}</span>
+    </div>
+  );
+}
 
 export default function App() {
   const [store, setStore] = useState(() => loadStore());
@@ -42,7 +69,7 @@ export default function App() {
   useEffect(() => {
     const finished = new Map(
       sportsData.matches
-        .filter((match) => match.status === "finished" && match.result)
+        .filter((match) => match.status === "finished")
         .map((match) => [match.id, match]),
     );
     if (!finished.size || !store.predictions.some((item) => item.status === "pending" && finished.has(item.matchId))) return;
@@ -50,17 +77,21 @@ export default function App() {
     setStore((previous) => {
       const updated = {
         ...previous,
-        users: previous.users.map((item) => ({ ...item })),
-        predictions: previous.predictions.map((item) => ({ ...item })),
+        users: previous.users,
+        predictions: previous.predictions,
         transactions: [...previous.transactions],
       };
+      let changed = false;
       updated.predictions
         .filter((item) => item.status === "pending" && finished.has(item.matchId))
         .forEach((item) => {
           const match = finished.get(item.matchId);
-          resolvePrediction(updated, item.id, match.result, match.score);
+          const result = deriveResult(match);
+          if (!result) return;
+          const res = resolvePrediction(updated, item.id, result, match.score);
+          if (res) changed = true;
         });
-      return updated;
+      return changed ? updated : previous;
     });
   }, [sportsData.matches, store.predictions]);
 
@@ -100,10 +131,14 @@ export default function App() {
       .catch(() => {});
     loadOddsStatus();
 
+    let updateCount = 0;
     const refreshTimer = window.setInterval(() => {
       if (document.visibilityState === "visible") {
-        loadSports(true);
+        // Fuerza fetch sin cache cada 30 min (coincide con sync de server)
+        const forceRefresh = (updateCount % 60) === 0;
+        loadSports(forceRefresh);
         loadOddsStatus();
+        updateCount++;
       }
     }, 30 * 1000);
 
@@ -288,6 +323,7 @@ export default function App() {
         selection,
         odd,
         oddsEventId: event.oddsEventId,
+        date: event.date,
       }];
     });
     setSlipOpen(true);
@@ -310,11 +346,13 @@ export default function App() {
         const first = slipItems[0];
         await handlePredict(first.eventId, first.selection, amount, first.oddsEventId, combinedOdds, {
           home: first.home, away: first.away, homeBadge: first.homeBadge, awayBadge: first.awayBadge,
+          date: first.date,
         });
       } else {
         for (const item of slipItems) {
           await handlePredict(item.eventId, item.selection, amount, item.oddsEventId, item.odd, {
             home: item.home, away: item.away, homeBadge: item.homeBadge, awayBadge: item.awayBadge,
+            date: item.date,
           });
         }
       }
@@ -333,7 +371,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-shell">
-        <AppHeader user={user} store={store} />
+        <AppHeader user={user} store={store} sportsData={sportsData} />
         <OnboardingTour />
         <main className="app-main">
           <Routes>
@@ -365,6 +403,7 @@ export default function App() {
           user={user}
           submitting={slipSubmitting}
         />
+        <OddsBudgetPill status={oddsStatus} />
       </div>
     </BrowserRouter>
   );

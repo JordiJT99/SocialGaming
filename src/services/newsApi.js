@@ -1,49 +1,92 @@
-const CACHE_KEY = "playfulbet:sports-news:v6";
-const CACHE_TTL = 5 * 60 * 1000;
-const MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
+const CACHE_KEY = "playfulbet:sports-news:v9";
+const CACHE_TTL = 3 * 60 * 1000;
+const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 const SPORT_IMAGE = {
-  "Mundial": "https://a.espncdn.com/i/leaguelogos/soccer/500/4.png",
-  "Champions League": "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png",
-  "Eurocopa": "https://a.espncdn.com/i/leaguelogos/soccer/500/74.png",
-  "LaLiga": "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png",
-  "Premier League": "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png",
-  "Serie A": "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png",
-  "Bundesliga": "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png",
-  "Ligue 1": "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png",
   "Fútbol": "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png",
-  "NBA": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
   "Baloncesto": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
-  "Euroliga": "https://a.espncdn.com/i/teamlogos/leagues/500/nba.png",
-  "Grand Slam": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
-  "ATP": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
-  "WTA": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
   "Tenis": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
-  "MLB": "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
   "Béisbol": "https://a.espncdn.com/i/teamlogos/leagues/500/mlb.png",
-  "NHL": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
   "Hockey": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
 };
 
 const sportImageFor = (sport) => SPORT_IMAGE[sport] || null;
 
+const SPORT_QUOTAS = [
+  { key: "Fútbol", max: 4 },
+  { key: "Baloncesto", max: 3 },
+  { key: "Tenis", max: 2 },
+  { key: "Béisbol", max: 1 },
+  { key: "Hockey", max: 1 },
+];
+
+const SPORT_ALIASES = {
+  "UEFA Champions League": "Fútbol",
+  "Champions League": "Fútbol",
+  "Europa League": "Fútbol",
+  "Conference League": "Fútbol",
+  "FIFA World Cup": "Fútbol",
+  "World Cup": "Fútbol",
+  "Mundial": "Fútbol",
+  "UEFA European Championship": "Fútbol",
+  "European Championship": "Fútbol",
+  "Eurocopa": "Fútbol",
+  "Spanish LALIGA": "Fútbol",
+  "Spanish LaLiga": "Fútbol",
+  "LaLiga": "Fútbol",
+  "English Premier League": "Fútbol",
+  "Premier League": "Fútbol",
+  "Italian Serie A": "Fútbol",
+  "Serie A": "Fútbol",
+  "German Bundesliga": "Fútbol",
+  "Bundesliga": "Fútbol",
+  "French Ligue 1": "Fútbol",
+  "Ligue 1": "Fútbol",
+  "Soccer": "Fútbol",
+  "Football": "Fútbol",
+  "Fútbol": "Fútbol",
+  "NBA": "Baloncesto",
+  "Basketball": "Baloncesto",
+  "Baloncesto": "Baloncesto",
+  "Euroleague": "Baloncesto",
+  "EuroLeague": "Baloncesto",
+  "Euroliga": "Baloncesto",
+  "ATP": "Tenis",
+  "WTA": "Tenis",
+  "Tennis": "Tenis",
+  "Tenis": "Tenis",
+  "Wimbledon": "Tenis",
+  "Roland Garros": "Tenis",
+  "French Open": "Tenis",
+  "Australian Open": "Tenis",
+  "US Open": "Tenis",
+  "Grand Slam": "Tenis",
+  "MLB": "Béisbol",
+  "Baseball": "Béisbol",
+  "Béisbol": "Béisbol",
+  "NHL": "Hockey",
+  "Hockey": "Hockey",
+  "Ice Hockey": "Hockey",
+};
+
+const normalizeSport = (raw) => {
+  if (!raw) return "Fútbol";
+  const key = String(raw).trim();
+  return SPORT_ALIASES[key] || "Fútbol";
+};
+
 const FALLBACK = [
-  { id: "fb-mundial",   title: "Mundial 2026: grupos definidos tras el sorteo en Miami",                   summary: "Las 32 selecciones ya conocen sus rivales en la fase de grupos del torneo más importante del mundo.",                       url: "https://www.espn.com/soccer/", sport: "Mundial" },
-  { id: "fb-cl",        title: "La Champions League define los cuartos de final",                           summary: "Los ocho mejores equipos de Europa se preparan para la eliminatoria más emocionante de la temporada.",                    url: "https://www.espn.com/soccer/", sport: "Champions League" },
-  { id: "fb-cl2",       title: "Mbappé y Vinícius guían al Real Madrid en Champions",                      summary: "El dúo ofensivo del Real Madrid brilló en la victoria que acerca al equipo a la final de Wembley.",                       url: "https://www.espn.com/soccer/", sport: "Champions League" },
-  { id: "fb-laliga",    title: "El Clásico decide la cima de LaLiga",                                      summary: "Real Madrid y Barcelona se enfrentan en una edición que puede definir el campeonato.",                                   url: "https://www.espn.com/soccer/", sport: "LaLiga" },
-  { id: "fb-laliga2",   title: "Atlético de Madrid sigue firme en la pelea por LaLiga",                    summary: "El equipo colchonero suma su quinta victoria consecutiva y se acerca a los líderes.",                                  url: "https://www.espn.com/soccer/", sport: "LaLiga" },
-  { id: "fb-premier",   title: "Premier League: el City recorta distancias",                               summary: "El Manchester City aprovechó el tropiezo del Arsenal para acercarse en la tabla.",                                     url: "https://www.espn.com/soccer/", sport: "Premier League" },
-  { id: "bk-nba",       title: "NBA: triple-doble histórico en los playoffs",                              summary: "Una actuación memorable de 42 puntos, 15 rebotes y 12 asistencias puso a su equipo en semifinales de conferencia.",      url: "https://www.espn.com/nba/",    sport: "NBA" },
-  { id: "bk-nba2",      title: "Los Celtics barren en casa y toman ventaja en la final del Este",          summary: "Boston dominó de principio a fin con una defensa asfixiante que dejó sin opciones a su rival.",                         url: "https://www.espn.com/nba/",    sport: "NBA" },
-  { id: "tn-gs",        title: "Roland Garros: Alcaraz avanza a semifinales",                              summary: "El español superó en sets corridos a un rival complicado y se medirá al número uno del ranking.",                       url: "https://www.espn.com/tennis/", sport: "Grand Slam" },
-  { id: "tn-gs2",       title: "Swiatek arrolla en París y busca su tercer título",                        summary: "La polaca no ha cedido un solo set en lo que va de torneo y parte como gran favorita.",                                url: "https://www.espn.com/tennis/", sport: "Grand Slam" },
-  { id: "bb-mlb",       title: "MLB: no-hitter histórico en la Liga Americana",                            summary: "El lanzador dominó durante nueve entradas sin permitir hits, logrando el primer no-hitter de la temporada.",            url: "https://www.espn.com/mlb/",    sport: "MLB" },
-  { id: "bb-mlb2",      title: "Los Yankees refuerzan su rotación antes de la fecha límite",               summary: "Nueva York adquiere a un abridor de primer nivel para fortalecer sus aspiraciones de Serie Mundial.",                    url: "https://www.espn.com/mlb/",    sport: "MLB" },
-  { id: "hc-nhl",       title: "NHL: los Panthers toman ventaja en la final de la Stanley Cup",            summary: "Florida se impuso en un partido cerrado y queda a dos victorias del título.",                                          url: "https://www.espn.com/nhl/",    sport: "NHL" },
-  { id: "fb-seriea",    title: "Serie A: la Juve frena al Inter en el Derby d'Italia",                     summary: "Un partido intenso que terminó en empate y dejó la lucha por el Scudetto más abierta que nunca.",                       url: "https://www.espn.com/soccer/", sport: "Serie A" },
-  { id: "tn-atp",       title: "ATP Masters 1000: Sinner exhibe su mejor tenis en Roma",                   summary: "El italiano deleitó a su público con una actuación impecable que lo deposita en cuartos de final.",                     url: "https://www.espn.com/tennis/", sport: "ATP" },
-  { id: "bk-euro",      title: "Euroliga: el Real Madrid busca la duodécima",                              summary: "El equipo blanco parte como favorito en la Final Four tras una temporada dominante en la fase regular.",                 url: "https://www.espn.com/basketball/", sport: "Euroliga" },
+  { id: "fb-futbol-1",  title: "Mbappé y Vinícius guían al Real Madrid en Champions",                      summary: "El dúo ofensivo brilló en la victoria que acerca al equipo a la final.",                                                  url: "https://www.espn.com/soccer/", sport: "Fútbol" },
+  { id: "fb-futbol-2",  title: "El Clásico decide la cima de LaLiga",                                      summary: "Real Madrid y Barcelona se enfrentan en una edición que puede definir el campeonato.",                                   url: "https://www.espn.com/soccer/", sport: "Fútbol" },
+  { id: "fb-futbol-3",  title: "Premier League: el City recorta distancias",                               summary: "El Manchester City aprovechó el tropiezo del Arsenal para acercarse en la tabla.",                                     url: "https://www.espn.com/soccer/", sport: "Fútbol" },
+  { id: "fb-futbol-4",  title: "Serie A: la Juve frena al Inter en el Derby d'Italia",                     summary: "Un partido intenso que terminó en empate y dejó la lucha por el Scudetto más abierta.",                                 url: "https://www.espn.com/soccer/", sport: "Fútbol" },
+  { id: "fb-balon-1",   title: "NBA: triple-doble histórico en los playoffs",                              summary: "Una actuación memorable puso a su equipo en semifinales de conferencia.",                                              url: "https://www.espn.com/nba/",    sport: "Baloncesto" },
+  { id: "fb-balon-2",   title: "Los Celtics barren en casa y toman ventaja en la final del Este",          summary: "Boston dominó con una defensa asfixiante que dejó sin opciones a su rival.",                                         url: "https://www.espn.com/nba/",    sport: "Baloncesto" },
+  { id: "fb-balon-3",   title: "Euroliga: el Real Madrid busca la duodécima",                              summary: "El equipo blanco parte como favorito en la Final Four tras una temporada dominante.",                                url: "https://www.espn.com/basketball/", sport: "Baloncesto" },
+  { id: "fb-tenis-1",   title: "Wimbledon: Alcaraz avanza a semifinales",                                  summary: "El español superó en sets corridos a un rival complicado y se medirá al número uno.",                                  url: "https://www.espn.com/tennis/", sport: "Tenis" },
+  { id: "fb-tenis-2",   title: "Swiatek arrolla en París y busca su tercer título",                        summary: "La polaca no ha cedido un solo set en lo que va de torneo.",                                                           url: "https://www.espn.com/tennis/", sport: "Tenis" },
+  { id: "fb-beisbol-1", title: "MLB: no-hitter histórico en la Liga Americana",                            summary: "El lanzador dominó durante nueve entradas sin permitir hits.",                                                          url: "https://www.espn.com/mlb/",    sport: "Béisbol" },
+  { id: "fb-hockey-1",  title: "NHL: los Panthers toman ventaja en la final de la Stanley Cup",            summary: "Florida se impuso en un partido cerrado y queda a dos victorias del título.",                                          url: "https://www.espn.com/nhl/",    sport: "Hockey" },
 ];
 
 const readCache = () => {
@@ -61,39 +104,19 @@ const pickImage = (a) => {
   return null;
 };
 
-const extractImages = (article) => {
-  if (Array.isArray(article.images) && article.images.length) {
-    const found = article.images.find((i) => i.width >= 600 && i.url) || article.images[0];
-    const url = pickImage(found);
-    if (url) return url;
-  }
-  if (article.image) return pickImage(article.image);
-  if (article.thumbnail) return pickImage(article.thumbnail);
-  if (article.url && /\.(jpg|jpeg|png|gif|webp)/i.test(article.url)) return article.url;
-  return null;
-};
-
 const extractSport = (a) => {
-  if (a.league?.name) return a.league.name;
-  if (a.sport?.name) return a.sport.name;
-  if (a.sport) return typeof a.sport === "string" ? a.sport : a.sport.name || a.sport.description;
+  if (a.league?.name) return normalizeSport(a.league.name);
+  if (a.sport?.name) return normalizeSport(a.sport.name);
+  if (a.sport) return normalizeSport(typeof a.sport === "string" ? a.sport : a.sport.name || a.sport.description);
   if (Array.isArray(a.categories) && a.categories.length) {
     const leagueCat = a.categories.find((c) => c.type === "league" && c.description);
-    if (leagueCat?.description) return leagueCat.description;
+    if (leagueCat?.description) return normalizeSport(leagueCat.description);
     const firstWithDesc = a.categories.find((c) => c.description);
-    if (firstWithDesc) return firstWithDesc.description;
+    if (firstWithDesc) return normalizeSport(firstWithDesc.description);
   }
   if (a.type === "Tennis") return "Grand Slam";
   if (a.type === "Basketball") return "NBA";
   return "Fútbol";
-};
-
-const safeDate = (d) => {
-  if (!d) return new Date().toISOString();
-  try {
-    const parsed = new Date(d);
-    return isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
-  } catch { return new Date().toISOString(); }
 };
 
 const parseArticle = (a, defaultSport) => {
@@ -109,20 +132,52 @@ const parseArticle = (a, defaultSport) => {
       ? (a.images.find((img) => img.width >= 600 && img.url) || a.images[0])?.url || null
       : null,
     source: "ESPN",
-    sport: extractSport(a) || defaultSport || "Fútbol",
+    sport: extractSport(a) || normalizeSport(defaultSport) || "Fútbol",
     publishedAt: published ? new Date(published).toISOString() : new Date().toISOString(),
   };
 };
 
+function isFresh(article) {
+  const t = new Date(article.publishedAt).getTime();
+  return Number.isFinite(t) && (Date.now() - t) <= MAX_AGE_MS;
+}
+
+function selectAndSort(articles) {
+  const now = Date.now();
+  const fresh = articles.filter((a) => {
+    const t = new Date(a.publishedAt).getTime();
+    return Number.isFinite(t) && (now - t) <= MAX_AGE_MS;
+  });
+
+  const bySport = {};
+  for (const a of fresh) {
+    if (!bySport[a.sport]) bySport[a.sport] = [];
+    bySport[a.sport].push(a);
+  }
+
+  const picked = [];
+  const seenIds = new Set();
+  for (const { key, max } of SPORT_QUOTAS) {
+    const pool = bySport[key] || [];
+    let count = 0;
+    for (const a of pool) {
+      if (seenIds.has(a.id)) continue;
+      if (count >= max) break;
+      picked.push(a);
+      seenIds.add(a.id);
+      count++;
+    }
+  }
+
+  return picked;
+}
+
 function ensureFallback(articles) {
-  if (articles.length > 0) {
-    return articles
-      .map((a) => ({ ...a, image: a.image || sportImageFor(a.sport) }))
-      .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
-      .slice(0, 16);
+  if (articles.length >= 4) {
+    return articles.map((a) => ({ ...a, image: a.image || sportImageFor(a.sport) }));
   }
   const now = new Date().toISOString();
-  return FALLBACK.slice(0, 16).map((fb) => ({
+  return FALLBACK.map((fb) => ({
     ...fb,
     image: sportImageFor(fb.sport),
     publishedAt: now,
@@ -148,54 +203,6 @@ async function fetchGeneralNews() {
   return [];
 }
 
-async function fetchNewsFromScoreboards() {
-  const leagues = [
-    { sport: "soccer", league: "uefa.champions", name: "Champions League" },
-    { sport: "soccer", league: "esp.1", name: "LaLiga" },
-    { sport: "soccer", league: "eng.1", name: "Premier League" },
-    { sport: "basketball", league: "nba", name: "NBA" },
-    { sport: "tennis", league: "atp", name: "ATP" },
-    { sport: "baseball", league: "mlb", name: "MLB" },
-    { sport: "hockey", league: "nhl", name: "NHL" },
-  ];
-  const now = new Date();
-  const from = new Date(now); from.setDate(from.getDate() - 1);
-  const to = new Date(now); to.setDate(to.getDate() + 3);
-  const dr = `${from.toISOString().slice(0, 10).replace(/-/g, "")}-${to.toISOString().slice(0, 10).replace(/-/g, "")}`;
-
-  const results = await Promise.allSettled(leagues.map(async ({ sport, league, name }) => {
-    try {
-      const res = await fetch(`/espn/apis/site/v2/sports/${sport}/${league}/scoreboard?dates=${dr}`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      const events = data.events || [];
-      return events.map((ev) => {
-        const comp = ev.competitions?.[0];
-        if (!comp) return null;
-        const home = comp.competitors?.find((c) => c.homeAway === "home");
-        const away = comp.competitors?.find((c) => c.homeAway === "away");
-        if (!home || !away) return null;
-        return parseArticle({
-          headline: `${home.team?.displayName || "?"} vs ${away.team?.displayName || "?"} - ${name}`,
-          description: ev.status?.type?.description || "Partido programado",
-          date: ev.date,
-          links: { web: { href: `https://www.espn.com/${sport}/game/_/gameId/${ev.id}` } },
-          images: [
-            { url: home.team?.logo, width: 100, height: 100 },
-            { url: away.team?.logo, width: 100, height: 100 },
-          ],
-          id: `news-${ev.id}`,
-          league: { name },
-        }, name);
-      }).filter(Boolean);
-    } catch { return []; }
-  }));
-
-  const articles = [];
-  results.forEach((r) => { if (r.status === "fulfilled") articles.push(...r.value); });
-  return articles;
-}
-
 async function fetchLeagueNews(sport, league, name) {
   try {
     const res = await fetch(`/espn/apis/site/v2/sports/${sport}/${league}/news`);
@@ -214,6 +221,7 @@ export async function fetchSportsNews({ force = false } = {}) {
     { sport: "soccer", league: "esp.1", name: "LaLiga" },
     { sport: "soccer", league: "eng.1", name: "Premier League" },
     { sport: "soccer", league: "ita.1", name: "Serie A" },
+    { sport: "soccer", league: "ger.1", name: "Bundesliga" },
     { sport: "soccer", league: "fifa.world", name: "Mundial" },
     { sport: "basketball", league: "nba", name: "NBA" },
     { sport: "tennis", league: "atp", name: "ATP" },
@@ -224,13 +232,14 @@ export async function fetchSportsNews({ force = false } = {}) {
   const articles = [];
   r.forEach((rr) => { if (rr.status === "fulfilled") articles.push(...rr.value); });
 
-  if (articles.length < 4) {
+  if (articles.length < 6) {
     const general = await fetchGeneralNews();
     articles.push(...general);
   }
 
   const final = ensureFallback(articles);
-  const usedFallback = articles.length === 0;
-  writeCache(final);
-  return { articles: final, cached: false, source: "ESPN", usedFallback };
+  const sorted = selectAndSort(final);
+  const usedFallback = articles.length < 6;
+  writeCache(sorted);
+  return { articles: sorted, cached: false, source: "ESPN", usedFallback };
 }

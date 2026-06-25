@@ -34,21 +34,27 @@ export default function MatchCard({ match, onAddToSlip, existingPrediction, slip
           <div><Crest src={match.awayBadge} name={match.away} /><strong>{match.away}</strong></div>
         </div>
 
-        {existingPrediction ? (
+        {existingPrediction && !inSlip && (
           <div className="apex-current-pick">
             <div><small>{pendingLabel}</small><strong>{existingPrediction.selection === "1" ? match.home : existingPrediction.selection === "2" ? match.away : "Empate"} ({existingPrediction.selection})</strong></div>
             <CheckCircle2 size={21} />
             <button type="button" aria-label="Estadisticas"><TrendingUp size={22} /></button>
           </div>
-        ) : inSlip ? (
+        )}
+
+        {inSlip && !isFinished && !isLive && (
           <div className="apex-current-pick in-slip">
             <div><small>EN TU CUPÓN</small><strong>{pickLabel} ({inSlip.selection})</strong></div>
             <span className="apex-slip-odd">{inSlip.odd?.toFixed(2)}</span>
             <Link to="/events" className="apex-slip-view">Ver cupón</Link>
           </div>
-        ) : isFinished ? (
+        )}
+
+        {isFinished ? (
           <div className="apex-final-result"><CheckCircle2 size={19} /> Resultado oficial: {match.score}</div>
-        ) : !isLive && options.length ? (
+        ) : isLive ? (
+          <div className="apex-final-result muted">Mercado suspendido durante el directo</div>
+        ) : options.length ? (
           <div className="apex-prediction-odds">
             {options.map((option) => (
               <button key={option} type="button" onClick={() => onAddToSlip?.(match, option, match.odds[option])}>
@@ -57,9 +63,9 @@ export default function MatchCard({ match, onAddToSlip, existingPrediction, slip
             ))}
           </div>
         ) : (
-          <div className="apex-final-result muted">{isLive ? "Mercado suspendido durante el directo" : "Sin cuotas publicadas"}</div>
+          <div className="apex-final-result muted">Sin cuotas publicadas</div>
         )}
-        {!isFinished && !isLive && hasOdds && !match.bettingOpen && !existingPrediction && !inSlip && (
+        {!isFinished && !isLive && hasOdds && !match.bettingOpen && !inSlip && (
           <div className="apex-final-result muted">La cuota se validara despues de enviar la apuesta</div>
         )}
       </div>

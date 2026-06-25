@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   ChevronDown,
@@ -11,6 +11,7 @@ import {
   Goal,
   Home,
   Menu,
+  Pencil,
   PlayCircle,
   Radio,
   Search,
@@ -77,7 +78,7 @@ function NavItem({ item, onClick }) {
   );
 }
 
-export default function AppHeader({ user, store }) {
+export default function AppHeader({ user, store, sportsData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsExpanded, setEventsExpanded] = useState(false);
   const [dismissBanner, setDismissBanner] = useState(false);
@@ -86,6 +87,55 @@ export default function AppHeader({ user, store }) {
   const isHome = pathname === "/" || pathname === "/dashboard";
   const title = TITLES[pathname] || (pathname.startsWith("/leagues/") ? "Detalle de liga" : "PROPHET");
   const showLowCoins = !dismissBanner && user?.points != null && user.points < 2000;
+  const navigate = useNavigate();
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef(null);
+
+  const normalize = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+  const searchResults = useMemo(() => {
+    const q = normalize(searchQuery);
+    if (!q || !sportsData?.matches) return [];
+    const matches = sportsData.matches.filter((match) => {
+      const haystack = [match.home, match.away, match.league, match.sportName].filter(Boolean).map(normalize).join(" ");
+      return haystack.includes(q);
+    });
+    const statusPriority = { upcoming: 0, live: 1, finished: 2 };
+    const upcoming = matches.filter((m) => m.status === "upcoming")
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const live = matches.filter((m) => m.status === "live")
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const finished = matches.filter((m) => m.status === "finished")
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    return [...upcoming, ...live, ...finished].slice(0, 8);
+  }, [searchQuery, sportsData?.matches]);
+
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setSearchOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchOpen]);
+
+  const handleSelectResult = (matchId) => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    navigate(`/events/${matchId}`);
+  };
+
+  const handleSeeAll = () => {
+    setSearchOpen(false);
+    const q = encodeURIComponent(searchQuery);
+    navigate(`/events?q=${q}`);
+  };
 
   const pendingCoins = (store?.predictions || [])
     .filter((p) => p.userId === "current_user" && ["pending", "pending_quote", "needs_confirmation"].includes(p.status))
@@ -100,35 +150,36 @@ export default function AppHeader({ user, store }) {
         </div>
 
         <div className="apex-sidebar-profile">
-          <Link to="/profile" className="apex-sidebar-avatar">
-            <Smile size={42} strokeWidth={1.5} />
-          </Link>
+          <div className="apex-sidebar-avatar-wrap">
+            <Link to="/profile" className="apex-sidebar-avatar">
+              <Smile size={48} strokeWidth={1.5} />
+            </Link>
+            <Link to="/profile" className="apex-sidebar-avatar-edit" aria-label="Editar perfil">
+              <Pencil size={12} />
+            </Link>
+          </div>
           <div className="apex-sidebar-user">
             <strong>{user?.username || "Jordi"}</strong>
-            <div className="apex-sidebar-coins">
-              <div className="apex-sidebar-coins-total">
-                <Coins size={16} />
-                <b>{(user?.points || 0).toLocaleString("es-ES")}</b>
-                <span>Coins</span>
-              </div>
-              <div className="apex-sidebar-coins-pending">
-                <b>{pendingCoins.toLocaleString("es-ES")}</b>
-                <span>Coins pendientes</span>
-              </div>
+            <div className="apex-sidebar-coins-row">
+              <Coins size={16} />
+              <b>{(user?.points || 0).toLocaleString("es-ES")}</b>
+              <span>Coins</span>
             </div>
-
-            <div className="apex-sidebar-streak" title="Racha de días">
-              <Flame size={14} style={{ color: "#ff6b57" }} />
-              <span>Racha <b>{user?.streak || 5} días</b></span>
+            <div className={`apex-sidebar-pending-badge ${pendingCoins > 0 ? "has-pending" : ""}`}>
+              {pendingCoins > 0
+                ? `${pendingCoins.toLocaleString("es-ES")} coins pendientes`
+                : "Sin coins pendientes"}
             </div>
-
-            <div className="apex-sidebar-level" title="Progreso de nivel">
+            <div className="apex-sidebar-level">
               <div className="apex-sidebar-level-row">
-                <span><b>Nivel 24</b> · Analista Pro</span>
+                <span>Nivel <b>{user?.level || 24}</b></span>
                 <small>2.450 / 3.000 XP</small>
               </div>
               <span className="apex-sidebar-progress"><i style={{ width: "82%" }} /></span>
             </div>
+            <Link to="/" className="apex-sidebar-home-btn" onClick={() => setMenuOpen(false)}>
+              <Home size={16} /> Inicio
+            </Link>
           </div>
         </div>
 
@@ -199,7 +250,7 @@ export default function AppHeader({ user, store }) {
               <span>Mira este video y gana <b>15 coins</b></span>
             </NavLink>
           )}
-          <button className="apex-search-button desktop-only" type="button" aria-label="Buscar"><Search size={20} /></button>
+          <button className="apex-search-button desktop-only" type="button" aria-label="Buscar eventos" onClick={() => setSearchOpen(true)}><Search size={20} /></button>
           <span className="apex-coins"><CircleDollarSign size={19} /><b>{user?.points?.toLocaleString("es-ES") || "540"}</b><small>Coins</small></span>
           {isHome && <span className="apex-level">LVL 12</span>}
           <NavLink to="/profile" className="apex-profile-link" aria-label="Abrir perfil"><UserAvatar user={user} compact /></NavLink>
@@ -280,6 +331,60 @@ export default function AppHeader({ user, store }) {
             <nav>{SIDE_NAV.map((item) => <NavItem key={item.path} item={item} onClick={() => setMenuOpen(false)} />)}</nav>
             <NavLink className="apex-drawer-play" to="/earn" onClick={() => setMenuOpen(false)}><Coins /> Ganar monedas gratis</NavLink>
           </aside>
+        </div>
+      )}
+
+      {searchOpen && (
+        <div className="apex-header-search-overlay" onClick={() => setSearchOpen(false)}>
+          <div className="apex-header-search-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="apex-header-search-input-wrap">
+              <Search size={20} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Buscar eventos, equipos, ligas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && searchResults.length > 0) handleSelectResult(searchResults[0].id); }}
+                className="apex-header-search-input"
+              />
+              <button type="button" className="apex-header-search-close" onClick={() => { setSearchOpen(false); setSearchQuery(""); }} aria-label="Cerrar">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="apex-header-search-results">
+              {searchQuery.trim() === "" ? (
+                <div className="apex-header-search-empty">
+                  <Search size={32} />
+                  <p>Busca equipos, ligas o deportes</p>
+                  <small>Ej: "Real Madrid", "NBA", "Alonso", "ACB"</small>
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="apex-header-search-empty">
+                  <Search size={32} />
+                  <p>Sin resultados para "{searchQuery}"</p>
+                </div>
+              ) : (
+                <>
+                  {searchResults.map((match) => {
+                    const statusLabel = match.status === "live" ? "EN VIVO" : match.status === "finished" ? "FINALIZADO" : new Date(match.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+                    return (
+                      <button key={match.id} type="button" className="apex-header-search-item" onClick={() => handleSelectResult(match.id)}>
+                        <div className="apex-header-search-item-main">
+                          <strong>{match.home} vs {match.away}</strong>
+                          <small>{match.league || match.sportName} · {statusLabel}{match.elapsed ? ` · ${match.elapsed}` : ""}</small>
+                        </div>
+                        <span className={`apex-header-search-item-status is-${match.status}`}>{match.status === "live" ? "LIVE" : match.status === "finished" ? "FT" : "PRÓX"}</span>
+                      </button>
+                    );
+                  })}
+                  <button type="button" className="apex-header-search-see-all" onClick={handleSeeAll}>
+                    Ver todos los resultados de "{searchQuery}" →
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>

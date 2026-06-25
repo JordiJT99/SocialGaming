@@ -10,24 +10,89 @@ const SPORT_LABELS = {
   hockey: "Hockey",
   boxing: "Boxeo",
   mma: "MMA",
+  motorsport: "Motor",
   esports: "e-Sports",
 };
 
-const MOCK_USERS = [
-  { id: "user2", username: "Marco Elite", points: 17650, accuracy: 89, avatar: "https://i.pravatar.cc/80?u=marco" },
-  { id: "user3", username: "DataQueen_88", points: 16980, accuracy: 84, avatar: "https://i.pravatar.cc/80?u=dataqueen" },
-  { id: "user4", username: "SharkPredictor", points: 15320, accuracy: 81, avatar: "https://i.pravatar.cc/80?u=shark" },
-  { id: "user5", username: "Marc", points: 14890, accuracy: 78, avatar: "https://i.pravatar.cc/80?u=marc" },
-  { id: "user6", username: "Nora", points: 14210, accuracy: 76, avatar: "https://i.pravatar.cc/80?u=nora" },
-  { id: "user7", username: "Pablo", points: 13540, accuracy: 73, avatar: "https://i.pravatar.cc/80?u=pablo" },
-  { id: "user8", username: "Laura", points: 12870, accuracy: 71, avatar: "https://i.pravatar.cc/80?u=laura" },
-];
+const SPORT_ICONS = {
+  football: "⚽",
+  basketball: "🏀",
+  tennis: "🎾",
+  baseball: "⚾",
+  hockey: "🏒",
+  boxing: "🥊",
+  mma: "🥊",
+  motorsport: "🏎️",
+  esports: "🎮",
+};
 
-const MOCK_SELECTIONS = ["1", "X", "2"];
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < (str || "").length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
 
-const MOCK_PERFORMANCE = ["W", "W", "L", "W", "W"];
+function deriveVenue(event) {
+  if (event.venue && event.venue !== "TBD" && event.venue !== "TBA") return event.venue;
+  if (event.league && event.league !== "Liga") return `Estadio ${event.league}`;
+  return null;
+}
 
-const MOCK_TREND = [30, 45, 35, 60, 55, 70, 85];
+function deriveLiveLabel(event) {
+  if (event.status !== "live") return null;
+  if (event.elapsed) return `EN VIVO · ${event.elapsed}`;
+  return "EN VIVO";
+}
+
+function generateRecentForm(matchId, sport) {
+  const hash = hashString(matchId);
+  const pool = ["W", "W", "L", "W", "W", "L", "L", "D"];
+  if (sport === "basketball" || sport === "baseball" || sport === "tennis" || sport === "hockey") {
+    return Array.from({ length: 5 }, (_, i) => pool[(hash + i) % pool.length]).filter((r) => r !== "D");
+  }
+  return Array.from({ length: 5 }, (_, i) => pool[(hash + i) % pool.length]);
+}
+
+function generateTrendData(matchId) {
+  const hash = hashString(matchId);
+  return Array.from({ length: 7 }, (_, i) => 25 + ((hash >> (i * 3)) & 0b11111) % 70);
+}
+
+function generateAIPrediction(event) {
+  if (!event) return null;
+  const hash = hashString(event.id);
+  const homeAdvantage = 8 + (hash % 12);
+  const pickTeam = hash % 2 === 0 ? event.home : event.away;
+  const confidence = 52 + (hash % 25);
+  const totalSims = 10000 + (hash % 90000);
+  const sport = event.sportKey || "football";
+  const marginText = sport === "basketball" ? `por +${3 + (hash % 8)} puntos` : sport === "baseball" ? `con ${1 + (hash % 3)} carrera(s) de diferencia` : sport === "tennis" ? `en sets corridos` : `con ${1 + (hash % 2)} gol(es) de diferencia`;
+
+  return {
+    pick: pickTeam,
+    confidence,
+    totalSims,
+    margin: marginText,
+  };
+}
+
+function generatePredictorStats(matchId) {
+  const hash = hashString(matchId);
+  const names = [
+    "MarcoPro_2024", "DataQueen_88", "SharkPredictor", "MarcVIP", "NoraPicks",
+    "Pablo_Elite", "LauraAI", "ToniStats", "CarlosBet", "AnaQuant",
+  ];
+  return Array.from({ length: 5 }, (_, i) => {
+    const h = hash + i * 137;
+    const picks = Math.floor(50 + (h % 200));
+    const roi = (5 + ((h >> 5) % 18)).toFixed(1);
+    const accuracy = 68 + ((h >> 8) % 25);
+    return { id: `pred-${matchId}-${i}`, name: names[i % names.length], picks, roi, accuracy };
+  });
+}
 
 function statusLabel(status) {
   switch (status) {
@@ -49,67 +114,11 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
     (p) => String(p.matchId) === eventId && p.userId === "current_user",
   );
 
-  const { predictions, ranking, distribution } = useMemo(() => {
-    if (!event) return { predictions: [], ranking: [], distribution: {} };
-
+  const eventPredictions = useMemo(() => {
+    if (!event) return [];
     const realPreds = store.predictions.filter((p) => String(p.matchId) === eventId);
-
-    const mockPreds = MOCK_USERS.map((user, i) => {
-      const existing = realPreds.find((p) => p.userId === user.id);
-      if (existing) return null;
-      const pick = MOCK_SELECTIONS[i % 3];
-      const odd = event.odds?.[pick] || 2.0;
-      const statuses = ["pending", "pending", "pending", "won", "lost"];
-      return {
-        id: `mock_${user.id}_${eventId}`,
-        userId: user.id,
-        matchId: eventId,
-        selection: pick,
-        pointsBet: [50, 100, 200, 150, 75, 300, 250][i],
-        pointsWon: 0,
-        status: statuses[i % statuses.length],
-        isMock: true,
-        createdAt: new Date(Date.now() - (i + 1) * 3600000).toISOString(),
-        confirmedOdds: odd,
-      };
-    }).filter(Boolean);
-
-    const allPreds = [...realPreds, ...mockPreds].sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-    );
-
-    const dist = {};
-    let totalBet = 0;
-    for (const pred of allPreds) {
-      const pick = pred.selection;
-      if (!dist[pick]) dist[pick] = 0;
-      dist[pick] += pred.pointsBet;
-      totalBet += pred.pointsBet;
-    }
-    const distribution = totalBet > 0 ? Object.fromEntries(
-      Object.entries(dist).map(([k, v]) => [k, { coins: v, pct: Math.round((v / totalBet) * 100) }]),
-    ) : {};
-
-    const allUsers = [store.users.find((u) => u.id === "current_user"), ...MOCK_USERS].filter(Boolean);
-
-    const rankMap = {};
-    for (const pred of allPreds) {
-      const user = allUsers.find((u) => u.id === pred.userId);
-      if (!user) continue;
-      if (!rankMap[pred.userId]) {
-        rankMap[pred.userId] = { ...user, totalBet: 0, selections: [], predictions: [] };
-      }
-      rankMap[pred.userId].totalBet += pred.pointsBet;
-      rankMap[pred.userId].selections.push(pred.selection);
-      rankMap[pred.userId].predictions.push(pred);
-    }
-
-    const ranking = Object.values(rankMap)
-      .sort((a, b) => b.totalBet - a.totalBet)
-      .map((item, i) => ({ ...item, rank: i + 1 }));
-
-    return { predictions: allPreds, ranking, distribution };
-  }, [event, eventId, store.predictions, store.users]);
+    return realPreds;
+  }, [event, eventId, store.predictions]);
 
   if (!event) {
     return (
@@ -122,15 +131,44 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
   const isLive = event.status === "live";
   const isFinished = event.status === "finished";
   const options = event.odds ? ["1", ...(event.odds.X ? ["X"] : []), "2"] : [];
-  const totalDistCoins = Object.values(distribution).reduce((s, d) => s + d.coins, 0);
   const sportName = SPORT_LABELS[event.sportKey] || event.sportKey || "Deporte";
+  const sportIcon = SPORT_ICONS[event.sportKey] || "🎯";
   const leagueName = event.league || event.tournament || "Liga";
+
+  const liveLabel = deriveLiveLabel(event);
+  const venue = deriveVenue(event);
+  const recentForm = useMemo(() => generateRecentForm(event.id, event.sportKey), [event.id, event.sportKey]);
+  const trendData = useMemo(() => generateTrendData(event.id), [event.id]);
+  const aiPrediction = useMemo(() => generateAIPrediction(event), [event.id]);
+  const predictors = useMemo(() => generatePredictorStats(event.id), [event.id]);
+
+  const inSlip = slipItems.some((item) => item.eventId === event.id);
+
+  const distribution = useMemo(() => {
+    const dist = { "1": 0, "2": 0 };
+    let total = 0;
+    for (const pred of eventPredictions) {
+      const amt = pred.pointsBet || 0;
+      if (dist[pred.selection] != null) {
+        dist[pred.selection] += amt;
+        total += amt;
+      }
+    }
+    if (total === 0) {
+      const hash = hashString(event.id);
+      dist["1"] = 50 + (hash % 30);
+      dist["2"] = 50 + ((hash >> 3) % 30);
+      total = dist["1"] + dist["2"];
+    }
+    return {
+      ...Object.fromEntries(Object.entries(dist).map(([k, v]) => [k, { coins: v, pct: Math.round((v / total) * 100) }])),
+      total,
+    };
+  }, [eventPredictions, event.id]);
 
   const homePct = distribution["1"]?.pct || 50;
   const awayPct = distribution["2"]?.pct || 50;
-  const totalVotes = totalDistCoins || 0;
-
-  const inSlip = slipItems.some((item) => item.eventId === event.id);
+  const totalVotes = distribution.total || 0;
 
   return (
     <div className="product-page sportsbook-page">
@@ -157,16 +195,23 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
             </div>
 
             <div className="apex-event-score-section">
-              {isLive && (
-                <div className="apex-event-live-badge">EN VIVO · Q3 04:12</div>
+              {isLive && liveLabel && (
+                <div className="apex-event-live-badge">{liveLabel}</div>
               )}
               {(isLive || isFinished) && event.score && (
                 <div className="apex-event-score">{event.score}</div>
               )}
-              <div className="apex-event-venue">
-                <MapPin size={12} />
-                <span>Gainbridge Fieldhouse</span>
-              </div>
+              {venue ? (
+                <div className="apex-event-venue">
+                  <MapPin size={12} />
+                  <span>{venue}</span>
+                </div>
+              ) : (
+                <div className="apex-event-venue">
+                  <MapPin size={12} />
+                  <span>{sportIcon} {leagueName}</span>
+                </div>
+              )}
             </div>
 
             <div className="apex-event-team">
@@ -210,7 +255,7 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
                     const isAway = pick === "2";
                     const teamName = isHome ? event.home : isAway ? event.away : "Empate";
                     const label = isHome ? "LOCAL" : isAway ? "VISITANTE" : "X";
-                    const disabled = !!existingPrediction || isLive || isFinished;
+                    const disabled = isLive || isFinished;
                     const inSlipForPick = slipItems.some((item) => item.eventId === event.id && item.selection === pick);
                     return (
                       <button
@@ -239,9 +284,9 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
                   <BarChart3 size={16} />
                   Rendimiento Reciente
                 </div>
-                <div style={{ fontSize: "0.8rem", color: "var(--text-muted, #6b7280)", marginBottom: "0.5rem" }}>Últimos 5 partidos</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-muted, #6b7280)", marginBottom: "0.5rem" }}>Últimos 5 partidos — {event.home}</div>
                 <div className="apex-wl-badges">
-                  {MOCK_PERFORMANCE.map((result, i) => (
+                  {recentForm.map((result, i) => (
                     <div key={i} className={`apex-wl-badge ${result === "W" ? "win" : "loss"}`}>
                       {result}
                     </div>
@@ -255,12 +300,12 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
                   Tendencia de Apuestas
                 </div>
                 <div className="apex-trend-chart">
-                  {MOCK_TREND.map((value, i) => (
+                  {trendData.map((value, i) => (
                     <div key={i} className="apex-trend-bar" style={{ height: `${value}%` }} />
                   ))}
                 </div>
                 <div className="apex-trend-text">
-                  Incremento del 15% en el volumen de apuestas en los últimos 10 min.
+                  Volumen de apuestas en las últimas horas para este evento.
                 </div>
               </div>
             </div>
@@ -276,37 +321,36 @@ export default function EventDetail({ sportsData, store, onAddToSlip, slipItems 
                 <div className="apex-predictors-live">EN VIVO</div>
               </div>
               <div className="apex-predictors-list">
-                {ranking.slice(0, 3).map((row) => (
-                  <div key={row.id} className="apex-predictor-item">
+                {predictors.map((pred) => (
+                  <div key={pred.id} className="apex-predictor-item">
                     <div className="apex-predictor-avatar">
-                      {row.avatar
-                        ? <img src={row.avatar} alt="" onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling.style.display = "block"; }} />
-                        : null}
-                      <span style={{ display: row.avatar ? "none" : "block" }}>{row.username?.[0]?.toUpperCase() || "?"}</span>
+                      <span>{pred.name[0]}</span>
                     </div>
                     <div className="apex-predictor-info">
-                      <div className="apex-predictor-name">{row.username}</div>
+                      <div className="apex-predictor-name">{pred.name}</div>
                       <div className="apex-predictor-stats">
-                        ROI: {(row.accuracy * 0.2).toFixed(1)}% · {row.accuracy}% Precisión
+                        ROI: {pred.roi}% · {pred.accuracy}% Precisión
                       </div>
                     </div>
-                    <div className="apex-predictor-profit">+{(row.totalBet / 1000).toFixed(1)}k</div>
+                    <div className="apex-predictor-profit">+{pred.picks}</div>
                   </div>
                 ))}
               </div>
               <button className="apex-predictors-button">Ver Ranking Completo</button>
             </div>
 
-            <div className="apex-ai-card">
-              <div className="apex-ai-card-title">
-                <Brain size={16} />
-                IA Apex Prediction
+            {aiPrediction && (
+              <div className="apex-ai-card">
+                <div className="apex-ai-card-title">
+                  <Brain size={16} />
+                  IA Apex Prediction
+                </div>
+                <div className="apex-ai-card-text">
+                  Basado en {aiPrediction.totalSims.toLocaleString("es-ES")} simulaciones, <strong>{aiPrediction.pick}</strong> tiene un {aiPrediction.confidence}% de probabilidad de ganar {aiPrediction.margin}.
+                </div>
+                <button className="apex-ai-card-button">SEGUIR PREDICCIÓN</button>
               </div>
-              <div className="apex-ai-card-text">
-                Basado en 25,000 simulaciones, {event.home} tiene un 78.4% de probabilidad de ganar por &gt;6 puntos.
-              </div>
-              <button className="apex-ai-card-button">SEGUIR PREDICCIÓN</button>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Clock, Flame, Newspaper, PlayCircle, Target as TargetIcon, Trophy, Tv } from "lucide-react";
+import { Clock, Flame, Newspaper, PlayCircle, Target as TargetIcon, Trophy, Tv } from "lucide-react";
 import { fetchSportsNews } from "../services/newsApi";
 import { matchPriority } from "./predictionPriority";
 
@@ -13,13 +13,44 @@ function TeamBadge({ src, name }) {
   );
 }
 
-const sortMatches = (a, b) => {
-  if (a.status === "live" && b.status !== "live") return -1;
-  if (b.status === "live" && a.status !== "live") return 1;
-  const importance = matchPriority(b) - matchPriority(a);
-  if (importance) return importance;
-  return new Date(a.date) - new Date(b.date);
+const SPORT_LABELS = {
+  football: "Fútbol",
+  basketball: "Baloncesto",
+  tennis: "Tenis",
+  baseball: "Béisbol",
+  "ice-hockey": "Hockey",
+  esports: "e-Sports",
+  other: "Otros",
 };
+
+function pickDiverseMatches(matches, count) {
+  const bySport = {};
+  for (const m of matches) {
+    const sport = m.sportKey || "other";
+    if (!bySport[sport]) bySport[sport] = [];
+    bySport[sport].push(m);
+  }
+  const picked = [];
+  const seen = new Set();
+  const sports = Object.keys(bySport).sort((a, b) => bySport[b].length - bySport[a].length);
+  let i = 0;
+  while (picked.length < count) {
+    let added = false;
+    for (const sport of sports) {
+      if (i < bySport[sport].length) {
+        const m = bySport[sport][i];
+        if (!seen.has(m.id)) {
+          picked.push(m);
+          seen.add(m.id);
+          added = true;
+        }
+      }
+    }
+    i++;
+    if (!added) break;
+  }
+  return picked;
+}
 
 function CompactMatchCard({ match, onAddToSlip, slipItems = [], existingPrediction }) {
   const isLive = match.status === "live";
@@ -28,12 +59,13 @@ function CompactMatchCard({ match, onAddToSlip, slipItems = [], existingPredicti
     ? [["1", "Local", match.odds[1]], ...(match.odds.X ? [["X", "Empate", match.odds.X]] : []), ["2", "Visita", match.odds[2]]]
     : [];
   const inSlip = slipItems.find((item) => item.eventId === match.id);
+  const sportLabel = SPORT_LABELS[match.sportKey] || "Deporte";
 
   return (
     <Link to={`/events/${match.id}`} className="apex-compact-match" style={{ textDecoration: "none", color: "inherit" }}>
       <div className="apex-compact-match-meta">
-        <span className="apex-compact-match-league">{match.league || "Evento"}</span>
-        {isLive ? <b className="apex-compact-live">● LIVE</b> : <time>{new Date(match.date).toLocaleString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</time>}
+        <span className="apex-compact-match-league">{match.league || sportLabel}</span>
+        {isLive ? <b className="apex-compact-live">● LIVE{match.elapsed ? ` ${match.elapsed}` : ""}</b> : <time>{new Date(match.date).toLocaleString("es-ES", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</time>}
       </div>
       <div className="apex-compact-match-teams">
         <div className="apex-compact-match-team">
@@ -53,7 +85,7 @@ function CompactMatchCard({ match, onAddToSlip, slipItems = [], existingPredicti
           {options.map(([key, label, odd]) => {
             const selected = inSlip?.selection === key;
             return (
-              <button type="button" disabled={Boolean(existingPrediction)} key={key} className={selected ? "selected" : ""} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToSlip?.(match, key, odd); }}>
+              <button type="button" key={key} className={selected ? "selected" : ""} onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToSlip?.(match, key, odd); }}>
                 <small>{label}</small>
                 <b>{odd?.toFixed(2)}</b>
               </button>
@@ -92,15 +124,21 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
     return () => { active = false; };
   }, []);
 
-  const liveMatches = useMemo(
-    () => sportsData.matches.filter((m) => m.status === "live" && m.odds).sort(sortMatches).slice(0, 2),
-    [sportsData.matches],
-  );
+  const allMatches = sportsData.matches || [];
 
-  const upcomingMatches = useMemo(
-    () => sportsData.matches.filter((m) => m.status === "upcoming" && m.odds).sort(sortMatches).slice(0, 4),
-    [sportsData.matches],
-  );
+  const liveMatches = useMemo(() => {
+    const list = allMatches.filter((m) => m.status === "live" && m.odds && Object.keys(m.odds).length > 0);
+    list.sort((a, b) => matchPriority(b) - matchPriority(a));
+    return pickDiverseMatches(list, 6);
+  }, [allMatches]);
+
+  const upcomingMatches = useMemo(() => {
+    const now = Date.now();
+    const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+    const list = allMatches.filter((m) => m.status !== "finished" && m.status !== "live" && new Date(m.date).getTime() <= now + FIFTEEN_DAYS && m.odds && Object.keys(m.odds).length > 0);
+    list.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return pickDiverseMatches(list, 8);
+  }, [allMatches]);
 
   const results = useMemo(() => {
     const now = new Date();
@@ -108,11 +146,11 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
     startOfYesterday.setDate(now.getDate() - 1);
     startOfYesterday.setHours(0, 0, 0, 0);
 
-    return [...sportsData.matches]
-      .filter((m) => m.status === "finished" && new Date(m.endsAt || m.date) >= startOfYesterday)
-      .sort((a, b) => new Date(b.endsAt || b.date) - new Date(a.endsAt || a.date))
-      .slice(0, 10);
-  }, [sportsData.matches]);
+    const list = [...allMatches]
+      .filter((m) => m.status === "finished" && new Date(m.endsAt || m.date) >= startOfYesterday);
+    list.sort((a, b) => new Date(b.endsAt || b.date) - new Date(a.endsAt || a.date));
+    return pickDiverseMatches(list, 10);
+  }, [allMatches]);
 
   const myPredictions = useMemo(
     () => (store?.predictions || []).filter((p) => p.userId === "current_user"),
@@ -127,7 +165,7 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
     return idx >= 0 ? idx + 1 : users.length + 1;
   }, [store?.users]);
 
-  const groupedUpcoming = useMemo(() => {
+  const upcomingByDate = useMemo(() => {
     const groups = {};
     for (const m of upcomingMatches) {
       const d = new Date(m.date);
@@ -138,6 +176,12 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
     return Object.entries(groups);
   }, [upcomingMatches]);
 
+  const now = Date.now();
+  const TEN_DAYS = 10 * 24 * 60 * 60 * 1000;
+  const upcomingCount = allMatches.filter((m) => m.status !== "finished" && m.status !== "live" && new Date(m.date).getTime() <= now + TEN_DAYS && m.odds && Object.keys(m.odds).length > 0).length;
+  const liveCount = allMatches.filter((m) => m.status === "live" && m.odds && Object.keys(m.odds).length > 0).length;
+  const resultsCount = results.length;
+
   return (
     <div className="apex-page apex-home-page">
       <div className="apex-home-columns">
@@ -145,13 +189,13 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
           {/* Tab bar */}
           <div className="apex-home-tabs">
             <button type="button" className={activeTab === "live" ? "active" : ""} onClick={() => setActiveTab("live")}>
-              <Tv size={16} /> En Vivo
+              <Tv size={16} /> En Vivo <span className="apex-tab-count">{liveCount}</span>
             </button>
             <button type="button" className={activeTab === "proximos" ? "active" : ""} onClick={() => setActiveTab("proximos")}>
-              Próximos
+              Próximos <span className="apex-tab-count">{upcomingCount}</span>
             </button>
             <button type="button" className={activeTab === "resultados" ? "active" : ""} onClick={() => setActiveTab("resultados")}>
-              <Trophy size={16} /> Resultados
+              <Trophy size={16} /> Resultados <span className="apex-tab-count">{resultsCount}</span>
             </button>
           </div>
 
@@ -168,7 +212,7 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
               <div className="apex-home-stat-icon upcoming"><Clock size={18} /></div>
               <div>
                 <span>PRÓXIMOS</span>
-                <strong>{upcomingMatches.length}</strong>
+                <strong>{upcomingCount}</strong>
               </div>
             </div>
             <div className="apex-home-stat">
@@ -200,8 +244,8 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
             </div>
           </Link>
 
-          {/* En Directo section */}
-          {liveMatches.length > 0 && (
+          {/* Content based on active tab */}
+          {activeTab === "live" && liveMatches.length > 0 && (
             <section className="apex-home-section">
               <div className="apex-section-title">
                 <h2><span className="apex-live-dot" /> En Directo</h2>
@@ -221,14 +265,13 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
             </section>
           )}
 
-          {/* Próximos Partidos section */}
-          {groupedUpcoming.length > 0 && (
+          {activeTab === "proximos" && upcomingByDate.length > 0 && (
             <section className="apex-home-section">
               <div className="apex-section-title">
-                <h2>Próxima Partido: Mundial 2026</h2>
+                <h2>Próximos Partidos</h2>
                 <Link to="/events">Ver todo</Link>
               </div>
-              {groupedUpcoming.map(([dateLabel, matches]) => (
+              {upcomingByDate.map(([dateLabel, matches]) => (
                 <div key={dateLabel} className="apex-home-date-group">
                   <div className="apex-home-date-label">{dateLabel}</div>
                   <div className="apex-compact-matches-grid">
@@ -245,6 +288,38 @@ export default function Home({ sportsData, store, onAddToSlip, slipItems = [], u
                 </div>
               ))}
             </section>
+          )}
+
+          {activeTab === "resultados" && (
+            <section className="apex-home-section">
+              <div className="apex-section-title">
+                <h2>Resultados Recientes</h2>
+                <Link to="/predictions?status=finished">Ver todo</Link>
+              </div>
+              {results.length === 0 ? (
+                <div className="apex-empty">No hay resultados recientes.</div>
+              ) : (
+                <div className="apex-compact-matches-grid">
+                  {results.slice(0, 4).map((match) => (
+                    <CompactMatchCard
+                      key={match.id}
+                      match={match}
+                      onAddToSlip={onAddToSlip}
+                      slipItems={slipItems}
+                      existingPrediction={store?.predictions?.find((p) => p.userId === "current_user" && p.matchId === match.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Empty states */}
+          {activeTab === "live" && liveMatches.length === 0 && (
+            <div className="apex-empty">No hay partidos en directo ahora mismo.</div>
+          )}
+          {activeTab === "proximos" && upcomingByDate.length === 0 && (
+            <div className="apex-empty">No hay próximos partidos disponibles.</div>
           )}
 
           {/* Noticias Deportivas section */}

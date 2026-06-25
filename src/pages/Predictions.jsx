@@ -18,8 +18,10 @@ export default function Predictions({ store, onSportSelect, matches, sportsData,
 
   const sports = useMemo(() => {
     const seen = new Set();
+    const now = Date.now();
+    const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
     return SPORT_ORDER.filter((key) => {
-      const has = matches.some((m) => (m.sportKey || "football") === key);
+      const has = matches.some((m) => (m.sportKey || "football") === key && (m.status === "live" || (m.status !== "finished" && new Date(m.date).getTime() <= now + FIFTEEN_DAYS)) && m.odds && Object.keys(m.odds).length > 0);
       if (has && !seen.has(key)) { seen.add(key); return true; }
       return false;
     });
@@ -27,26 +29,40 @@ export default function Predictions({ store, onSportSelect, matches, sportsData,
 
   const leagues = useMemo(() => {
     const set = new Map();
+    const now = Date.now();
+    const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
     matches
-      .filter((m) => sportFilter === "all" || (m.sportKey || "football") === sportFilter)
+      .filter((m) => (sportFilter === "all" || (m.sportKey || "football") === sportFilter) && (m.status === "live" || (m.status !== "finished" && new Date(m.date).getTime() <= now + FIFTEEN_DAYS)) && m.odds && Object.keys(m.odds).length > 0)
       .forEach((m) => { if (!set.has(m.league)) set.set(m.league, m.league); });
     return [...set.values()].sort();
   }, [matches, sportFilter]);
 
-  const filtered = useMemo(() =>
-    matches
-      .filter((m) =>
-        (sportFilter === "all" || (m.sportKey || "football") === sportFilter)
-        && (leagueFilter === "all" || m.league === leagueFilter)
-        && (resultsMode ? m.status === "finished" : liveOnly ? m.status === "live" : m.status === "upcoming" && Boolean(m.odds)))
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+    return matches
+      .filter((m) => {
+        const sportOk = sportFilter === "all" || (m.sportKey || "football") === sportFilter;
+        const leagueOk = leagueFilter === "all" || m.league === leagueFilter;
+        const hasOdds = m.odds && Object.keys(m.odds).length > 0;
+        let statusOk;
+        if (resultsMode) {
+          statusOk = m.status === "finished";
+        } else if (liveOnly) {
+          statusOk = m.status === "live";
+        } else {
+          statusOk = (m.status === "live" || (m.status !== "finished" && new Date(m.date).getTime() <= now + FIFTEEN_DAYS)) && hasOdds;
+        }
+        return sportOk && leagueOk && statusOk;
+      })
       .sort((a, b) => {
         if (a.status === "live" && b.status !== "live") return -1;
         if (b.status === "live" && a.status !== "live") return 1;
         const importance = matchPriority(b) - matchPriority(a);
         if (importance) return importance;
         return new Date(a.date) - new Date(b.date);
-      }),
-  [matches, sportFilter, leagueFilter, resultsMode, liveOnly]);
+      });
+  }, [matches, sportFilter, leagueFilter, resultsMode, liveOnly]);
 
   const grouped = useMemo(() => {
     const counts = new Map();

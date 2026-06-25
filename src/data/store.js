@@ -13,6 +13,8 @@ const defaultStore = () => ({
       accuracy: 0,
       streak: 0,
       bestStreak: 0,
+      xp: 2450,
+      level: 24,
       joinedAt: new Date().toISOString(),
     },
   ],
@@ -55,6 +57,7 @@ export function getCurrentUser(store) {
 }
 
 export function makePrediction(store, matchId, selection, pointsBet, extra = {}) {
+  const matchDate = extra.date || extra.matchDate || null;
   const prediction = {
     id: `pred_${Date.now()}`,
     userId: "current_user",
@@ -64,6 +67,7 @@ export function makePrediction(store, matchId, selection, pointsBet, extra = {})
     pointsWon: 0,
     status: "pending",
     createdAt: new Date().toISOString(),
+    matchDate,
     ...extra,
   };
 
@@ -81,6 +85,7 @@ export function makePrediction(store, matchId, selection, pointsBet, extra = {})
     createdAt: new Date().toISOString(),
   });
 
+  saveStore(store);
   return prediction;
 }
 
@@ -113,51 +118,120 @@ export function refundPrediction(store, predictionId, description = "Prediccion 
 
 export function resolvePrediction(store, predictionId, matchResult, matchScore = null) {
   const pred = store.predictions.find((p) => p.id === predictionId);
-  if (!pred || pred.status !== "pending") return;
+  if (!pred || pred.status !== "pending") return null;
 
   const user = getCurrentUser(store);
   const isCorrect = pred.selection === matchResult;
   const settledAt = new Date().toISOString();
-  pred.matchResult = matchResult;
-  pred.matchScore = matchScore;
-  pred.settledAt = settledAt;
 
-  if (isCorrect) {
-    const won = Math.round(pred.pointsBet * Number(pred.confirmedOdds || pred.offeredOdds || 1));
-    pred.pointsWon = won;
-    pred.status = "won";
-    user.points += won;
-    user.totalEarned += won;
-    user.correctCount += 1;
-    user.streak += 1;
-    if (user.streak > user.bestStreak) user.bestStreak = user.streak;
-
-    store.transactions.push({
-      id: `tx_${Date.now()}`,
-      type: "win",
-      amount: won,
-      description: `Acierto predicción #${pred.matchId}`,
-      createdAt: settledAt,
-    });
-  } else {
-    pred.pointsWon = 0;
-    pred.status = "lost";
-    user.streak = 0;
-
-    store.transactions.push({
-      id: `tx_${Date.now()}`,
-      type: "loss",
-      amount: 0,
-      description: `Fallaste predicción #${pred.matchId}`,
-      createdAt: settledAt,
-    });
-  }
-
-  user.accuracy = user.predictionsCount > 0
-    ? Math.round((user.correctCount / user.predictionsCount) * 100)
+  const won = isCorrect
+    ? Math.round(pred.pointsBet * Number(pred.confirmedOdds || pred.offeredOdds || 1))
     : 0;
 
+  const updatedPred = {
+    ...pred,
+    matchResult,
+    matchScore,
+    settledAt,
+    pointsWon: won,
+    status: isCorrect ? "won" : "lost",
+  };
+
+  const updatedUser = { ...user };
+  if (isCorrect) {
+    updatedUser.points = (user.points || 0) + won;
+    updatedUser.totalEarned = (user.totalEarned || 0) + won;
+    updatedUser.correctCount = (user.correctCount || 0) + 1;
+    updatedUser.streak = (user.streak || 0) + 1;
+    if (updatedUser.streak > (user.bestStreak || 0)) updatedUser.bestStreak = updatedUser.streak;
+  } else {
+    updatedUser.streak = 0;
+  }
+  updatedUser.accuracy = updatedUser.predictionsCount > 0
+    ? Math.round((updatedUser.correctCount / updatedUser.predictionsCount) * 100)
+    : 0;
+
+  store.predictions = store.predictions.map((p) => p.id === predictionId ? updatedPred : p);
+  store.users = store.users.map((u) => u.id === user.id ? updatedUser : u);
+
+  store.transactions.push({
+    id: `tx_${Date.now()}`,
+    type: isCorrect ? "win" : "loss",
+    amount: won,
+    description: isCorrect
+      ? `Acierto predicción #${pred.matchId} (+${won})`
+      : `Fallaste predicción #${pred.matchId}`,
+    createdAt: settledAt,
+  });
+
   saveStore(store);
+  return { prediction: updatedPred, user: updatedUser };
+}
+
+export function deriveResult(match) {
+  if (match.result) return match.result;
+  if (!match.score) return null;
+  const m = String(match.score).match(/(\d+)\s*[-:]\s*(\d+)/);
+  if (!m) return null;
+  const home = Number(m[1]);
+  const away = Number(m[2]);
+  if (home > away) return "1";
+  if (home < away) return "2";
+  return "X";
+}
+
+export function computeLevel(xp) {
+  const level = Math.floor(xp / 100) + 1;
+  const xpInLevel = xp % 100;
+  const xpForNext = 100;
+  return { level, xpInLevel, xpForNext };
+}
+
+export function awardXP(store, amount) {
+  const user = getCurrentUser(store);
+  if (!user) return null;
+  const newXp = (user.xp || 0) + amount;
+  const { level, xpInLevel, xpForNext } = computeLevel(newXp);
+  const updated = { ...user, xp: newXp, level, _xpInLevel: xpInLevel, _xpForNext: xpForNext };
+  store.users = store.users.map((u) => u.id === user.id ? updated : u);
+  return updated;
+}
+
+export function getStalePendingPredictions(store, now = Date.now()) {
+  return store.predictions
+    .filter((p) => {
+      if (p.status !== "pending") return false;
+      const matchTime = p.matchDate ? new Date(p.matchDate).getTime() : null;
+      if (!matchTime) return false;
+      return now - matchTime > 3 * 60 * 60 * 1000;
+    })
+    .map((p) => ({ ...p }));
+}
+
+export function expireOldPrediction(store, predictionId) {
+  const pred = store.predictions.find((p) => p.id === predictionId);
+  if (!pred || pred.status !== "pending") return null;
+  const user = getCurrentUser(store);
+  const refund = pred.pointsBet;
+  const updatedPred = { ...pred, status: "expired", settledAt: new Date().toISOString(), pointsWon: 0 };
+  const updatedUser = {
+    ...user,
+    points: (user.points || 0) + refund,
+    accuracy: user.predictionsCount > 0
+      ? Math.round((user.correctCount / user.predictionsCount) * 100)
+      : 0,
+  };
+  store.predictions = store.predictions.map((p) => p.id === predictionId ? updatedPred : p);
+  store.users = store.users.map((u) => u.id === user.id ? updatedUser : u);
+  store.transactions.push({
+    id: `tx_${Date.now()}`,
+    type: "refund",
+    amount: refund,
+    description: `Reembolso por partido no resuelto: #${pred.matchId}`,
+    createdAt: updatedPred.settledAt,
+  });
+  saveStore(store);
+  return { prediction: updatedPred, user: updatedUser };
 }
 
 export function createLeague(store, name) {

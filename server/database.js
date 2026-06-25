@@ -283,6 +283,9 @@ export const getApiUsageSince = (since) =>
     ORDER BY sport, endpoint
   `).all(since);
 
+export const getOldestApiUsageSince = (since) =>
+  db.prepare("SELECT MIN(created_at) AS oldest FROM api_usage WHERE created_at >= ?").get(since)?.oldest || null;
+
 export const getSportsCoverage = () =>
   db.prepare(`
     SELECT sport, COUNT(*) AS events, SUM(odds_payload IS NOT NULL) AS with_odds
@@ -294,12 +297,24 @@ export const getSportsCoverage = () =>
 export function cleanupSportsData() {
   const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const oneDayAgoIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const oddsWindowCutoff = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
+
   db.prepare("DELETE FROM odds_history WHERE created_at < ?").run(ninetyDaysAgo);
   db.prepare("DELETE FROM api_usage WHERE created_at < ?").run(ninetyDaysAgo);
   db.prepare("DELETE FROM api_cache WHERE saved_at < ?").run(sevenDaysAgo);
+
+  // Solo conservamos eventos finalizados de las últimas 24h (para "Últimos Resultados").
   db.prepare(`
     DELETE FROM sports_events
-    WHERE updated_at < ?
-      AND json_extract(payload, '$.status') IN ('settled', 'finished')
-  `).run(sevenDaysAgo);
+    WHERE json_extract(payload, '$.status') IN ('settled', 'finished')
+      AND json_extract(payload, '$.date') < ?
+  `).run(oneDayAgoIso);
+
+  // Eliminar eventos pending/live fuera de la ventana de 15 días (nunca los sincronizaremos).
+  db.prepare(`
+    DELETE FROM sports_events
+    WHERE json_extract(payload, '$.status') IN ('pending', 'live')
+      AND json_extract(payload, '$.date') > ?
+  `).run(oddsWindowCutoff);
 }

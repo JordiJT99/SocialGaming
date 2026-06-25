@@ -2,6 +2,7 @@ import {
   cleanupSportsData,
   getApiUsageSince,
   getEventsNeedingOdds,
+  getOldestApiUsageSince,
   getSportSync,
   getSportsCoverage,
   getStoredSportsEvent,
@@ -15,12 +16,12 @@ import {
 const TTL = 30 * 60 * 1000;
 const TIMEOUT = 10_000;
 const SPORTS = ["football", "basketball", "tennis", "baseball", "ice-hockey"];
-const BOOKMAKERS = ["Bet365", "DraftKings"];
+const BOOKMAKERS = ["Bet365", "FanDuel"];
 const BETTING_CUTOFF = 2 * 60 * 1000;
-const MAX_QUOTE_AGE = 5 * 60 * 1000;
+const MAX_QUOTE_AGE = 25 * 60 * 1000;
 const BUDGET_PER_HOUR = 95;
-const ODDS_WINDOW = 10 * 24 * 60 * 60 * 1000;
-let cleanupDay = "";
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000;
+const ODDS_WINDOW = 15 * 24 * 60 * 60 * 1000;
 let syncing = null;
 
 const LEAGUE_FILTERS = {
@@ -33,7 +34,7 @@ const LEAGUE_FILTERS = {
     /germany - bundesliga$/i,
     /uefa champions league/i,
   ],
-  basketball: [/\bnba\b/i, /\bwnba\b/i],
+  basketball: [/\bnba\b/i, /\bwnba\b/i, /(?:spain.*acb|liga endesa|^acb$)/i, /euroleague|euroliga/i],
   tennis: [/^atp -/i, /^wta -/i],
   baseball: [/\bmlb\b/i],
   "ice-hockey": [/\bnhl\b/i],
@@ -41,10 +42,11 @@ const LEAGUE_FILTERS = {
 
 const LEAGUE_EXCLUDES = {
   football: [/qualification/i, /women/i],
+  basketball: [/women/i, /u17|u18|u19|u20/i],
   tennis: [/doubles/i, /qualifying/i],
 };
 
-const MAX_LEAGUES_PER_SPORT = { football: 8, tennis: 6, default: 2 };
+const MAX_LEAGUES_PER_SPORT = { football: 8, basketball: 4, tennis: 6, default: 2 };
 const leaguePriority = (league, sport) => {
   const name = league.name.toLowerCase();
   if (sport === "tennis") {
@@ -52,6 +54,12 @@ const leaguePriority = (league, sport) => {
     if (/masters|1000/.test(name)) return 80;
     if (/^atp -/.test(name)) return 60;
     if (/^wta -/.test(name)) return 50;
+  }
+  if (sport === "basketball") {
+    if (/\bnba\b/.test(name)) return 90;
+    if (/\bwnba\b/.test(name)) return 70;
+    if (/euroleague|euroliga/.test(name)) return 80;
+    if (/acb|liga endesa/.test(name)) return 75;
   }
   return 0;
 };
@@ -63,10 +71,29 @@ const json = (res, status, payload) => {
   res.end(JSON.stringify(payload));
 };
 
+const PLACEHOLDER_PATTERNS = [
+  /^(tbd|tba|unknown|to be determined|\?)$/i,
+  // Códigos tipo R16P3, QF1, SF2, WSF1, WQF2, WF1, W1, L1 — cualquier letras + dígitos al final.
+  /^([wl]?[a-z]{0,3}\d{1,3})$/i,
+  /\b(winner|loser|ganador|perdedor)\b/i,
+  /\bround of \d+\b/i,
+  /\bgroup [a-z]\b/i,
+  /\b(quarter ?final|semi ?final|cuartos|semifinal)\b/i,
+  /\bthird place\b/i,
+  /\b\d+(st|nd|rd|th) place\b/i,
+];
+
+const isPlaceholder = (name) => {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return true;
+  return PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(trimmed));
+};
+
 const validateEvents = (payload) => {
   if (!Array.isArray(payload)) throw new Error("Respuesta de eventos inválida");
   return payload.filter((event) =>
-    event && event.id && event.home && event.away && event.date,
+    event && event.id && event.home && event.away && event.date
+    && !isPlaceholder(event.home) && !isPlaceholder(event.away),
   );
 };
 
@@ -91,9 +118,22 @@ const readBody = (req) => new Promise((resolve, reject) => {
 });
 
 const currentMarket = (event) => {
+  const marketNames = ["ML", "h2h", "moneyline", "Match Winner", "Winner"];
   for (const bookmaker of BOOKMAKERS) {
-    const market = event.bookmakers?.[bookmaker]?.find((item) => item.name === "ML");
-    if (market?.odds?.[0]?.home && market.odds[0].away) return market.odds[0];
+    const book = event.bookmakers?.[bookmaker];
+    if (!book) continue;
+    for (const marketName of marketNames) {
+      const market = book.find((item) => item.name === marketName || item.key === marketName);
+      if (market?.odds?.[0]?.home && market.odds[0].away) return market.odds[0];
+    }
+  }
+  if (event.bookmakers) {
+    for (const bookMarkets of Object.values(event.bookmakers)) {
+      if (!bookMarkets) continue;
+      for (const market of bookMarkets) {
+        if (market?.odds?.[0]?.home && market.odds[0].away) return market.odds[0];
+      }
+    }
   }
   return null;
 };
@@ -158,7 +198,12 @@ async function validatePrediction(req, res) {
 }
 
 async function fetchApi(apiKey, sport, endpoint, params) {
-  const query = new URLSearchParams({ ...params, apiKey });
+  // URLSearchParams codifica las comas como %2C, lo que rompe los parámetros tipo
+  // lista (eventIds, bookmakers) en la API. Construimos el query manualmente
+  // preservando las comas literales.
+  const query = Object.entries({ ...params, apiKey })
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value).replace(/%2C/g, ",")}`)
+    .join("&");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT);
   const startedAt = Date.now();
@@ -190,7 +235,7 @@ async function fetchApi(apiKey, sport, endpoint, params) {
   }
 }
 
-const LEAGUE_DISCOVERY_TTL = 24 * 60 * 60 * 1000;
+const LEAGUE_DISCOVERY_TTL = 5 * 60 * 1000;
 const leagueSlugCache = new Map();
 
 async function resolveLeagueSlugs(apiKey, sport) {
@@ -208,7 +253,7 @@ async function resolveLeagueSlugs(apiKey, sport) {
   const excludes = LEAGUE_EXCLUDES[sport] || [];
   const matches = leagues
     .filter((league) => patterns.some((pattern) => pattern.test(league.name)))
-    .filter((league) => /wimbledon/i.test(league.name) || !excludes.some((pattern) => pattern.test(league.name)))
+    .filter((league) => !excludes.some((pattern) => pattern.test(league.name)))
     .sort((a, b) => leaguePriority(b, sport) - leaguePriority(a, sport) || b.eventsCount - a.eventsCount);
 
   const max = MAX_LEAGUES_PER_SPORT[sport] || MAX_LEAGUES_PER_SPORT.default;
@@ -239,7 +284,7 @@ async function syncAllSports(apiKey) {
       const events = [];
       for (const slug of leagueSlugs) {
         if (requestsLeft <= 0) break;
-        const params = { sport, status: "pending,live", limit: 100 };
+        const params = { sport, status: "pending,live,settled", limit: 100 };
         if (slug) params.league = slug;
         events.push(...validateEvents(await fetchApi(apiKey, sport, "/events", params)));
         requestsLeft--;
@@ -255,18 +300,28 @@ async function syncAllSports(apiKey) {
       saveSportsEvents(sport, dedupedEvents);
 
       const eventIds = getEventsNeedingOdds(sport, TTL);
-      const maxOddsRequests = Math.min(
-        Math.ceil(eventIds.length / 10),
-        Math.floor(requestsLeft / Math.max(1, SPORTS.length - SPORTS.indexOf(sport))),
-      );
-
-      for (let i = 0; i < eventIds.length && i < maxOddsRequests * 10; i += 10) {
-        const odds = validateOdds(await fetchApi(apiKey, sport, "/odds/multi", {
-          eventIds: eventIds.slice(i, i + 10).join(","),
-          bookmakers: BOOKMAKERS.join(","),
-        }));
-        requestsLeft--;
-        saveEventOdds(odds);
+      // Procesa TODOS los lotes de 10 sin límite de presupuesto (aprovechar cada hora al máximo).
+      // Solo frena si hemos hecho 5 batches consecutivos sin cuotas (eventos demasiado lejanos).
+      let consecutiveEmpty = 0;
+      for (let i = 0; i < eventIds.length; i += 10) {
+        if (requestsLeft <= 0) break;
+        try {
+          const batchIds = eventIds.slice(i, i + 10);
+          const rawResponse = await fetchApi(apiKey, sport, "/odds/multi", {
+            eventIds: batchIds.join(","),
+            bookmakers: BOOKMAKERS.join(","),
+          });
+          const odds = validateOdds(rawResponse);
+          requestsLeft--;
+          saveEventOdds(odds);
+          consecutiveEmpty = odds.length === 0 ? consecutiveEmpty + 1 : 0;
+          // Si 5 batches seguidos no traen cuotas, el resto probablemente no las tendrá tampoco.
+          if (consecutiveEmpty >= 5) break;
+        } catch (error) {
+          requestsLeft--;
+          if (error.blockedUntil) throw error;
+          console.error(`[odds] /odds/multi falló (${sport}):`, error.message);
+        }
       }
 
       setSportSync(sport);
@@ -276,11 +331,8 @@ async function syncAllSports(apiKey) {
     }
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (cleanupDay !== today) {
-    cleanupSportsData();
-    cleanupDay = today;
-  }
+  // Limpieza en cada sync: eventos finalizados >24h, caches viejos, etc.
+  cleanupSportsData();
 }
 
 export function oddsApi(apiKey) {
@@ -298,11 +350,16 @@ export function oddsApi(apiKey) {
       const refreshTimes = sync
         .map((item) => Math.max(item.synced_at + TTL, item.blocked_until))
         .filter((value) => value > now);
+      // El reset real del cupo del proveedor (ventana móvil de 1h) ocurre cuando la
+      // request más antigua dentro de esa ventana cumple 1h, no cada 30 min de sync.
+      const oldestUsage = getOldestApiUsageSince(now - RATE_LIMIT_WINDOW);
+      const rateLimitResetAt = oldestUsage ? oldestUsage + RATE_LIMIT_WINDOW : now;
       return json(res, 200, {
         usedLastHour: used,
         internalRemaining: Math.max(0, BUDGET_PER_HOUR - used),
         internalBudget: BUDGET_PER_HOUR,
         nextRefreshAt: refreshTimes.length ? Math.min(...refreshTimes) : now,
+        rateLimitResetAt,
         usage,
         coverage: getSportsCoverage(),
       });

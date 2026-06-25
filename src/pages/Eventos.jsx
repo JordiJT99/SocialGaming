@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { AlertCircle, CheckCircle2, CircleDot, Flame, Info, LoaderCircle, PlayCircle, ShieldCheck, Trophy } from "lucide-react";
+import { AlertCircle, CheckCircle2, CircleDot, Flame, Info, LoaderCircle, PlayCircle, Search, ShieldCheck, Trophy, X } from "lucide-react";
 
 const SPORTS = [
   { key: "football", name: "Fútbol" },
@@ -8,6 +8,7 @@ const SPORTS = [
   { key: "tennis", name: "Tenis" },
   { key: "baseball", name: "Béisbol" },
   { key: "hockey", name: "Hockey" },
+  { key: "motorsport", name: "Motor (F1/MotoGP)" },
   { key: "boxing", name: "Boxeo" },
   { key: "mma", name: "MMA" },
 ];
@@ -21,10 +22,28 @@ export default function Eventos({ sportsData, onSportSelect, store, onAddToSlip,
   const sportFilter = searchParams.get("sport") || "all";
   const setSportFilter = (value) => setSearchParams(value === "all" ? {} : { sport: value });
   const [viewMode, setViewMode] = useState("proximos");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
 
-  const allMatches = sportsData.matches.filter((match) =>
-    sportFilter === "all" || (match.sportKey || "football") === sportFilter,
-  );
+  const normalize = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+  const matchesSearch = (match, query) => {
+    if (!query) return true;
+    const q = normalize(query);
+    if (!q) return true;
+    const haystack = [
+      match.home, match.away, match.league, match.sportName, match.league,
+    ].filter(Boolean).map(normalize).join(" ");
+    return haystack.includes(q);
+  };
+
+  const allMatches = sportsData.matches.filter((match) => {
+    const sportOk = sportFilter === "all" || (match.sportKey || "football") === sportFilter;
+    const hasOdds = match.odds && Object.keys(match.odds).length > 0;
+    const now = Date.now();
+    const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+    const withinWindow = match.status === "live" || (match.status !== "finished" && new Date(match.date).getTime() <= now + FIFTEEN_DAYS);
+    return sportOk && matchesSearch(match, searchQuery) && withinWindow && hasOdds;
+  });
 
   const filtered = allMatches.filter((match) => match.status !== "finished");
   const liveMatches = allMatches.filter((match) => match.status === "live").slice(0, 8);
@@ -144,20 +163,57 @@ export default function Eventos({ sportsData, onSportSelect, store, onAddToSlip,
       )}
 
       <div className="eventos-content">
-        <div className="market-toolbar">
-          <div className="market-sports">
-            <button className={sportFilter === "all" ? "active" : ""} onClick={() => { setSportFilter("all"); setSearchParams({}); }}>Todos</button>
-            {SPORTS.map((sport) => (
-              <button
-                key={sport.key}
-                className={sportFilter === sport.key ? "active" : ""}
-                onClick={() => { setSportFilter(sport.key); setSearchParams({ sport: sport.key }); onSportSelect?.(sport.key); }}
-              >
-                {sport.name}
-              </button>
-            ))}
-          </div>
+      <div className="apex-event-search">
+        <Search size={18} className="apex-event-search-icon" />
+        <input
+          type="text"
+          placeholder="Buscar eventos, equipos, ligas..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            const next = new URLSearchParams(searchParams);
+            if (e.target.value) next.set("q", e.target.value);
+            else next.delete("q");
+            setSearchParams(next, { replace: true });
+          }}
+          className="apex-event-search-input"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            className="apex-event-search-clear"
+            onClick={() => {
+              setSearchQuery("");
+              const next = new URLSearchParams(searchParams);
+              next.delete("q");
+              setSearchParams(next, { replace: true });
+            }}
+            aria-label="Limpiar búsqueda"
+          >
+            <X size={16} />
+          </button>
+        )}
+        {searchQuery && (
+          <span className="apex-event-search-count">
+            {allMatches.length} resultado{allMatches.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      <div className="market-toolbar">
+        <div className="market-sports">
+          <button className={sportFilter === "all" ? "active" : ""} onClick={() => { setSportFilter("all"); const next = new URLSearchParams(searchParams); next.delete("q"); setSearchParams(next, { replace: true }); }}>Todos</button>
+          {SPORTS.map((sport) => (
+            <button
+              key={sport.key}
+              className={sportFilter === sport.key ? "active" : ""}
+              onClick={() => { setSportFilter(sport.key); onSportSelect?.(sport.key); }}
+            >
+              {sport.name}
+            </button>
+          ))}
         </div>
+      </div>
 
         <div className="market-toolbar" style={{ marginTop: "0.5rem" }}>
           <div className="market-sports">
@@ -176,7 +232,12 @@ export default function Eventos({ sportsData, onSportSelect, store, onAddToSlip,
         {sportsData.loading && <div className="api-state"><LoaderCircle className="spin" size={24} /><strong>Cargando eventos</strong></div>}
         {sportsData.error && <div className="api-state error"><AlertCircle size={24} /><strong>Error al cargar eventos</strong><p>{sportsData.error}</p></div>}
         {!sportsData.loading && !sportsData.error && allMatches.length === 0 && (
-          <div className="api-state"><Info size={24} /><strong>No hay eventos disponibles</strong></div>
+          <div className="api-state">
+            <Info size={24} />
+            {searchQuery
+              ? <><strong>No se encontraron resultados para "{searchQuery}"</strong><small>Prueba con otro término o cambia el filtro de deporte</small></>
+              : <strong>No hay eventos disponibles</strong>}
+          </div>
         )}
 
         <div className="event-list" style={{ marginTop: "1rem" }}>
@@ -265,7 +326,7 @@ export default function Eventos({ sportsData, onSportSelect, store, onAddToSlip,
                               <Flame size={11} /> {betCount}
                             </span>
                           )}
-                          {event.status === "live" && <span style={{ fontSize: "0.7rem", color: "var(--green)", fontWeight: 700 }}>● EN DIRECTO</span>}
+                      {event.status === "live" && <span style={{ fontSize: "0.7rem", color: "var(--green)", fontWeight: 700 }}>● EN DIRECTO{event.elapsed ? ` ${event.elapsed}` : ""}</span>}
                         </div>
                       </div>
                       <div className="event-teams">

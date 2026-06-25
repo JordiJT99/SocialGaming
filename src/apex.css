@@ -893,13 +893,18 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-history article div strong, .apex-history article div small, .apex-history aside b, .apex-history aside em { display: block; }
 .apex-history article div strong { font-size: 14px; line-height: 1.35; }
 .apex-history article div small { margin-top: 3px; font-size: 11px; }
-.apex-history-match { display: flex; align-items: center; gap: 7px; }
+.apex-history-match { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
 .apex-history-match img { width: 24px; height: 24px; object-fit: contain; }
 .apex-history-match strong { min-width: 0; }
+.apex-history-match .apex-history-date { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 99px; background: rgba(23, 162, 184, 0.12); color: #17a2b8; font-size: 10px; font-weight: 700; font-style: normal; letter-spacing: 0.02em; margin-left: auto; }
 .apex-history aside { text-align: right; }
 .apex-history aside b { display: inline-block; padding: 4px 8px; color: white; background: var(--apex-primary-2); font-size: 10px; font-weight: 500; }
+.apex-history aside .apex-history-odds { display: inline-block; padding: 3px 8px; border-radius: 4px; color: #111827; background: #f3f4f6; font-size: 12px; font-weight: 800; font-style: normal; letter-spacing: 0.02em; }
 .apex-history article.lost aside b { color: #93000a; background: var(--apex-error-bg); }
 .apex-history aside em { margin-top: 5px; color: var(--apex-primary); font-size: 14px; font-style: normal; }
+.apex-history aside em.apex-history-win { color: #16a34a; font-weight: 700; }
+.apex-history aside em.apex-history-loss { color: var(--apex-error); font-weight: 700; }
+.apex-history aside em.apex-history-potential { color: #6b7280; font-weight: 600; font-size: 12px; }
 .apex-history article.lost aside em { color: var(--apex-error); }
 
 .apex-earn-page { max-width: 720px; }
@@ -1014,26 +1019,28 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 22px; border-bottom: 1px solid #303936; }
   .apex-sidebar-brand .apex-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 7px; color: #143b31; background: var(--apex-mint); font-weight: 900; }
   .apex-sidebar-brand strong { font-size: 21px; letter-spacing: .02em; }
-  .apex-sidebar-profile { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 18px 0 18px; padding: 18px 12px 16px; border: 1px solid #3a4541; border-radius: 10px; background: linear-gradient(160deg, #1c2522, #222a27); text-align: center; }
-  .apex-sidebar-avatar { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: linear-gradient(135deg, #2dd4bf, #0ea5e9); color: white; text-decoration: none; box-shadow: 0 4px 16px rgba(20, 184, 166, .35); transition: transform .15s ease; }
+  .apex-sidebar-profile { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 18px 0 18px; padding: 20px 14px 16px; border: 1px solid #3a4541; border-radius: 12px; background: linear-gradient(160deg, #1c2522, #222a27); text-align: center; }
+  .apex-sidebar-avatar-wrap { position: relative; margin-bottom: 4px; }
+  .apex-sidebar-avatar { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #2dd4bf, #0ea5e9); color: white; text-decoration: none; box-shadow: 0 4px 16px rgba(20, 184, 166, .35); transition: transform .15s ease; }
   .apex-sidebar-avatar:hover { transform: scale(1.05); }
-  .apex-sidebar-user { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-  .apex-sidebar-user > strong { font-size: 16px; color: white; font-weight: 700; }
-  .apex-sidebar-coins { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding-top: 8px; border-top: 1px solid #303936; }
-  .apex-sidebar-coins-total { display: flex; align-items: center; gap: 6px; color: #2dd4bf; font-size: 16px; }
-  .apex-sidebar-coins-total b { font-size: 18px; font-weight: 800; }
-  .apex-sidebar-coins-total span { font-size: 11px; color: #9eb1aa; font-weight: 600; }
-  .apex-sidebar-coins-pending { display: flex; align-items: baseline; gap: 5px; font-size: 11px; color: #9eb1aa; }
-  .apex-sidebar-coins-pending b { color: #c4ab00; font-size: 12px; font-weight: 700; }
-  .apex-sidebar-streak { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(255, 107, 87, 0.12); font-size: 11px; color: #c3dfd4; }
-  .apex-sidebar-streak b { color: #ff8a72; font-weight: 700; }
-  .apex-sidebar-level { margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid #2d3733; }
-  .apex-sidebar-level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 10px; color: #9eb1aa; }
+  .apex-sidebar-avatar-edit { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #ffffff; color: #0a2e24; border: 2px solid #1c2522; text-decoration: none; transition: transform .15s ease; }
+  .apex-sidebar-avatar-edit:hover { transform: scale(1.1); }
+  .apex-sidebar-user { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+  .apex-sidebar-user > strong { font-size: 18px; color: white; font-weight: 800; line-height: 1.1; }
+  .apex-sidebar-coins-row { display: flex; align-items: center; gap: 5px; color: #fbbf24; font-size: 14px; }
+  .apex-sidebar-coins-row b { font-size: 15px; font-weight: 800; color: #fbbf24; }
+  .apex-sidebar-coins-row span { font-size: 12px; color: #fbbf24; font-weight: 600; opacity: 0.9; }
+  .apex-sidebar-pending-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; background: rgba(57, 217, 138, 0.15); color: #39d98a; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+  .apex-sidebar-pending-badge.has-pending { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+  .apex-sidebar-level { width: 100%; margin-top: 4px; }
+  .apex-sidebar-level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 10px; color: #9eb1aa; }
   .apex-sidebar-level-row span { color: #c3dfd4; }
-  .apex-sidebar-level-row b { color: #17a2b8; font-weight: 800; }
-  .apex-sidebar-level-row small { font-size: 9px; }
-  .apex-sidebar-progress { display: block; height: 5px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.1); }
-  .apex-sidebar-progress i { display: block; height: 100%; background: linear-gradient(90deg, #17a2b8, #39d98a); }
+  .apex-sidebar-level-row b { color: #39d98a; font-weight: 800; }
+  .apex-sidebar-level-row small { font-size: 9px; color: #9eb1aa; }
+  .apex-sidebar-progress { display: block; height: 4px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.1); }
+  .apex-sidebar-progress i { display: block; height: 100%; background: linear-gradient(90deg, #39d98a, #2dd4bf); }
+  .apex-sidebar-home-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; margin-top: 10px; padding: 0.55rem 0.8rem; border-radius: 8px; background: linear-gradient(135deg, #1a5c3a, #0d3b2e); color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; transition: transform .15s ease, box-shadow .15s ease; }
+  .apex-sidebar-home-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 92, 58, 0.4); }
   .apex-desktop-sidebar nav { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
   .apex-desktop-sidebar nav small { margin: 14px 10px 6px; color: #7f968d; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
   .apex-desktop-sidebar nav a { min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 12px; border-radius: 6px; color: #cbd6d2; text-decoration: none; font-size: 13px; font-weight: 600; position: relative; }
@@ -1690,6 +1697,47 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   text-align: center;
 }
 
+.apex-odds-pill {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  user-select: none;
+  pointer-events: auto;
+}
+.apex-odds-pill b { color: #ffffff; font-weight: 800; }
+.apex-odds-pill-sep { opacity: 0.4; }
+.apex-odds-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+.apex-odds-pill-warn .apex-odds-pill-dot { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.6); }
+.apex-odds-pill-danger .apex-odds-pill-dot {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+  animation: oddsPulse 1.5s ease-in-out infinite;
+}
+@keyframes oddsPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .apex-betslip-overlay {
   display: none;
 }
@@ -2042,6 +2090,184 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 }
 
 /* Home Redesign */
+.apex-header-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 16px 16px;
+  animation: apexFadeIn 0.15s ease;
+}
+.apex-header-search-panel {
+  width: 100%;
+  max-width: 640px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  animation: apexSlideDown 0.2s ease;
+}
+@keyframes apexFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes apexSlideDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+.apex-header-search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+.apex-header-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #111827;
+  outline: none;
+  min-width: 0;
+}
+.apex-header-search-input::placeholder { color: #9ca3af; font-weight: 400; }
+.apex-header-search-close {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #6b7280;
+  background: #f3f4f6;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.apex-header-search-close:hover { background: #e5e7eb; color: #111827; }
+.apex-header-search-results {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 200px;
+}
+.apex-header-search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  color: #9ca3af;
+  text-align: center;
+  gap: 0.5rem;
+}
+.apex-header-search-empty p { font-weight: 600; color: #6b7280; margin: 0; }
+.apex-header-search-empty small { font-size: 0.8rem; }
+.apex-header-search-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
+  box-sizing: border-box;
+}
+.apex-header-search-item:hover { background: #f9fafb; }
+.apex-header-search-item:last-of-type { border-bottom: none; }
+.apex-header-search-item-main { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; flex: 1; }
+.apex-header-search-item-main strong { font-size: 0.9rem; color: #111827; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.apex-header-search-item-main small { font-size: 0.75rem; color: #6b7280; }
+.apex-header-search-item-status {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.apex-header-search-item-status.is-live { background: #fee2e2; color: #bd1721; }
+.apex-header-search-item-status.is-finished { background: #f3f4f6; color: #6b7280; }
+.apex-header-search-item-status.is-upcoming { background: #dbeafe; color: #1d4ed8; }
+.apex-header-search-see-all {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a5c3a;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  transition: background 0.1s;
+}
+.apex-header-search-see-all:hover { background: #f3f4f6; }
+
+.apex-event-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.9rem;
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.apex-event-search:focus-within {
+  border-color: var(--apex-primary, #1a5c3a);
+  box-shadow: 0 0 0 3px rgba(26, 92, 58, 0.1);
+}
+.apex-event-search-icon {
+  color: var(--apex-muted, #6b7280);
+  flex-shrink: 0;
+}
+.apex-event-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.75rem 0;
+  font-size: 0.92rem;
+  color: var(--apex-ink, #111827);
+  outline: none;
+  min-width: 0;
+}
+.apex-event-search-input::placeholder {
+  color: var(--apex-muted, #9ca3af);
+}
+.apex-event-search-clear {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--apex-muted, #6b7280);
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+.apex-event-search-clear:hover {
+  background: #e5e7eb;
+  color: var(--apex-ink, #111827);
+}
+.apex-event-search-count {
+  font-size: 0.72rem;
+  color: var(--apex-muted, #6b7280);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .apex-home-tabs {
   display: flex;
   gap: 0.5rem;
@@ -2064,6 +2290,33 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   font-weight: 700;
   color: var(--apex-muted, #6b7280);
   transition: all 0.15s;
+}
+.apex-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--apex-outline, #e5e7eb);
+  color: var(--apex-muted, #6b7280);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.apex-home-tabs button.active .apex-tab-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.apex-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--apex-muted, #6b7280);
+  font-size: 0.9rem;
+  background: var(--apex-white, #fff);
+  border: 1px solid var(--apex-outline, #e5e7eb);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
 }
 .apex-home-tabs button:hover { color: var(--apex-ink, #111827); }
 .apex-home-tabs button.active {
@@ -2311,4 +2564,88 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .apex-mira-y-gana { padding: 1.25rem 1.25rem; }
   .apex-mira-y-gana h2 { font-size: 1.3rem; }
   .apex-mira-y-gana-art { display: none; }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .apex-home-page { max-width: 100%; }
+  .apex-page { padding: 4px 14px 90px; }
+
+  /* Tabs: scrollable horizontal */
+  .apex-home-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+  .apex-home-tabs::-webkit-scrollbar { display: none; }
+  .apex-home-tabs button {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.78rem;
+  }
+  .apex-tab-count { font-size: 0.65rem; min-width: 18px; height: 18px; }
+
+  /* Stats: compact 2-col */
+  .apex-home-stats-row { gap: 0.5rem; }
+  .apex-home-stat { padding: 0.7rem 0.8rem; gap: 0.5rem; }
+  .apex-home-stat-icon { width: 32px; height: 32px; }
+  .apex-home-stat > div > strong { font-size: 1rem; }
+  .apex-home-stat > div > span { font-size: 9px; }
+
+  /* Mira y Gana: compact */
+  .apex-mira-y-gana { padding: 1rem 1rem; gap: 0.5rem; border-radius: 12px; }
+  .apex-mira-y-gana h2 { font-size: 1.1rem; }
+  .apex-mira-y-gana p { font-size: 0.78rem; margin-bottom: 0.7rem; }
+  .apex-mira-y-gana-cta { padding: 0.45rem 0.9rem; font-size: 0.75rem; }
+  .apex-mira-y-gana-badge { font-size: 0.6rem; }
+
+  /* Match cards: full width, compact */
+  .apex-compact-match { padding: 0.75rem 0.8rem; }
+  .apex-compact-match-team strong { font-size: 0.72rem; }
+  .apex-compact-match-vs b { font-size: 1rem; }
+
+  /* News cards: horizontal scroll on mobile */
+  .apex-home-news-grid {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .apex-home-news-grid::-webkit-scrollbar { display: none; }
+  .apex-home-news-card { flex: 0 0 240px; min-width: 240px; scroll-snap-align: start; }
+  .apex-home-news-card img,
+  .apex-home-news-card .apex-news-fallback { height: 100px; }
+
+  /* Sidebar: stack below main */
+  .apex-home-sidebar { position: static; max-height: none; overflow: visible; }
+  .apex-results-list { max-height: none; overflow: visible; }
+  .apex-news-list { max-height: none; overflow: visible; }
+}
+
+@media (max-width: 480px) {
+  .apex-page { padding: 4px 10px 90px; }
+
+  .apex-home-stats-row { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .apex-home-stat { padding: 0.6rem 0.7rem; gap: 0.4rem; border-radius: 10px; }
+  .apex-home-stat-icon { width: 28px; height: 28px; border-radius: 8px; }
+  .apex-home-stat > div > strong { font-size: 0.95rem; }
+  .apex-home-stat > div > span { font-size: 8px; letter-spacing: 0.03em; }
+
+  .apex-home-tabs button { padding: 0.45rem 0.6rem; font-size: 0.75rem; }
+
+  .apex-mira-y-gana h2 { font-size: 1rem; }
+  .apex-mira-y-gana p { font-size: 0.72rem; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .apex-home-news-card { flex: 0 0 200px; min-width: 200px; }
+
+  .apex-section-title h2 { font-size: 0.9rem; }
+  .apex-section-title a { font-size: 0.75rem; }
 }
