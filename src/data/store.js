@@ -35,6 +35,8 @@ const defaultStore = () => ({
   ],
   transactions: [],
   prizesRedeemed: [],
+  quinielas: [],
+  userQuinielas: [],
 });
 
 export function loadStore() {
@@ -178,6 +180,136 @@ export function deriveResult(match) {
   if (home > away) return "1";
   if (home < away) return "2";
   return "X";
+}
+
+const Q_ENTRY = 100;
+const Q_FEE = 10;
+const Q_DIST = [{ position: 1, percentage: 60 }, { position: 2, percentage: 30 }, { position: 3, percentage: 10 }];
+const hasResolvedTeams = (match) => {
+  const text = `${match?.home || ""} ${match?.away || ""}`.trim();
+  if (!text) return false;
+  return !/\b\d+[a-z]\b|\b\d+[a-z](?:\/\d+[a-z])+\b/i.test(text);
+};
+
+export function getQuinielas(store, matches = [], now = Date.now()) {
+  const saved = store.quinielas || [];
+  const upcoming = matches
+    .filter((m) => (m.status === "upcoming" || m.status === "scheduled") && m.sportKey === "football" && hasResolvedTeams(m))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const leagues = [...new Set(upcoming.map((m) => m.league).filter(Boolean))];
+  const generated = leagues.map((league, index) => {
+    const leagueMatches = upcoming.filter((m) => m.league === league).slice(0, 8);
+    const startsAt = leagueMatches[0]?.date;
+    return startsAt && {
+      id: `auto_${league.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+      name: `Quiniela ${league}`,
+      league,
+      round: index + 1,
+      entryCost: Q_ENTRY,
+      platformFeePercentage: Q_FEE,
+      matchIds: leagueMatches.map((m) => m.id),
+      registrationDeadline: startsAt,
+      startsAt,
+      endsAt: leagueMatches.at(-1)?.date || startsAt,
+      createdAt: startsAt,
+    };
+  }).filter(Boolean);
+  const byId = new Map([...generated, ...saved].map((q) => [q.id, q]));
+  return [...byId.values()].map((q) => hydrateQuiniela(store, q, matches, now));
+}
+
+export function hydrateQuiniela(store, quiniela, matches = [], now = Date.now()) {
+  const entries = (store.userQuinielas || []).filter((u) => u.quinielaId === quiniela.id);
+  const qMatches = quiniela.matchIds.map((id) => matches.find((m) => m.id === id)).filter(Boolean);
+  const started = new Date(quiniela.startsAt).getTime() <= now || new Date(quiniela.registrationDeadline).getTime() <= now;
+  const finished = qMatches.length > 0 && qMatches.every((m) => m.status === "finished");
+  const paid = entries.length > 0 && entries.every((e) => e.status === "rewarded");
+  const gross = entries.length * quiniela.entryCost;
+  return {
+    ...quiniela,
+    participantsCount: entries.length,
+    prizePool: gross,
+    finalPrizePool: Math.round(gross * (1 - (quiniela.platformFeePercentage || 0) / 100)),
+    status: paid ? "paid" : finished ? "finished" : started ? "in_progress" : "open",
+    matches: qMatches,
+  };
+}
+
+export function joinQuiniela(store, quiniela, userId = "current_user") {
+  const q = hydrateQuiniela(store, quiniela);
+  if (q.status !== "open") throw new Error("La quiniela ya esta cerrada");
+  const user = store.users.find((u) => u.id === userId);
+  if (!user) throw new Error("Usuario no autenticado");
+  if ((user.points || 0) < q.entryCost) throw new Error("No tienes coins suficientes");
+  user.points -= q.entryCost;
+  store.quinielas = store.quinielas || [];
+  if (!store.quinielas.some((item) => item.id === q.id)) store.quinielas.push({ ...q, matches: undefined });
+  store.userQuinielas = store.userQuinielas || [];
+  store.userQuinielas.push({
+    id: `userQuiniela_${Date.now()}`,
+    userId,
+    quinielaId: q.id,
+    selections: {},
+    totalPoints: 0,
+    correctPredictions: 0,
+    position: null,
+    prizeWon: 0,
+    status: "draft",
+    submittedAt: null,
+    updatedAt: new Date().toISOString(),
+  });
+  store.transactions.push({
+    id: `tx_${Date.now()}`,
+    userId,
+    type: "spend",
+    source: "quiniela_entry",
+    amount: -q.entryCost,
+    relatedId: q.id,
+    description: `Entrada ${q.name}`,
+    createdAt: new Date().toISOString(),
+  });
+  saveStore(store);
+  return q;
+}
+
+export function saveUserQuiniela(store, quiniela, selections, userId = "current_user", now = Date.now()) {
+  const q = hydrateQuiniela(store, quiniela, [], now);
+  if (q.status !== "open") throw new Error("La quiniela ya esta bloqueada");
+  if (!quiniela.matchIds.every((id) => ["1", "X", "2"].includes(selections[id]))) throw new Error("Completa todos los partidos");
+  const entry = (store.userQuinielas || []).find((u) => u.userId === userId && u.quinielaId === q.id);
+  if (!entry) throw new Error("Primero tienes que participar");
+  Object.assign(entry, {
+    selections: { ...selections },
+    status: "submitted",
+    submittedAt: entry.submittedAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  saveStore(store);
+  return entry;
+}
+
+export function resolveQuiniela(store, quiniela, matches, userId = "current_user") {
+  const q = hydrateQuiniela(store, quiniela, matches);
+  if (!["finished", "paid"].includes(q.status)) throw new Error("Aun faltan resultados");
+  const entries = (store.userQuinielas || []).filter((u) => u.quinielaId === q.id && u.status !== "draft");
+  const ranked = entries.map((entry) => {
+    const correct = q.matches.reduce((sum, match) => sum + (entry.selections[match.id] === deriveResult(match) ? 1 : 0), 0);
+    return { ...entry, correctPredictions: correct, totalPoints: correct };
+  }).sort((a, b) => b.totalPoints - a.totalPoints || new Date(a.submittedAt) - new Date(b.submittedAt));
+  const paid = store.transactions.some((tx) => tx.source === "quiniela_prize" && tx.relatedId === q.id);
+  ranked.forEach((entry, index) => {
+    const position = index + 1;
+    const prize = paid ? entry.prizeWon : Math.round(q.finalPrizePool * ((Q_DIST.find((d) => d.position === position)?.percentage || 0) / 100));
+    const target = store.userQuinielas.find((u) => u.id === entry.id);
+    Object.assign(target, { totalPoints: entry.totalPoints, correctPredictions: entry.correctPredictions, position, prizeWon: prize, status: prize > 0 ? "rewarded" : "resolved" });
+    if (!paid && prize > 0) {
+      const user = store.users.find((u) => u.id === entry.userId);
+      if (user) user.points += prize;
+      store.transactions.push({ id: `tx_${Date.now()}_${position}`, userId: entry.userId, type: "earn", source: "quiniela_prize", amount: prize, relatedId: q.id, description: `Premio ${q.name}`, createdAt: new Date().toISOString() });
+    }
+  });
+  saveStore(store);
+  return ranked.find((entry) => entry.userId === userId);
 }
 
 export function computeLevel(xp) {

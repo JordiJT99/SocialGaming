@@ -58,7 +58,7 @@ const TITLES = {
   "/fantasy": "Fantasy",
   "/leagues": "Ligas privadas",
   "/leagues/": "Detalle de liga",
-  "/sportsbook": "Cuotas y mercados",
+  "/sportsbook": "Quinielas",
   "/ranking": "Ranking global",
   "/challenges": "Desafíos",
   "/earn": "Centro de recompensas",

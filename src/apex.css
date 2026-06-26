@@ -2394,6 +2394,113 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-sportsbook-help strong { display: block; font-size: 0.9rem; margin-bottom: 0.2rem; }
 .apex-sportsbook-help p { margin: 0; font-size: 0.82rem; line-height: 1.4; color: #0c4a6e; }
 
+.apex-quiniela-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  color: #075985;
+  flex-wrap: wrap;
+}
+.apex-quiniela-summary-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+.apex-quiniela-summary-info svg { color: #0ea5e9; flex-shrink: 0; margin-top: 2px; }
+.apex-quiniela-summary-info strong { display: block; font-size: 0.9rem; margin-bottom: 0.2rem; }
+.apex-quiniela-summary-info p { margin: 0; font-size: 0.82rem; line-height: 1.4; color: #0c4a6e; }
+.apex-quiniela-entry-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.apex-quiniela-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem 1.25rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.apex-quiniela-draft-hint {
+  font-size: 0.82rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+.apex-quiniela-actions-buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.apex-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.25);
+}
+.apex-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.35);
+}
+.apex-btn-primary:disabled {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.apex-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  border: 1px solid #047857;
+  border-radius: 10px;
+  background: #fff;
+  color: #047857;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.apex-btn-secondary:hover:not(:disabled) {
+  background: #ecfdf5;
+  border-color: #065f46;
+}
+.apex-btn-secondary:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
 .apex-section-count {
   font-size: 0.78rem;
   font-weight: 600;
@@ -2410,13 +2517,13 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 }
 .apex-quiniela-row {
   display: grid;
-  grid-template-columns: minmax(140px, 1.4fr) minmax(70px, 0.8fr) minmax(180px, 1.6fr) minmax(180px, 1.2fr);
-  gap: 0.85rem;
+  grid-template-columns: minmax(70px, 0.5fr) minmax(50px, 0.3fr) minmax(280px, 2.4fr) auto;
+  gap: 0.5rem;
   align-items: center;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.75rem;
   transition: border-color 0.15s, background 0.15s, transform 0.15s;
   position: relative;
 }
@@ -2445,11 +2552,13 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-quiniela-row-league > div { min-width: 0; }
 .apex-quiniela-row-league strong {
   display: block;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   color: #111827;
-  white-space: nowrap;
+  line-height: 1.3;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .apex-quiniela-row-league small {
   display: block;
@@ -2472,8 +2581,8 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 0.35rem 0.6rem;
-  min-width: 52px;
+  padding: 0.3rem 0.35rem;
+  min-width: 40px;
 }
 .apex-quiniela-row-date span { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: #6b7280; }
 .apex-quiniela-row-date strong { font-size: 0.95rem; font-weight: 800; color: #111827; line-height: 1; margin: 1px 0; }
@@ -2487,13 +2596,13 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-quiniela-row-match {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 .apex-quiniela-row-team {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   min-width: 0;
   flex: 1;
 }
@@ -2509,13 +2618,15 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-quiniela-row-team .apex-match-crest b { font-size: 0.55rem; color: #6b7280; position: relative; z-index: 1; }
 .apex-quiniela-row-team .apex-match-crest img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .apex-quiniela-row-team span {
-  font-size: 0.85rem;
+  font-size: clamp(0.7rem, 1.1vw, 0.88rem);
   font-weight: 600;
   color: #111827;
+  line-height: 1.2;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
   min-width: 0;
+  flex: 1;
 }
 .apex-quiniela-row-vs {
   font-size: 0.7rem;
@@ -2527,6 +2638,7 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-quiniela-row-market {
   display: flex;
   justify-content: flex-end;
+  min-width: 180px;
 }
 .apex-quiniela-row-final-inline {
   display: flex;
@@ -2626,20 +2738,22 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 /* Slip open: compact grid for medium desktops */
 @media (min-width: 1024px) and (max-width: 1320px) {
   .app-shell.slip-open .apex-quiniela-row {
-    grid-template-columns: minmax(120px, 1.2fr) minmax(60px, 0.7fr) minmax(160px, 1.4fr) minmax(160px, 1fr);
-    gap: 0.6rem;
-    padding: 0.7rem 0.75rem;
+    grid-template-columns: minmax(80px, 0.6fr) minmax(50px, 0.3fr) minmax(200px, 1.5fr) auto;
+    gap: 0.4rem;
+    padding: 0.7rem 0.6rem;
   }
-  .app-shell.slip-open .apex-quiniela-row-league strong { font-size: 0.75rem; }
-  .app-shell.slip-open .apex-quiniela-row-league small { font-size: 0.65rem; }
-  .app-shell.slip-open .apex-quiniela-row-league-icon { width: 30px; height: 30px; font-size: 0.95rem; }
-  .app-shell.slip-open .apex-quiniela-row-team span { font-size: 0.78rem; }
-  .app-shell.slip-open .apex-quiniela-row-team .apex-match-crest { width: 22px; height: 22px; }
-  .app-shell.slip-open .apex-quiniela-row-odds button { padding: 0.4rem 0.2rem; }
+  .app-shell.slip-open .apex-quiniela-row-league strong { font-size: 0.7rem; line-height: 1.2; -webkit-line-clamp: 2; }
+  .app-shell.slip-open .apex-quiniela-row-league small { font-size: 0.62rem; }
+  .app-shell.slip-open .apex-quiniela-row-league-icon { width: 26px; height: 26px; font-size: 0.9rem; }
+  .app-shell.slip-open .apex-quiniela-row-team span { font-size: 0.75rem; line-height: 1.2; }
+  .app-shell.slip-open .apex-quiniela-row-team .apex-match-crest { width: 20px; height: 20px; }
+  .app-shell.slip-open .apex-quiniela-row-odds button { padding: 0.35rem 0.2rem; }
   .app-shell.slip-open .apex-quiniela-row-odds button b { font-size: 0.78rem; }
-  .app-shell.slip-open .apex-quiniela-row-date { padding: 0.25rem 0.4rem; min-width: 44px; }
-  .app-shell.slip-open .apex-quiniela-row-date strong { font-size: 0.85rem; }
-  .app-shell.slip-open .apex-quiniela-row-time { font-size: 0.7rem; }
+  .app-shell.slip-open .apex-quiniela-row-odds { min-width: 140px; }
+  .app-shell.slip-open .apex-quiniela-row-market { min-width: 140px; }
+  .app-shell.slip-open .apex-quiniela-row-date { padding: 0.2rem 0.3rem; min-width: 38px; }
+  .app-shell.slip-open .apex-quiniela-row-date strong { font-size: 0.78rem; }
+  .app-shell.slip-open .apex-quiniela-row-time { font-size: 0.65rem; }
 }
 
 /* Smaller slip on smaller screens */

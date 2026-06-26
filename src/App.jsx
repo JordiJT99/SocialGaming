@@ -379,7 +379,7 @@ export default function App() {
             <Route path="/dashboard" element={<Home sportsData={sportsData} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
             <Route path="/predictions" element={<Predictions store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} onAddToSlip={addToSlip} slipItems={slipItems} />} />
             <Route path="/live" element={<Predictions liveOnly store={store} onPredict={handlePredict} onSportSelect={loadSport} matches={sportsData.matches} sportsData={sportsData} oddsStatus={oddsStatus} onAddToSlip={addToSlip} slipItems={slipItems} />} />
-            <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} onSportSelect={loadSport} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
+            <Route path="/sportsbook" element={<Sportsbook sportsData={sportsData} store={store} onStoreChange={triggerStoreChange} onSportSelect={loadSport} user={user} />} />
             <Route path="/ranking" element={<Ranking standings={sportsData.standings} sportsData={sportsData} />} />
             <Route path="/leagues" element={<Leagues store={store} onStoreChange={triggerStoreChange} allUsers={socialUsers} />} />
             <Route path="/leagues/:leagueId" element={<LeagueDetail store={store} allUsers={socialUsers} />} />
