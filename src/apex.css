@@ -3942,3 +3942,638 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   .stats-row .stat-label { font-size: 0.6rem; }
   .stat-icon { width: 28px; height: 28px; }
 }
+
+/* Fantasy hub */
+.fantasy-hub-page {
+  max-width: 1240px;
+  padding: 1.25rem 0 2.5rem;
+}
+
+.fantasy-hub-topbar,
+.fantasy-hub-stats,
+.fantasy-hub-main,
+.fantasy-hub-insights,
+.fantasy-hub-full-panel,
+.fantasy-hub-empty {
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
+.fantasy-hub-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem 0;
+}
+
+.fantasy-hub-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid #d8dfdb;
+  border-radius: 999px;
+  background: #f8faf8;
+}
+
+.fantasy-hub-tabs button,
+.fantasy-hub-controls select,
+.fantasy-hub-lineup-actions select,
+.fantasy-hub-lineup-actions button,
+.fantasy-hub-market-side button,
+.fantasy-hub-league-actions button,
+.fantasy-hub-league-grid button,
+.fantasy-hub-empty button {
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+}
+
+.fantasy-hub-tabs button {
+  min-width: 112px;
+  padding: 0.8rem 1rem;
+  color: #5f6b63;
+  font-weight: 700;
+}
+
+.fantasy-hub-tabs button.active {
+  color: #062e26;
+  background: linear-gradient(180deg, #dff4e8 0%, #c7ead8 100%);
+  box-shadow: inset 0 0 0 1px #c7dfd2;
+}
+
+.fantasy-hub-controls select,
+.fantasy-hub-lineup-actions select,
+.fantasy-hub-empty select {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid #d8dfdb;
+  border-radius: 14px;
+  background: white;
+  color: #12231b;
+}
+
+.fantasy-hub-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.fantasy-hub-stats article,
+.fantasy-hub-pitch-card,
+.fantasy-hub-market-card,
+.fantasy-hub-full-panel,
+.fantasy-hub-empty {
+  border: 1px solid #dce4de;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(8, 24, 16, 0.06);
+}
+
+.fantasy-hub-stats article {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 1.35rem 1.5rem;
+}
+
+.fantasy-hub-stats small {
+  color: #7c8781;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.fantasy-hub-stats strong {
+  color: #10231a;
+  font-size: clamp(2rem, 2.8vw, 3rem);
+  line-height: 1;
+}
+
+.fantasy-hub-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #0a8a63;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.fantasy-hub-main {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 0.95fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.fantasy-hub-pitch-card,
+.fantasy-hub-market-card,
+.fantasy-hub-full-panel {
+  padding: 1.25rem;
+}
+
+.fantasy-hub-panel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fantasy-hub-panel-head h1,
+.fantasy-hub-panel-head h2,
+.fantasy-hub-panel-head h3 {
+  margin: 0;
+  color: #10231a;
+}
+
+.fantasy-hub-panel-head p {
+  margin: 0.35rem 0 0;
+  color: #6d7a71;
+}
+
+.fantasy-hub-lineup-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.fantasy-hub-lineup-actions label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #6d7a71;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.fantasy-hub-lineup-actions button,
+.fantasy-hub-market-side button,
+.fantasy-hub-league-actions button,
+.fantasy-hub-league-grid button,
+.fantasy-hub-empty button {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  color: white;
+  background: linear-gradient(180deg, #0b8a63 0%, #066748 100%);
+  font-weight: 800;
+}
+
+.fantasy-hub-pitch {
+  position: relative;
+  overflow: hidden;
+  min-height: 610px;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0)),
+    linear-gradient(90deg, rgba(255,255,255,0.07) 0, rgba(255,255,255,0.07) 2px, transparent 2px, transparent 10%),
+    linear-gradient(180deg, #0d8e63 0%, #06724f 100%);
+}
+
+.fantasy-hub-pitch-lines {
+  position: absolute;
+  inset: 12px;
+  border: 2px solid rgba(255,255,255,0.22);
+  border-radius: 18px;
+}
+
+.fantasy-hub-pitch-lines::before,
+.fantasy-hub-pitch-lines::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 2px solid rgba(255,255,255,0.18);
+}
+
+.fantasy-hub-pitch-lines::before {
+  top: 50%;
+  width: 36%;
+  height: 0;
+}
+
+.fantasy-hub-pitch-lines::after {
+  top: calc(50% - 62px);
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+}
+
+.fantasy-hub-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.fantasy-hub-player {
+  min-width: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fantasy-hub-player-card {
+  width: 100%;
+  min-width: 86px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.45rem 0.55rem;
+  border: 0;
+  border-radius: 16px;
+  background: rgba(8, 39, 29, 0.34);
+  color: white;
+}
+
+.fantasy-hub-player-card img,
+.fantasy-hub-market-item img {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: linear-gradient(180deg, #edf1ee 0%, #dce4de 100%);
+}
+
+.fantasy-hub-player-remove,
+.fantasy-hub-player-drag {
+  position: absolute;
+  top: 6px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.fantasy-hub-player-remove {
+  right: 6px;
+}
+
+.fantasy-hub-player-drag {
+  left: 6px;
+  cursor: grab;
+}
+
+.fantasy-hub-player-card strong {
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
+.fantasy-hub-player-card small {
+  padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.16);
+  color: #effff8;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.fantasy-hub-player.is-empty .fantasy-hub-player-card {
+  background: rgba(255,255,255,0.14);
+  border: 1px dashed rgba(255,255,255,0.32);
+}
+
+.fantasy-hub-player.is-empty .fantasy-hub-player-card span {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.18);
+}
+
+.fantasy-hub-captain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  color: #0a6e51;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.fantasy-hub-bench {
+  margin-top: 1rem;
+}
+
+.fantasy-hub-bench h3 {
+  margin: 0 0 0.8rem;
+  color: #10231a;
+}
+
+.fantasy-hub-bench-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 0.8rem;
+}
+
+.fantasy-hub-bench .fantasy-hub-player-card {
+  background: #f4f7f5;
+  color: #10231a;
+  box-shadow: inset 0 0 0 1px #dce4de;
+}
+
+.fantasy-hub-bench .fantasy-hub-player-card small {
+  background: #dbf1e7;
+  color: #0a6e51;
+}
+
+.fantasy-hub-bench-add {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 2px dashed #cad7cf;
+  border-radius: 16px;
+  color: #6d7a71;
+  background: #f8faf8;
+  cursor: pointer;
+}
+
+.fantasy-hub-bench-action {
+  min-height: 34px;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  color: #0a6e51;
+  background: #dcf3e6;
+  font-weight: 800;
+}
+
+.fantasy-hub-market-card {
+  position: sticky;
+  top: 96px;
+}
+
+.fantasy-hub-market-filters,
+.fantasy-hub-league-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.fantasy-hub-market-filters label {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.9rem;
+  border: 1px solid #d8dfdb;
+  border-radius: 14px;
+  background: #fbfcfb;
+}
+
+.fantasy-hub-market-filters input,
+.fantasy-hub-market-filters select,
+.fantasy-hub-league-actions input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: #10231a;
+}
+
+.fantasy-hub-market-filters select,
+.fantasy-hub-league-actions input {
+  padding: 0 1rem;
+  border: 1px solid #d8dfdb;
+  border-radius: 14px;
+  background: #fbfcfb;
+}
+
+.fantasy-hub-market-list,
+.fantasy-hub-market-table,
+.fantasy-hub-ranking-list,
+.fantasy-hub-league-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fantasy-hub-market-item,
+.fantasy-hub-ranking-list article,
+.fantasy-hub-league-grid article {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem;
+  border: 1px solid #e0e8e2;
+  border-radius: 18px;
+  background: #fbfcfb;
+}
+
+.fantasy-hub-market-item strong,
+.fantasy-hub-ranking-list strong,
+.fantasy-hub-league-grid h3 {
+  color: #10231a;
+}
+
+.fantasy-hub-market-item small,
+.fantasy-hub-league-grid p {
+  color: #6d7a71;
+}
+
+.fantasy-hub-market-side {
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.fantasy-hub-market-side b {
+  color: #0a8a63;
+  font-size: 1rem;
+}
+
+.fantasy-hub-insights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.fantasy-hub-insights article {
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 0.45rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(7, 23, 16, 0.18), rgba(7, 23, 16, 0.82)),
+    linear-gradient(135deg, #8ea89a, #46584f);
+  color: white;
+}
+
+.fantasy-hub-insights small {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.82);
+}
+
+.fantasy-hub-insights strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.fantasy-hub-insights span {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.88);
+}
+
+.fantasy-hub-full-panel {
+  margin-top: 1rem;
+}
+
+.fantasy-hub-ranking-list article {
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+}
+
+.fantasy-hub-ranking-list b {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #0a6e51;
+  background: #dcf3e6;
+}
+
+.fantasy-hub-league-actions input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.fantasy-hub-league-grid article {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.fantasy-hub-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.fantasy-hub-empty svg {
+  color: #0a8a63;
+}
+
+.fantasy-hub-empty h1 {
+  margin: 0;
+}
+
+.fantasy-hub-empty p {
+  max-width: 440px;
+  margin: 0;
+  color: #6d7a71;
+}
+
+.fantasy-hub-sync {
+  display: block;
+  margin: 1rem 0.75rem 0;
+  color: #6d7a71;
+}
+
+@media (max-width: 1160px) {
+  .fantasy-hub-main {
+    grid-template-columns: 1fr;
+  }
+
+  .fantasy-hub-market-card {
+    position: static;
+  }
+
+  .fantasy-hub-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .fantasy-hub-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fantasy-hub-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fantasy-hub-tabs {
+    overflow-x: auto;
+  }
+
+  .fantasy-hub-tabs button {
+    min-width: 96px;
+  }
+
+  .fantasy-hub-insights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .fantasy-hub-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .fantasy-hub-pitch {
+    min-height: 540px;
+    padding: 1rem 0.5rem;
+  }
+
+  .fantasy-hub-row {
+    gap: 0.6rem;
+  }
+
+  .fantasy-hub-player-card,
+  .fantasy-hub-market-item,
+  .fantasy-hub-league-grid article {
+    border-radius: 14px;
+  }
+
+  .fantasy-hub-market-item,
+  .fantasy-hub-league-grid article {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .fantasy-hub-market-side,
+  .fantasy-hub-league-grid article button {
+    grid-column: 2;
+    justify-self: start;
+    align-items: start;
+  }
+}

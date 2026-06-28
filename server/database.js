@@ -123,6 +123,7 @@ db.exec(`
     name TEXT NOT NULL,
     budget INTEGER NOT NULL DEFAULT 100000000 CHECK(budget >= 0),
     formation TEXT NOT NULL DEFAULT '4-3-3',
+    lineup_layout TEXT NOT NULL DEFAULT '[]',
     total_points INTEGER NOT NULL DEFAULT 0,
     round_points INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
@@ -172,6 +173,20 @@ db.exec(`
     created_at INTEGER NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS fantasy_league_settings (
+    league_id INTEGER PRIMARY KEY REFERENCES fantasy_leagues(id) ON DELETE CASCADE,
+    initial_budget INTEGER NOT NULL DEFAULT 100000000,
+    initial_players INTEGER NOT NULL DEFAULT 12,
+    market_refresh_hour INTEGER NOT NULL DEFAULT 0,
+    max_squad_players INTEGER NOT NULL DEFAULT 24,
+    clause_max_multiplier REAL NOT NULL DEFAULT 4,
+    clause_block_hours INTEGER NOT NULL DEFAULT 24,
+    allow_live_changes INTEGER NOT NULL DEFAULT 0,
+    points_cash_reward INTEGER NOT NULL DEFAULT 0,
+    exclusive_market INTEGER NOT NULL DEFAULT 1,
+    updated_at INTEGER NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS fantasy_league_members (
     league_id INTEGER NOT NULL REFERENCES fantasy_leagues(id) ON DELETE CASCADE,
     user_id TEXT NOT NULL,
@@ -202,6 +217,81 @@ db.exec(`
     PRIMARY KEY (league_id, market_date, player_id)
   );
 
+  CREATE TABLE IF NOT EXISTS fantasy_player_clauses (
+    league_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL REFERENCES fantasy_players(id),
+    owner_user_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    base_amount INTEGER NOT NULL,
+    paid_extra INTEGER NOT NULL DEFAULT 0,
+    lowered_at INTEGER,
+    lock_until INTEGER,
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (league_id, player_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_player_ownership_history (
+    id INTEGER PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL REFERENCES fantasy_players(id),
+    from_user_id TEXT,
+    to_user_id TEXT,
+    operation TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    clause_amount INTEGER,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_bids (
+    id INTEGER PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    player_id INTEGER NOT NULL REFERENCES fantasy_players(id),
+    amount INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at INTEGER NOT NULL,
+    resolved_at INTEGER
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_notifications (
+    id INTEGER PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    read_at INTEGER,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_offers (
+    id INTEGER PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL REFERENCES fantasy_players(id),
+    from_user_id TEXT NOT NULL,
+    to_user_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at INTEGER NOT NULL,
+    responded_at INTEGER
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_matchday_snapshots (
+    round_id TEXT NOT NULL,
+    league_id INTEGER NOT NULL,
+    team_user_id TEXT NOT NULL,
+    owner_user_id TEXT NOT NULL,
+    formation TEXT NOT NULL,
+    lineup_player_ids TEXT NOT NULL,
+    captain_player_id INTEGER,
+    lineup_layout TEXT NOT NULL,
+    budget_at_start INTEGER NOT NULL,
+    can_score INTEGER NOT NULL,
+    points_awarded INTEGER NOT NULL DEFAULT 0,
+    reward_paid INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (round_id, league_id, team_user_id)
+  );
+
 `);
 
 const columns = db.prepare("PRAGMA table_info(sports_events)").all().map((column) => column.name);
@@ -220,6 +310,26 @@ if (!fantasyTeamColumns.includes("owner_user_id")) {
   db.exec("ALTER TABLE fantasy_teams ADD COLUMN owner_user_id TEXT");
   db.exec("UPDATE fantasy_teams SET owner_user_id = user_id WHERE owner_user_id IS NULL");
 }
+if (!fantasyTeamColumns.includes("lineup_layout")) {
+  db.exec("ALTER TABLE fantasy_teams ADD COLUMN lineup_layout TEXT NOT NULL DEFAULT '[]'");
+}
+const fantasySnapshotColumns = db.prepare("PRAGMA table_info(fantasy_matchday_snapshots)").all().map((column) => column.name);
+if (fantasySnapshotColumns.length && !fantasySnapshotColumns.includes("reward_paid")) {
+  db.exec("ALTER TABLE fantasy_matchday_snapshots ADD COLUMN reward_paid INTEGER NOT NULL DEFAULT 0");
+}
+db.exec(`
+  INSERT OR IGNORE INTO fantasy_leagues (id, name, code, created_by, created_at)
+  VALUES (1, 'Liga abierta', 'OPEN01', 'system', CAST(strftime('%s','now') AS INTEGER) * 1000)
+`);
+db.exec(`
+  INSERT OR IGNORE INTO fantasy_league_settings (
+    league_id, initial_budget, initial_players, market_refresh_hour, max_squad_players,
+    clause_max_multiplier, clause_block_hours, allow_live_changes, points_cash_reward,
+    exclusive_market, updated_at
+  )
+  SELECT id, 100000000, 12, 0, 24, 4, 24, 0, 0, 1, CAST(strftime('%s','now') AS INTEGER) * 1000
+  FROM fantasy_leagues
+`);
 db.exec(`
   INSERT OR IGNORE INTO fantasy_league_players (league_id, player_id, user_id, acquired_at)
   SELECT t.league_id, tp.player_id, tp.user_id, CAST(strftime('%s','now') AS INTEGER) * 1000
@@ -233,6 +343,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_fantasy_players_team ON fantasy_players(team_id, position);
   CREATE INDEX IF NOT EXISTS idx_fantasy_usage_time ON fantasy_api_usage(created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_fantasy_market_date ON fantasy_markets(league_id, market_date);
+  CREATE INDEX IF NOT EXISTS idx_fantasy_history_league_time ON fantasy_player_ownership_history(league_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_fantasy_notifications_user_time ON fantasy_notifications(user_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_fantasy_offers_target ON fantasy_offers(to_user_id, status, created_at DESC);
   CREATE UNIQUE INDEX IF NOT EXISTS idx_fantasy_teams_owner_league ON fantasy_teams(owner_user_id, league_id);
 `);
 
