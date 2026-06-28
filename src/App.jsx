@@ -384,8 +384,8 @@ export default function App() {
             <Route path="/leagues" element={<Leagues store={store} onStoreChange={triggerStoreChange} allUsers={socialUsers} />} />
             <Route path="/leagues/:leagueId" element={<LeagueDetail store={store} allUsers={socialUsers} />} />
             <Route path="/profile" element={<Profile store={store} user={user} matches={sportsData.matches} onAcceptPendingChange={handleAcceptPendingChange} onCancelPendingChange={handleCancelPendingChange} />} />
-            <Route path="/fantasy" element={<Fantasy />} />
-            <Route path="/challenges" element={<Challenges />} />
+            <Route path="/fantasy" element={<Fantasy user={user} />} />
+            <Route path="/challenges" element={<Challenges store={store} sportsData={sportsData} user={user} onStoreChange={triggerStoreChange} />} />
             <Route path="/earn" element={<Earn />} />
             <Route path="/rewards" element={<Rewards user={user} />} />
             <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />

@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from "vite";
 import { authApi } from "./server/auth.js";
 import { getApiCache, setApiCache } from "./server/database.js";
 import { oddsApi } from "./server/odds.js";
+import { fantasyApi } from "./server/fantasy.js";
 
 const STATIC_CACHE_TTL = 2 * 60 * 1000;
 const MATCH_CACHE_TTL = 60 * 1000;
@@ -59,11 +60,13 @@ export default defineConfig(({ mode }) => {
   const apiKey = env.API_FOOTBALL_KEY;
   const footballDataKey = env.FOOTBALL_DATA_KEY;
   const oddsApiKey = env.THE_ODDS_API_KEY;
+  const fantasyLeague = env.FANTASY_ESPN_LEAGUE || "esp.1";
 
   return {
     plugins: [{
       name: "playfulbet-api",
       configureServer(server) {
+        server.middlewares.use(fantasyApi(fantasyLeague));
         server.middlewares.use(oddsApi(oddsApiKey));
       },
     }, sharedApiCache, react()],

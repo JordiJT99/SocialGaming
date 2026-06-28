@@ -1,3 +1,5 @@
+import { scorePorraEntry } from "../services/porraService";
+
 const STORE_KEY = "playfulbet_data";
 
 const defaultStore = () => ({
@@ -37,6 +39,8 @@ const defaultStore = () => ({
   prizesRedeemed: [],
   quinielas: [],
   userQuinielas: [],
+  porras: [],
+  porraEntries: [],
 });
 
 export function loadStore() {
@@ -310,6 +314,156 @@ export function resolveQuiniela(store, quiniela, matches, userId = "current_user
   });
   saveStore(store);
   return ranked.find((entry) => entry.userId === userId);
+}
+
+const P_ENTRY = 50;
+const P_FEE = 10;
+const P_DIST = [{ position: 1, percentage: 70 }, { position: 2, percentage: 20 }, { position: 3, percentage: 10 }];
+const inviteCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+
+export function hydratePorra(store, porra, matches = [], now = Date.now()) {
+  const entries = (store.porraEntries || []).filter((entry) => entry.porraId === porra.id);
+  const pMatches = porra.matchIds.map((id) => matches.find((match) => match.id === id)).filter(Boolean);
+  const started = new Date(porra.startsAt).getTime() <= now || new Date(porra.registrationDeadline).getTime() <= now;
+  const finished = pMatches.length > 0 && pMatches.every((match) => match.status === "finished");
+  const paid = entries.length > 0 && entries.every((entry) => entry.status === "rewarded");
+  const gross = entries.length * porra.entryCost;
+  return {
+    ...porra,
+    matches: pMatches,
+    participantsCount: entries.length,
+    prizePool: gross,
+    finalPrizePool: Math.round(gross * (1 - (porra.platformFeePercentage || 0) / 100)),
+    status: porra.status === "cancelled" ? "cancelled" : paid ? "paid" : finished ? "finished" : started ? "in_progress" : "open",
+  };
+}
+
+export function getPorras(store, matches = [], now = Date.now()) {
+  const saved = store.porras || [];
+  const upcoming = matches
+    .filter((match) => ["upcoming", "scheduled"].includes(match.status) && match.home && match.away)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5);
+  const generated = upcoming.map((match) => ({
+    id: `public_${match.id}`,
+    name: `${match.home} vs ${match.away}`,
+    description: "Porra publica de marcador exacto",
+    type: "single_match",
+    visibility: "public",
+    createdBy: "platform",
+    league: match.league || "Evento",
+    matchIds: [match.id],
+    entryCost: P_ENTRY,
+    platformFeePercentage: P_FEE,
+    distribution: P_DIST,
+    inviteCode: inviteCode(),
+    registrationDeadline: match.date,
+    startsAt: match.date,
+    endsAt: match.date,
+    createdAt: match.date,
+    updatedAt: match.date,
+  }));
+  return [...new Map([...generated, ...saved].map((porra) => [porra.id, porra])).values()]
+    .map((porra) => hydratePorra(store, porra, matches, now));
+}
+
+export function createPorra(store, data, matches, userId = "current_user") {
+  const matchIds = Array.isArray(data.matchIds) ? data.matchIds.filter(Boolean) : [data.matchId].filter(Boolean);
+  const pMatches = matchIds.map((id) => matches.find((match) => match.id === id)).filter(Boolean);
+  if (!pMatches.length) throw new Error("Selecciona al menos un partido");
+  const startsAt = pMatches.map((match) => match.date).sort()[0];
+  const entryCost = Math.max(0, Number(data.entryCost || P_ENTRY));
+  const porra = {
+    id: `porra_${Date.now()}`,
+    name: data.name?.trim() || `Porra ${pMatches[0].home} vs ${pMatches[0].away}`,
+    description: data.description?.trim() || "",
+    type: matchIds.length > 1 ? "round" : "single_match",
+    visibility: data.visibility || "private",
+    createdBy: userId,
+    league: pMatches[0].league || "Evento",
+    matchIds,
+    entryCost,
+    platformFeePercentage: P_FEE,
+    distribution: P_DIST,
+    status: "open",
+    inviteCode: inviteCode(),
+    registrationDeadline: startsAt,
+    startsAt,
+    endsAt: pMatches.at(-1)?.date || startsAt,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  store.porras = [...(store.porras || []), porra];
+  saveStore(store);
+  return porra;
+}
+
+export function joinPorra(store, porra, userId = "current_user", invite = null) {
+  const p = hydratePorra(store, porra);
+  if (p.visibility === "private" && invite && invite !== p.inviteCode) throw new Error("Codigo de invitacion no valido");
+  if (p.status !== "open") throw new Error("La porra ya esta cerrada");
+  if ((store.porraEntries || []).some((entry) => entry.userId === userId && entry.porraId === p.id)) return p;
+  const user = store.users.find((item) => item.id === userId);
+  if (!user) throw new Error("Usuario no autenticado");
+  if ((user.points || 0) < p.entryCost) throw new Error("No tienes coins suficientes");
+  user.points -= p.entryCost;
+  store.porras = store.porras || [];
+  if (!store.porras.some((item) => item.id === p.id)) store.porras.push({ ...p, matches: undefined });
+  store.porraEntries = store.porraEntries || [];
+  store.porraEntries.push({
+    id: `porraEntry_${Date.now()}`,
+    porraId: p.id,
+    userId,
+    predictions: {},
+    points: 0,
+    exactScores: 0,
+    correctWinners: 0,
+    position: null,
+    prizeWon: 0,
+    status: "joined",
+    joinedAt: new Date().toISOString(),
+    submittedAt: null,
+    updatedAt: new Date().toISOString(),
+  });
+  store.transactions.push({ id: `tx_${Date.now()}`, userId, type: "spend", source: "porra_entry", amount: -p.entryCost, relatedId: p.id, description: `Entrada ${p.name}`, createdAt: new Date().toISOString() });
+  saveStore(store);
+  return p;
+}
+
+export function savePorraPrediction(store, porra, predictions, userId = "current_user") {
+  const p = hydratePorra(store, porra);
+  if (p.status !== "open") throw new Error("La porra ya esta bloqueada");
+  const entry = (store.porraEntries || []).find((item) => item.userId === userId && item.porraId === p.id);
+  if (!entry) throw new Error("Primero tienes que participar");
+  if (!porra.matchIds.every((id) => Number.isInteger(Number(predictions[id]?.homeScore)) && Number.isInteger(Number(predictions[id]?.awayScore)))) {
+    throw new Error("Completa todos los marcadores");
+  }
+  Object.assign(entry, { predictions, status: "submitted", submittedAt: entry.submittedAt || new Date().toISOString(), updatedAt: new Date().toISOString() });
+  saveStore(store);
+  return entry;
+}
+
+export function resolvePorra(store, porra, matches) {
+  const p = hydratePorra(store, porra, matches);
+  if (!["finished", "paid"].includes(p.status)) throw new Error("Aun faltan resultados");
+  const paid = store.transactions.some((tx) => tx.source === "porra_prize" && tx.relatedId === p.id);
+  const ranked = (store.porraEntries || [])
+    .filter((entry) => entry.porraId === p.id && entry.status !== "joined")
+    .map((entry) => ({ ...entry, ...scorePorraEntry(entry, p, matches) }))
+    .sort((a, b) => b.points - a.points || b.exactScores - a.exactScores || b.correctWinners - a.correctWinners || new Date(a.submittedAt) - new Date(b.submittedAt));
+  ranked.forEach((entry, index) => {
+    const position = index + 1;
+    const prize = paid ? entry.prizeWon : Math.round(p.finalPrizePool * ((p.distribution || P_DIST).find((item) => item.position === position)?.percentage || 0) / 100);
+    const target = store.porraEntries.find((item) => item.id === entry.id);
+    Object.assign(target, { points: entry.points, exactScores: entry.exactScores, correctWinners: entry.correctWinners, position, prizeWon: prize, status: prize > 0 ? "rewarded" : "resolved" });
+    if (!paid && prize > 0) {
+      const user = store.users.find((item) => item.id === entry.userId);
+      if (user) user.points += prize;
+      store.transactions.push({ id: `tx_${Date.now()}_${position}`, userId: entry.userId, type: "earn", source: "porra_prize", amount: prize, relatedId: p.id, description: `Premio ${p.name}`, createdAt: new Date().toISOString() });
+    }
+  });
+  saveStore(store);
+  return ranked;
 }
 
 export function computeLevel(xp) {
