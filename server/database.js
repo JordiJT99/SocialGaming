@@ -3,7 +3,15 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const DB_PATH = resolve("data/playfulbet.db");
+const isTestMode = process.env.PLAYFULBET_TEST === "1"
+  || process.env.NODE_ENV === "test"
+  || (typeof process === "object" && Array.isArray(process.argv)
+    && process.argv.some((arg) => arg.endsWith(".test.js") || arg.endsWith(".test.mjs")));
+
+const DB_PATH = resolve(
+  process.env.PLAYFULBET_DB_PATH
+    || (isTestMode ? "data/playfulbet.test.db" : "data/playfulbet.db"),
+);
 mkdirSync(dirname(DB_PATH), { recursive: true });
 
 export const db = new DatabaseSync(DB_PATH);
@@ -16,6 +24,7 @@ db.exec(`
     username TEXT NOT NULL UNIQUE COLLATE NOCASE,
     email TEXT NOT NULL UNIQUE COLLATE NOCASE,
     password_hash TEXT NOT NULL,
+    google_sub TEXT,
     points INTEGER NOT NULL DEFAULT 1500 CHECK(points >= 0),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
@@ -108,12 +117,17 @@ db.exec(`
     team_logo TEXT,
     position TEXT NOT NULL CHECK(position IN ('POR', 'DEF', 'MED', 'DEL')),
     photo TEXT,
-    price INTEGER NOT NULL DEFAULT 500000 CHECK(price >= 500000),
+    price INTEGER NOT NULL DEFAULT 500000 CHECK(price >= 150000),
     previous_price INTEGER NOT NULL DEFAULT 500000,
     total_points INTEGER NOT NULL DEFAULT 0,
     last_round_points INTEGER NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'available',
+    last_5_avg_points REAL NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'injured', 'suspended', 'doubt')),
+    titular_probable INTEGER NOT NULL DEFAULT 1,
     ownership REAL NOT NULL DEFAULT 0,
+    purchase_price INTEGER NOT NULL DEFAULT 0,
+    base_clause_amount INTEGER NOT NULL DEFAULT 0,
+    last_value_update INTEGER,
     updated_at INTEGER NOT NULL
   );
 
@@ -170,6 +184,9 @@ db.exec(`
     name TEXT NOT NULL,
     code TEXT NOT NULL UNIQUE,
     created_by TEXT NOT NULL,
+    is_public INTEGER NOT NULL DEFAULT 0,
+    description TEXT NOT NULL DEFAULT '',
+    max_members INTEGER NOT NULL DEFAULT 20,
     created_at INTEGER NOT NULL
   );
 
@@ -292,9 +309,78 @@ db.exec(`
     PRIMARY KEY (round_id, league_id, team_user_id)
   );
 
+  CREATE TABLE IF NOT EXISTS fantasy_player_market_history (
+    id INTEGER PRIMARY KEY,
+    player_id INTEGER NOT NULL REFERENCES fantasy_players(id) ON DELETE CASCADE,
+    previous_value INTEGER NOT NULL,
+    new_value INTEGER NOT NULL,
+    percentage_change REAL NOT NULL,
+    primary_reason TEXT NOT NULL,
+    demand_score REAL NOT NULL,
+    performance_score REAL NOT NULL,
+    penalty_score REAL NOT NULL,
+    raw_variation_pct REAL NOT NULL,
+    detail TEXT NOT NULL DEFAULT '{}',
+    calculated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS fantasy_player_market_metrics (
+    player_id INTEGER PRIMARY KEY REFERENCES fantasy_players(id) ON DELETE CASCADE,
+    number_of_bids INTEGER NOT NULL DEFAULT 0,
+    average_bid INTEGER NOT NULL DEFAULT 0,
+    max_bid INTEGER NOT NULL DEFAULT 0,
+    avg_bid_over_value_pct REAL NOT NULL DEFAULT 0,
+    max_bid_over_value_pct REAL NOT NULL DEFAULT 0,
+    clause_buyouts_24h INTEGER NOT NULL DEFAULT 0,
+    sales_24h INTEGER NOT NULL DEFAULT 0,
+    times_in_market_without_bid INTEGER NOT NULL DEFAULT 0,
+    titular_probable INTEGER NOT NULL DEFAULT 1,
+    last_points_5_avg REAL NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reward_profiles (
+    user_key TEXT PRIMARY KEY,
+    streak INTEGER NOT NULL DEFAULT 0,
+    last_daily_claim_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reward_video_claims (
+    id INTEGER PRIMARY KEY,
+    user_key TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    claimed_at INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS reward_offer_claims (
+    user_key TEXT NOT NULL,
+    offer_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    claimed_at INTEGER NOT NULL,
+    PRIMARY KEY (user_key, offer_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS reward_redemptions (
+    id INTEGER PRIMARY KEY,
+    user_key TEXT NOT NULL,
+    reward_id TEXT NOT NULL,
+    reward_name TEXT NOT NULL,
+    cost INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    delivery_type TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+
 `);
 
 const columns = db.prepare("PRAGMA table_info(sports_events)").all().map((column) => column.name);
+const userColumns = db.prepare("PRAGMA table_info(users)").all().map((column) => column.name);
+if (!userColumns.includes("google_sub")) {
+  db.exec("ALTER TABLE users ADD COLUMN google_sub TEXT");
+}
 if (!columns.includes("odds_updated_at")) {
   db.exec("ALTER TABLE sports_events ADD COLUMN odds_updated_at INTEGER");
 }
@@ -312,6 +398,34 @@ if (!fantasyTeamColumns.includes("owner_user_id")) {
 }
 if (!fantasyTeamColumns.includes("lineup_layout")) {
   db.exec("ALTER TABLE fantasy_teams ADD COLUMN lineup_layout TEXT NOT NULL DEFAULT '[]'");
+}
+
+const fantasyLeagueColumns = db.prepare("PRAGMA table_info(fantasy_leagues)").all().map((column) => column.name);
+if (!fantasyLeagueColumns.includes("is_public")) {
+  db.exec("ALTER TABLE fantasy_leagues ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0");
+}
+if (!fantasyLeagueColumns.includes("description")) {
+  db.exec("ALTER TABLE fantasy_leagues ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+}
+if (!fantasyLeagueColumns.includes("max_members")) {
+  db.exec("ALTER TABLE fantasy_leagues ADD COLUMN max_members INTEGER NOT NULL DEFAULT 20");
+}
+
+const fantasyPlayerColumns = db.prepare("PRAGMA table_info(fantasy_players)").all().map((column) => column.name);
+if (!fantasyPlayerColumns.includes("last_5_avg_points")) {
+  db.exec("ALTER TABLE fantasy_players ADD COLUMN last_5_avg_points REAL NOT NULL DEFAULT 0");
+}
+if (!fantasyPlayerColumns.includes("titular_probable")) {
+  db.exec("ALTER TABLE fantasy_players ADD COLUMN titular_probable INTEGER NOT NULL DEFAULT 1");
+}
+if (!fantasyPlayerColumns.includes("purchase_price")) {
+  db.exec("ALTER TABLE fantasy_players ADD COLUMN purchase_price INTEGER NOT NULL DEFAULT 0");
+}
+if (!fantasyPlayerColumns.includes("base_clause_amount")) {
+  db.exec("ALTER TABLE fantasy_players ADD COLUMN base_clause_amount INTEGER NOT NULL DEFAULT 0");
+}
+if (!fantasyPlayerColumns.includes("last_value_update")) {
+  db.exec("ALTER TABLE fantasy_players ADD COLUMN last_value_update INTEGER");
 }
 const fantasySnapshotColumns = db.prepare("PRAGMA table_info(fantasy_matchday_snapshots)").all().map((column) => column.name);
 if (fantasySnapshotColumns.length && !fantasySnapshotColumns.includes("reward_paid")) {
@@ -347,6 +461,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_fantasy_notifications_user_time ON fantasy_notifications(user_id, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_fantasy_offers_target ON fantasy_offers(to_user_id, status, created_at DESC);
   CREATE UNIQUE INDEX IF NOT EXISTS idx_fantasy_teams_owner_league ON fantasy_teams(owner_user_id, league_id);
+  CREATE INDEX IF NOT EXISTS idx_market_history_player_time ON fantasy_player_market_history(player_id, calculated_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_market_metrics_bids ON fantasy_player_market_metrics(number_of_bids DESC);
+  CREATE INDEX IF NOT EXISTS idx_market_metrics_clause ON fantasy_player_market_metrics(clause_buyouts_24h DESC);
+  CREATE INDEX IF NOT EXISTS idx_reward_video_claims_user_time ON reward_video_claims(user_key, claimed_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_reward_redemptions_user_time ON reward_redemptions(user_key, created_at DESC);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub) WHERE google_sub IS NOT NULL;
 `);
 
 const hashPassword = (password, salt = randomBytes(16).toString("hex")) =>
@@ -366,6 +486,29 @@ const publicUser = (user) => user && ({
   joinedAt: user.created_at,
 });
 
+const sanitizeUsername = (value) => {
+  const normalized = String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9_ ]/g, " ")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/_+/g, "_")
+    .slice(0, 20);
+  return normalized.length >= 3 ? normalized : "player";
+};
+
+const findAvailableUsername = (value) => {
+  const base = sanitizeUsername(value);
+  let candidate = base;
+  let suffix = 1;
+  while (db.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE").get(candidate)) {
+    candidate = `${base.slice(0, Math.max(3, 20 - String(suffix).length))}${suffix}`;
+    suffix += 1;
+  }
+  return candidate;
+};
+
 export function createUser(username, email, password) {
   const result = db.prepare(
     "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
@@ -376,6 +519,29 @@ export function createUser(username, email, password) {
 export function authenticate(email, password) {
   const user = db.prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").get(email.trim());
   return user && verifyPassword(password, user.password_hash) ? publicUser(user) : null;
+}
+
+export function createOrUpdateGoogleUser({ googleSub, email, name }) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const byGoogle = db.prepare("SELECT * FROM users WHERE google_sub = ?").get(googleSub);
+  if (byGoogle) return publicUser(byGoogle);
+
+  const byEmail = db.prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").get(normalizedEmail);
+  if (byEmail) {
+    if (byEmail.google_sub && byEmail.google_sub !== googleSub) {
+      throw new Error("Esta cuenta ya está vinculada a otro acceso de Google");
+    }
+    db.prepare("UPDATE users SET google_sub = ? WHERE id = ?").run(googleSub, byEmail.id);
+    return publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(byEmail.id));
+  }
+
+  const username = findAvailableUsername(name || normalizedEmail.split("@")[0]);
+  const password = randomBytes(24).toString("hex");
+  const result = db.prepare(`
+    INSERT INTO users (username, email, password_hash, google_sub)
+    VALUES (?, ?, ?, ?)
+  `).run(username, normalizedEmail, hashPassword(password), googleSub);
+  return publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid));
 }
 
 export function createSession(userId) {

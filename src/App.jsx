@@ -1,6 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { getCurrentUser, loadStore, makePrediction, refundPrediction, resolvePrediction, saveStore, deriveResult, expireOldPrediction } from "./data/store";
+import {
+  deriveResult,
+  expireOldPrediction,
+  getCurrentUser,
+  loadStore,
+  makePrediction,
+  refundPrediction,
+  resolvePrediction,
+  saveStore,
+  setActiveAuthUser,
+} from "./data/store";
 import { fetchSportsData } from "./services/sportsData";
 import { fetchTheOddsData } from "./services/theOddsApi";
 import AppHeader from "./components/AppHeader";
@@ -20,6 +30,7 @@ import Rewards from "./pages/Rewards";
 import Eventos from "./pages/Eventos";
 import EventDetail from "./pages/EventDetail";
 import OnboardingTour from "./components/OnboardingTour";
+import Auth from "./pages/Auth";
 
 function OddsBudgetPill({ status }) {
   const [now, setNow] = useState(Date.now());
@@ -50,6 +61,10 @@ function OddsBudgetPill({ status }) {
 
 export default function App() {
   const [store, setStore] = useState(() => loadStore());
+  const [sessionUser, setSessionUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [economy, setEconomy] = useState(null);
+  const economySeededRef = useRef(false);
   const [sportsData, setSportsData] = useState({
     matches: [],
     standings: [],
@@ -65,6 +80,73 @@ export default function App() {
   useEffect(() => {
     saveStore(store);
   }, [store]);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((response) => response.json())
+      .then((payload) => {
+        const nextUser = payload.user || null;
+        setSessionUser(nextUser);
+        setActiveAuthUser(nextUser);
+        if (nextUser) {
+          setStore((previous) => {
+            const updated = loadStore();
+            const localUser = getCurrentUser(updated);
+            if (localUser) {
+              localUser.username = nextUser.username;
+              localUser.email = nextUser.email;
+              localUser.joinedAt = nextUser.joinedAt || localUser.joinedAt;
+            }
+            return updated;
+          });
+        }
+      })
+      .catch(() => {
+        setSessionUser(null);
+        setActiveAuthUser(null);
+      })
+      .finally(() => setAuthReady(true));
+  }, []);
+
+  const economyHeaders = useCallback(() => ({
+    "content-type": "application/json",
+    "x-playfulbet-user": sessionUser?.email || getCurrentUser(store)?.email || getCurrentUser(store)?.username || "guest@playfulbet.local",
+  }), [sessionUser, store]);
+
+  const applyCoinDelta = useCallback((delta) => {
+    if (!delta) return;
+    setStore((previous) => {
+      const updated = structuredClone(previous);
+      const currentUser = getCurrentUser(updated);
+      if (currentUser) {
+        currentUser.points = Math.max(0, (currentUser.points || 0) + delta);
+        if (delta > 0) currentUser.totalEarned = (currentUser.totalEarned || 0) + delta;
+      }
+      return updated;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!authReady || !sessionUser) return;
+    if (economySeededRef.current) return;
+    economySeededRef.current = true;
+    const legacy = {
+      user: {
+        rewardStreak: getCurrentUser(store)?.rewardStreak || 0,
+        lastRewardClaimAt: getCurrentUser(store)?.lastRewardClaimAt || null,
+      },
+      rewardActivity: store.rewardActivity || { videoClaims: [], completedOffers: [] },
+      prizesRedeemed: store.prizesRedeemed || [],
+    };
+    fetch("/api/economy/sync", {
+      method: "POST",
+      headers: economyHeaders(),
+      body: JSON.stringify({ legacy }),
+    })
+      .then((response) => response.json())
+      .then(setEconomy)
+      .catch(() => {});
+  }, [authReady, economyHeaders, sessionUser, store]);
 
   useEffect(() => {
     const finished = new Map(
@@ -368,10 +450,65 @@ export default function App() {
   const user = getCurrentUser(store);
   const socialUsers = [user].filter(Boolean);
 
+  const callEconomy = useCallback(async (path, body = {}, deltaResolver = null) => {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: economyHeaders(),
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "No se pudo actualizar la economia");
+    if (payload.state) setEconomy(payload.state);
+    if (deltaResolver) applyCoinDelta(deltaResolver(payload));
+    return payload;
+  }, [applyCoinDelta, economyHeaders]);
+
+  const handleClaimDailyReward = useCallback(() =>
+    callEconomy("/api/economy/daily", {}, (payload) => Number(payload.reward || 0))
+  , [callEconomy]);
+
+  const handleClaimVideoReward = useCallback(() =>
+    callEconomy("/api/economy/video", {}, (payload) => Number(payload.reward || 0))
+  , [callEconomy]);
+
+  const handleCompleteOffer = useCallback((offer) =>
+    callEconomy("/api/economy/offer", { offer }, (payload) => Number(payload.reward || 0))
+  , [callEconomy]);
+
+  const handleRedeemPrize = useCallback((prize) =>
+    callEconomy("/api/economy/redeem", { reward: prize, balance: getCurrentUser(store)?.points || 0 }, (payload) => -Number(payload.cost || 0))
+  , [callEconomy, store]);
+
+  const handleAuth = useCallback((nextUser) => {
+    setSessionUser(nextUser);
+    setActiveAuthUser(nextUser);
+    economySeededRef.current = false;
+    const nextStore = loadStore();
+    const localUser = getCurrentUser(nextStore);
+    if (localUser) {
+      localUser.username = nextUser.username;
+      localUser.email = nextUser.email;
+      localUser.joinedAt = nextUser.joinedAt || localUser.joinedAt;
+    }
+    setStore(nextStore);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setSessionUser(null);
+    setEconomy(null);
+    setActiveAuthUser(null);
+    economySeededRef.current = false;
+    setStore(loadStore());
+  }, []);
+
+  if (!authReady) return null;
+  if (!sessionUser) return <Auth onAuth={handleAuth} />;
+
   return (
     <BrowserRouter>
       <div className={`app-shell ${slipOpen ? "slip-open" : ""}`}>
-        <AppHeader user={user} store={store} sportsData={sportsData} />
+        <AppHeader user={user} store={store} sportsData={sportsData} onLogout={handleLogout} />
         <OnboardingTour />
         <main className="app-main">
           <Routes>
@@ -384,10 +521,10 @@ export default function App() {
             <Route path="/leagues" element={<Leagues store={store} onStoreChange={triggerStoreChange} allUsers={socialUsers} />} />
             <Route path="/leagues/:leagueId" element={<LeagueDetail store={store} allUsers={socialUsers} />} />
             <Route path="/profile" element={<Profile store={store} user={user} matches={sportsData.matches} onAcceptPendingChange={handleAcceptPendingChange} onCancelPendingChange={handleCancelPendingChange} />} />
-            <Route path="/fantasy" element={<Fantasy user={user} />} />
+            <Route path="/fantasy" element={<Fantasy user={sessionUser} />} />
             <Route path="/challenges" element={<Challenges store={store} sportsData={sportsData} user={user} onStoreChange={triggerStoreChange} />} />
-            <Route path="/earn" element={<Earn />} />
-            <Route path="/rewards" element={<Rewards user={user} />} />
+            <Route path="/earn" element={<Earn economy={economy} user={user} onClaimDaily={handleClaimDailyReward} onClaimVideo={handleClaimVideoReward} onCompleteOffer={handleCompleteOffer} />} />
+            <Route path="/rewards" element={<Rewards economy={economy} user={user} onRedeem={handleRedeemPrize} />} />
             <Route path="/events" element={<Eventos sportsData={sportsData} onSportSelect={loadSport} store={store} onPredict={handlePredict} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
             <Route path="/events/:eventId" element={<EventDetail sportsData={sportsData} store={store} onAddToSlip={addToSlip} slipItems={slipItems} user={user} />} />
             <Route path="*" element={<Navigate to="/" replace />} />

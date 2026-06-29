@@ -972,6 +972,18 @@ export function fantasyApi(league = "esp.1") {
         refreshMarket(activeLeagueId);
         return json(res, 200, snapshot(userId, activeLeagueId));
       }
+      if (req.url === "/api/fantasy/public-leagues" && req.method === "GET") {
+        const rows = db.prepare(`
+          SELECT l.id, l.name, l.code, l.description, l.max_members, l.is_public,
+            (SELECT COUNT(*) FROM fantasy_league_members WHERE league_id=l.id) AS members,
+            (SELECT points_cash_reward FROM fantasy_league_settings WHERE league_id=l.id) AS points_cash_reward
+          FROM fantasy_leagues l
+          WHERE l.is_public = 1
+          ORDER BY l.id DESC
+          LIMIT 50
+        `).all();
+        return json(res, 200, { leagues: rows });
+      }
       if (req.method !== "POST") return json(res, 405, { error: "Metodo no permitido" });
       const data = await body(req);
       const action = req.url.split("/").pop();
@@ -985,13 +997,29 @@ export function fantasyApi(league = "esp.1") {
       else if (action === "lineup") saveLineup(userId, activeLeagueId, data.formation, data.starters || [], data.captain, data.layout || []);
       else if (action === "league") {
         const code = randomBytes(3).toString("hex").toUpperCase();
-        const result = db.prepare("INSERT INTO fantasy_leagues (name, code, created_by, created_at) VALUES (?, ?, ?, ?)")
-          .run(String(data.name || "Liga privada").trim().slice(0, 40), code, userId, Date.now());
+        const isPublic = data.is_public ? 1 : 0;
+        const result = db.prepare(`
+          INSERT INTO fantasy_leagues (name, code, created_by, is_public, description, max_members, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          String(data.name || (isPublic ? "Liga pública" : "Liga privada")).trim().slice(0, 40),
+          code,
+          userId,
+          isPublic,
+          String(data.description || "").trim().slice(0, 200),
+          Number(data.max_members) || 20,
+          Date.now(),
+        );
         db.prepare("INSERT INTO fantasy_league_members VALUES (?, ?)").run(result.lastInsertRowid, userId);
         saveLeagueSettings(Number(result.lastInsertRowid), data.settings || {});
       } else if (action === "join") {
-        const leagueRow = db.prepare("SELECT id FROM fantasy_leagues WHERE code=?").get(String(data.code || "").trim().toUpperCase());
+        const code = String(data.code || "").trim().toUpperCase();
+        const leagueRow = db.prepare(`
+          SELECT id, is_public, max_members FROM fantasy_leagues WHERE code=?
+        `).get(code);
         if (!leagueRow) throw new Error("Codigo de liga no valido");
+        const memberCount = db.prepare("SELECT COUNT(*) c FROM fantasy_league_members WHERE league_id=?").get(leagueRow.id).c;
+        if (memberCount >= leagueRow.max_members) throw new Error("Liga completa");
         db.prepare("INSERT OR IGNORE INTO fantasy_league_members VALUES (?, ?)").run(leagueRow.id, userId);
       } else if (action === "settings") {
         const owner = db.prepare("SELECT created_by FROM fantasy_leagues WHERE id=?").get(activeLeagueId);

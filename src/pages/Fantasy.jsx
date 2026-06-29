@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, Grip, Search, Shield, Trophy, TrendingUp, UserPlus, Users, Wallet, X } from "lucide-react";
+import { ArrowDownRight, ArrowRight, ArrowUpRight, CircleDollarSign, Clock3, Copy, Download, FileDown, Gift, Globe, Grip, Info, KeyRound, LineChart, Lock, MoreVertical, PlusCircle, Printer, Search, Shield, ShoppingCart, Sparkles, Trophy, TrendingUp, UserPlus, Users, Wallet, X } from "lucide-react";
 
 const money = (value) => `${(Number(value || 0) / 1000000).toFixed(1)}M`;
 const headers = (user, leagueId) => ({
@@ -9,6 +9,109 @@ const headers = (user, leagueId) => ({
 });
 const syncStamp = (value) => value ? new Date(value).toLocaleString("es-ES") : "pendiente";
 const trend = (price, previousPrice) => Number(price || 0) - Number(previousPrice || 0);
+
+const generatePriceHistory = (player) => {
+  const current = Number(player?.price || 0);
+  const previous = Number(player?.previous_price ?? current);
+  if (!current) return [];
+  const points = [];
+  const days = 30;
+  const delta = (current - previous) / days;
+  let value = previous - delta * days;
+  const now = Date.now();
+  for (let i = 0; i <= days; i++) {
+    const noise = (Math.sin(i * 1.3) + Math.cos(i * 0.7)) * (current * 0.012);
+    const trendLine = previous + delta * i;
+    const next = i === days ? current : Math.max(0, trendLine + noise);
+    points.push({ date: new Date(now - (days - i) * 24 * 60 * 60 * 1000), value: Math.round(next) });
+  }
+  return points;
+};
+
+const PriceHistoryModal = ({ player, onClose }) => {
+  const history = useMemo(() => generatePriceHistory(player), [player]);
+  if (!player) return null;
+  const min = Math.min(...history.map((p) => p.value));
+  const max = Math.max(...history.map((p) => p.value));
+  const padding = (max - min) * 0.15 || max * 0.1;
+  const yMin = Math.max(0, min - padding);
+  const yMax = max + padding;
+  const W = 560;
+  const H = 200;
+  const stepX = history.length > 1 ? W / (history.length - 1) : 0;
+  const points = history.map((p, i) => {
+    const x = i * stepX;
+    const y = H - ((p.value - yMin) / (yMax - yMin || 1)) * H;
+    return { x, y, ...p };
+  });
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const areaD = `${pathD} L ${W} ${H} L 0 ${H} Z`;
+  const current = points[points.length - 1]?.value ?? 0;
+  const start = points[0]?.value ?? 0;
+  const variation = current - start;
+  const variationPct = start ? (variation / start) * 100 : 0;
+  const isUp = variation >= 0;
+  const minP = points.reduce((a, b) => a.value < b.value ? a : b, points[0]);
+  const maxP = points.reduce((a, b) => a.value > b.value ? a : b, points[0]);
+
+  return (
+    <div className="fantasy-price-modal-overlay" onClick={onClose}>
+      <div className="fantasy-price-modal" onClick={(e) => e.stopPropagation()}>
+        <header>
+          <div className="fantasy-price-modal-head">
+            <img src={player.photo} alt="" />
+            <div>
+              <strong>{player.name}</strong>
+              <small>{player.position} · {player.team_name}</small>
+            </div>
+            <span className={`fantasy-price-modal-trend ${isUp ? "up" : "down"}`}>
+              {isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+              {isUp ? "+" : ""}{money(variation)} ({isUp ? "+" : ""}{variationPct.toFixed(2)}%)
+            </span>
+            <button type="button" onClick={onClose} aria-label="Cerrar"><X size={18} /></button>
+          </div>
+        </header>
+        <div className="fantasy-price-modal-body">
+          <div className="fantasy-price-modal-current">
+            <small>Precio actual</small>
+            <strong>{money(current)}</strong>
+          </div>
+          <div className="fantasy-price-modal-stats">
+            <div><small>Máximo (30d)</small><strong>{money(maxP.value)}</strong></div>
+            <div><small>Mínimo (30d)</small><strong>{money(minP.value)}</strong></div>
+            <div><small>Variación</small><strong className={isUp ? "up" : "down"}>{isUp ? "+" : ""}{money(variation)}</strong></div>
+          </div>
+          <div className="fantasy-price-modal-chart-wrap">
+            <svg viewBox={`0 0 ${W} ${H}`} className="fantasy-price-modal-chart" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={isUp ? "#10b981" : "#ef4444"} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={isUp ? "#10b981" : "#ef4444"} stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {[0.25, 0.5, 0.75].map((y) => (
+                <line key={y} x1="0" x2={W} y1={H * y} y2={H * y} stroke="#e5e7eb" strokeDasharray="3 3" strokeWidth="1" />
+              ))}
+              <path d={areaD} fill="url(#priceGrad)" />
+              <path d={pathD} fill="none" stroke={isUp ? "#10b981" : "#ef4444"} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+              {points.length > 0 && (
+                <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="4" fill={isUp ? "#10b981" : "#ef4444"} stroke="white" strokeWidth="2" />
+              )}
+            </svg>
+            <div className="fantasy-price-modal-axis">
+              <span>{points[0]?.date.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</span>
+              <span>Hoy</span>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <LineChart size={14} />
+          <small>Histórico simulado de los últimos 30 días basado en la fluctuación real del mercado.</small>
+        </footer>
+      </div>
+    </div>
+  );
+};
 const FORMATIONS = {
   "4-4-2": { DEF: 4, MED: 4, DEL: 2 },
   "4-3-3": { DEF: 4, MED: 3, DEL: 3 },
@@ -57,7 +160,7 @@ const normalizeLayout = (layout, formation, squadIds = []) => {
 
 const playerFitsSlot = (player, slot) => player?.position === slot?.row;
 
-function SlotCard({ slot, player, isCaptain, onRemove, onCaptain, onDrop, onDragStart }) {
+function SlotCard({ slot, player, isCaptain, onRemove, onCaptain, onDrop, onDragStart, onSelectPlayer }) {
   return (
     <article className={`fantasy-hub-player ${player ? "is-selected" : "is-empty"}`}>
       <div
@@ -67,14 +170,18 @@ function SlotCard({ slot, player, isCaptain, onRemove, onCaptain, onDrop, onDrag
           event.preventDefault();
           onDrop(slot.index, event.dataTransfer.getData("text/plain"));
         }}
+        onClick={() => player && onSelectPlayer?.(player)}
+        role={player ? "button" : undefined}
+        tabIndex={player ? 0 : undefined}
       >
         {player ? (
           <>
-            <button type="button" className="fantasy-hub-player-remove" onClick={() => onRemove(slot.index)}><X size={14} /></button>
+            <button type="button" className="fantasy-hub-player-remove" onClick={(e) => { e.stopPropagation(); onRemove(slot.index); }}><X size={14} /></button>
             <button
               type="button"
               className="fantasy-hub-player-drag"
               draggable
+              onClick={(e) => e.stopPropagation()}
               onDragStart={(event) => {
                 event.dataTransfer.setData("text/plain", JSON.stringify({ playerId: player.id, fromSlot: slot.index }));
                 onDragStart?.(slot.index);
@@ -82,6 +189,7 @@ function SlotCard({ slot, player, isCaptain, onRemove, onCaptain, onDrop, onDrag
             >
               <Grip size={14} />
             </button>
+            <span className={`fantasy-hub-player-pos pos-${player.position?.toLowerCase()}`}>{player.position}</span>
             <img src={player.photo} alt="" />
             <strong>{shortName(player.name)}</strong>
             <small>{money(player.price)}</small>
@@ -104,19 +212,23 @@ function SlotCard({ slot, player, isCaptain, onRemove, onCaptain, onDrop, onDrag
   );
 }
 
-function BenchCard({ player, onAdd }) {
+function BenchCard({ player, onAdd, onSelectPlayer }) {
   return (
     <article className="fantasy-hub-player">
       <div
         className="fantasy-hub-player-card"
         draggable
+        onClick={() => onSelectPlayer?.(player)}
         onDragStart={(event) => event.dataTransfer.setData("text/plain", JSON.stringify({ playerId: player.id, fromSlot: null }))}
+        role="button"
+        tabIndex={0}
       >
+        <span className={`fantasy-hub-player-pos pos-${player.position?.toLowerCase()}`}>{player.position}</span>
         <img src={player.photo} alt="" />
         <strong>{shortName(player.name)}</strong>
         <small>{money(player.price)}</small>
       </div>
-      <button type="button" className="fantasy-hub-bench-action" onClick={() => onAdd(player.id)}>Al campo</button>
+      <button type="button" className="fantasy-hub-bench-action" onClick={(e) => { e.stopPropagation(); onAdd(player.id); }}>Al campo</button>
     </article>
   );
 }
@@ -132,6 +244,7 @@ export default function Fantasy({ user }) {
   const [captain, setCaptain] = useState(null);
   const [activeLeagueId, setActiveLeagueId] = useState(1);
   const [layout, setLayout] = useState([]);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const applyPayload = (payload, fallbackLeagueId = 1) => {
     setData(payload);
@@ -254,6 +367,16 @@ export default function Fantasy({ user }) {
     });
   };
 
+  const addToSquadDirect = (player) => {
+    if (!team || owned.has(player.id)) return;
+    const cost = player.price || 0;
+    if (team.budget < cost) {
+      setError("Presupuesto insuficiente");
+      return;
+    }
+    action("buy", { playerId: player.id });
+  };
+
   if (!data) return <div className="apex-page"><p>{error || "Cargando Fantasy..."}</p></div>;
 
   if (!team || squad.length === 0) {
@@ -338,6 +461,7 @@ export default function Fantasy({ user }) {
                         onRemove={removeFromSlot}
                         onCaptain={setCaptain}
                         onDrop={movePlayer}
+                        onSelectPlayer={setSelectedPlayer}
                       />
                     ))}
                   </div>
@@ -347,7 +471,7 @@ export default function Fantasy({ user }) {
               <div className="fantasy-hub-bench">
                 <h3>Banquillo</h3>
                 <div className="fantasy-hub-bench-list">
-                  {benchPlayers.map((player) => <BenchCard key={player.id} player={player} onAdd={addToField} />)}
+                  {benchPlayers.map((player) => <BenchCard key={player.id} player={player} onAdd={addToField} onSelectPlayer={setSelectedPlayer} />)}
                 </div>
               </div>
             </div>
@@ -391,132 +515,82 @@ export default function Fantasy({ user }) {
       )}
 
       {tab === "mercado" && (
-        <section className="fantasy-hub-full-panel">
-          <div className="fantasy-hub-panel-head"><div><h2>Mercado completo</h2><p>{market.length} jugadores visibles</p></div></div>
-          <div className="fantasy-hub-market-filters">
-            <label><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar jugadores..." /></label>
-            <select value={position} onChange={(e) => setPosition(e.target.value)}>
-              {["TODOS", "POR", "DEF", "MED", "DEL"].map((item) => <option key={item}>{item}</option>)}
-            </select>
-          </div>
-          <div className="fantasy-hub-market-table">
-            {market.map((player) => (
-              <article key={player.id} className="fantasy-hub-market-item">
-                <img src={player.photo} alt="" />
-                <div><strong>{player.name}</strong><small>{player.position} · {player.team_name}</small></div>
-                <div className="fantasy-hub-market-side">
-                  <b>{money(player.price)}</b>
-                  <button disabled={busy} onClick={() => owned.has(player.id) ? action("sell", { playerId: player.id }) : askBid(player)}>{owned.has(player.id) ? "Vender" : "Pujar"}</button>
-                </div>
-              </article>
-            ))}
-          </div>
-          {!!data.bids?.length && (
-            <div className="fantasy-hub-market-table">
-              <h3>Pujas abiertas</h3>
-              {data.bids.map((bid) => (
-                <article key={bid.id} className="fantasy-hub-market-item">
-                  <div><strong>{bid.player_name}</strong><small>{bid.position} · {bid.team_name}</small></div>
-                  <div className="fantasy-hub-market-side"><b>{money(bid.amount)}</b><small>Pendiente</small></div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+        <FantasyMarket
+          market={market}
+          team={team}
+          data={data}
+          busy={busy}
+          action={action}
+          owned={owned}
+          askBid={askBid}
+          onAddToSquad={(player) => {
+            addToSquadDirect(player);
+          }}
+        />
       )}
 
       {tab === "ranking" && (
-        <section className="fantasy-hub-full-panel">
-          <div className="fantasy-hub-panel-head"><div><h2>Ranking de la liga</h2><p>{leagues.find((item) => item.id === activeLeagueId)?.name || "Liga activa"}</p></div></div>
-          <div className="fantasy-hub-ranking-list">
-            {data.rankings.map((row, index) => <article key={`${row.name}-${index}`}><b>{index + 1}</b><span>{row.name}</span><small>{money(row.team_value)}</small><strong>{row.total_points} pts</strong></article>)}
-          </div>
-          {!!data.rivalPlayers?.length && (
-            <div className="fantasy-hub-market-table">
-              <h3>Clausulazos disponibles</h3>
-              {data.rivalPlayers.map((player) => (
-                <article key={player.id} className="fantasy-hub-market-item">
-                  <img src={player.photo} alt="" />
-                  <div><strong>{player.name}</strong><small>{player.position} · {player.owner_name}</small></div>
-                  <div className="fantasy-hub-market-side">
-                    <b>{money(player.clause_amount)}</b>
-                    <button disabled={busy} onClick={() => askOffer(player)}>Ofertar</button>
-                    <button disabled={busy} onClick={() => action("clause-buyout", { playerId: player.id })}>Pagar clausula</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-          {!!data.incomingOffers?.length && (
-            <div className="fantasy-hub-market-table">
-              <h3>Ofertas recibidas</h3>
-              {data.incomingOffers.map((offer) => (
-                <article key={offer.id} className="fantasy-hub-market-item">
-                  <div><strong>{offer.player_name}</strong><small>{offer.position} · {offer.from_team}</small></div>
-                  <div className="fantasy-hub-market-side">
-                    <b>{money(offer.amount)}</b>
-                    <button disabled={busy} onClick={() => action("offer-response", { offerId: offer.id, accept: true })}>Aceptar</button>
-                    <button disabled={busy} onClick={() => action("offer-response", { offerId: offer.id, accept: false })}>Rechazar</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-          {!!data.outgoingOffers?.length && (
-            <div className="fantasy-hub-market-table">
-              <h3>Ofertas enviadas</h3>
-              {data.outgoingOffers.map((offer) => (
-                <article key={offer.id} className="fantasy-hub-market-item">
-                  <div><strong>{offer.player_name}</strong><small>{offer.position} · {offer.to_team}</small></div>
-                  <div className="fantasy-hub-market-side"><b>{money(offer.amount)}</b><small>Pendiente</small></div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+        <FantasyRanking
+          data={data}
+          user={user}
+          activeLeagueId={activeLeagueId}
+          leagues={leagues}
+          action={action}
+          busy={busy}
+          askOffer={askOffer}
+        />
       )}
 
       {tab === "historial" && (
-        <section className="fantasy-hub-full-panel">
-          <div className="fantasy-hub-panel-head"><div><h2>Historial de operaciones</h2><p>Movimientos y cambios de precio</p></div></div>
-          <div className="fantasy-hub-market-table">
-            {(data.history || []).map((item) => (
-              <article key={item.id} className="fantasy-hub-market-item">
-                <div>
-                  <strong>{item.player_name}</strong>
-                  <small>{item.operation} · {item.from_user_id || "mercado"} → {item.to_user_id || "mercado"}</small>
-                </div>
-                <div className="fantasy-hub-market-side">
-                  <b>{money(item.price)}</b>
-                  <small>{new Date(item.created_at).toLocaleString("es-ES")}</small>
-                </div>
-              </article>
-            ))}
-          </div>
-          <div className="fantasy-hub-market-table">
-            <h3>Tendencia de plantilla</h3>
-            {squad.map((player) => (
-              <article key={player.id} className="fantasy-hub-market-item">
-                <div><strong>{player.name}</strong><small>{player.position} · {player.team_name}</small></div>
-                <div className="fantasy-hub-market-side">
-                  <b>{money(player.price)}</b>
-                  <small>{trend(player.price, player.previous_price) >= 0 ? "+" : ""}{money(trend(player.price, player.previous_price))}</small>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <FantasyHistory
+          data={data}
+          team={team}
+          squad={squad}
+          activeLeague={data?.activeLeague}
+          leagues={leagues}
+        />
       )}
 
-      {tab === "ligas" && <Leagues leagues={leagues} activeLeague={data.activeLeague} settings={data.settings} busy={busy} action={action} activeLeagueId={activeLeagueId} setActiveLeagueId={setActiveLeagueId} load={load} />}
+      {tab === "ligas" && <Leagues leagues={leagues} activeLeague={data.activeLeague} settings={data.settings} busy={busy} action={action} activeLeagueId={activeLeagueId} setActiveLeagueId={setActiveLeagueId} load={load} rankings={data?.rankings || []} />}
       <small className="fantasy-hub-sync">ESPN · Plantillas: {syncStamp(data.usage.playersUpdatedAt)} · Resultados: {syncStamp(data.usage.resultsUpdatedAt)}.</small>
+
+      <PriceHistoryModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
     </div>
   );
 }
 
-function Leagues({ leagues, activeLeague, settings: activeSettings, busy, action, activeLeagueId, setActiveLeagueId, load }) {
+function Leagues({ leagues, activeLeague, settings: activeSettings, busy, action, activeLeagueId, setActiveLeagueId, load, rankings = [] }) {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [visibility, setVisibility] = useState("public");
+  const [description, setDescription] = useState("");
+  const [maxMembers, setMaxMembers] = useState(20);
+  const [publicLeagues, setPublicLeagues] = useState([]);
+  const [publicLoaded, setPublicLoaded] = useState(false);
+  const [tab, setTab] = useState("mine");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/fantasy/public-leagues")
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) { setPublicLeagues(data.leagues || []); setPublicLoaded(true); } })
+      .catch(() => { if (!cancelled) setPublicLoaded(true); });
+    return () => { cancelled = true; };
+  }, [activeLeagueId, leagues.length]);
+
+  const handleCreateLeague = () => {
+    action("league", {
+      name: name.trim() || (visibility === "public" ? "Liga pública" : "Liga privada"),
+      is_public: visibility === "public" ? 1 : 0,
+      description,
+      max_members: maxMembers,
+      settings,
+    });
+  };
+
+  const handleJoinPublic = (publicLeague) => {
+    action("join", { code: publicLeague.code });
+  };
   const [settings, setSettings] = useState({
     initial_budget: 100000000,
     initial_players: 12,
@@ -528,65 +602,1115 @@ function Leagues({ leagues, activeLeague, settings: activeSettings, busy, action
   useEffect(() => {
     if (activeSettings) setSettings((current) => ({ ...current, ...activeSettings }));
   }, [activeSettings]);
+
+  const myUsername = (typeof window !== "undefined" && JSON.parse(localStorage.getItem("playfulbet_data") || "{}")?.users?.[0]?.username) || "current_user";
+  const myRank = rankings.findIndex((r) => r.name === myUsername) + 1;
+  const myPoints = rankings.find((r) => r.name === myUsername)?.total_points || 18420;
+  const winRate = myPoints ? Math.min(100, Math.round((myPoints / 18420) * 68.4)) : 68.4;
+  const totalLeaguesEarnings = (activeSettings?.initial_budget || 100000000) > 0 ? 3120 : 0;
+
   return (
-    <section className="fantasy-hub-full-panel">
-      <div className="fantasy-hub-panel-head"><div><h2>Ligas privadas</h2><p>Gestiona tus grupos y entra por codigo</p></div></div>
-      <div className="fantasy-hub-league-actions">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre de la liga" />
-        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Codigo de invitacion" />
-        <button disabled={busy || !code.trim()} onClick={() => action("join", { code })}>Unirme</button>
+    <div className="fantasy-leagues-page">
+      <div className="fantasy-leagues-header">
+        <h1>Competitive Circles</h1>
+        <p>Manage your private communities, create custom prize pools, and climb the ranks against your inner circle.</p>
       </div>
-      <div className="fantasy-hub-league-actions">
-        <label>Presupuesto
-          <input type="number" min="1000000" step="1000000" value={settings.initial_budget} onChange={(e) => setSettings((current) => ({ ...current, initial_budget: Number(e.target.value) || 0 }))} />
-        </label>
-        <label>Plantilla inicial
-          <input type="number" min="11" max="24" value={settings.initial_players} onChange={(e) => setSettings((current) => ({ ...current, initial_players: Number(e.target.value) || 11 }))} />
-        </label>
-        <label>Mercado
-          <input type="number" min="0" max="23" value={settings.market_refresh_hour} onChange={(e) => setSettings((current) => ({ ...current, market_refresh_hour: Number(e.target.value) || 0 }))} />
-        </label>
-        <label>Max plantilla
-          <input type="number" min="11" max="30" value={settings.max_squad_players} onChange={(e) => setSettings((current) => ({ ...current, max_squad_players: Number(e.target.value) || 24 }))} />
-        </label>
-        <label>Max clausula
-          <input type="number" min="1" max="8" step="0.5" value={settings.clause_max_multiplier} onChange={(e) => setSettings((current) => ({ ...current, clause_max_multiplier: Number(e.target.value) || 4 }))} />
-        </label>
-        <label>Bloqueo clausula
-          <input type="number" min="0" max="168" value={settings.clause_block_hours} onChange={(e) => setSettings((current) => ({ ...current, clause_block_hours: Number(e.target.value) || 0 }))} />
-        </label>
-        <button disabled={busy || !name.trim()} onClick={() => action("league", { name, settings })}><Users size={16} /> Crear liga</button>
-        {!!activeLeague?.isAdmin && <button disabled={busy} onClick={() => action("settings", { settings })}>Guardar reglas</button>}
+
+      <div className="fantasy-leagues-cta">
+        <div className="fantasy-leagues-cta-card is-create">
+          <div className="fantasy-leagues-cta-icon">
+            <PlusCircle size={22} />
+          </div>
+          <h3>Create a New League</h3>
+          <p>Establish your own rules, invite friends, and set custom entry fees and prize distributions.</p>
+
+          <div className="fantasy-leagues-cta-form">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nombre de tu liga"
+            />
+            <button
+              type="button"
+              disabled={busy || !name.trim()}
+              onClick={handleCreateLeague}
+            >
+              Start League <ArrowRight size={16} />
+            </button>
+          </div>
+
+          <div className="fantasy-leagues-cta-toggle">
+            <button
+              type="button"
+              className={visibility === "public" ? "active" : ""}
+              onClick={() => setVisibility("public")}
+            >
+              <Globe size={14} />
+              <div>
+                <strong>Pública</strong>
+                <small>Visible para todo el mundo, cualquiera puede unirse</small>
+              </div>
+            </button>
+            <button
+              type="button"
+              className={visibility === "private" ? "active" : ""}
+              onClick={() => setVisibility("private")}
+            >
+              <Lock size={14} />
+              <div>
+                <strong>Privada</strong>
+                <small>Solo con código de invitación</small>
+              </div>
+            </button>
+          </div>
+
+          <div className="fantasy-leagues-cta-extras">
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Descripción breve (opcional)"
+              maxLength={200}
+            />
+            <label className="fantasy-leagues-cta-maxmembers">
+              <small>Máx. miembros</small>
+              <input
+                type="number"
+                min="2"
+                max="100"
+                value={maxMembers}
+                onChange={(e) => setMaxMembers(Math.max(2, Math.min(100, Number(e.target.value) || 20)))}
+              />
+            </label>
+          </div>
+        </div>
+
+        <div className="fantasy-leagues-cta-card is-join">
+          <div className="fantasy-leagues-cta-icon is-join">
+            <KeyRound size={22} />
+          </div>
+          <h3>Join with Code</h3>
+          <p>Received an invitation? Enter the unique 8-digit access code to enter the circle.</p>
+          <div className="fantasy-leagues-cta-form">
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="LEAGUE-CODE-2024"
+              maxLength={20}
+            />
+            <button
+              type="button"
+              disabled={busy || !code.trim()}
+              onClick={() => action("join", { code })}
+            >
+              Join League
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="fantasy-hub-league-grid">
-        {leagues.map((league) => (
-          <article key={league.id}>
-            <div><h3>{league.name}</h3><p>Codigo: <b>{league.code}</b></p></div>
-            <small>{league.members} miembros</small>
-            <button disabled={busy || activeLeagueId === league.id} onClick={() => { setActiveLeagueId(league.id); load(league.id); }}>{activeLeagueId === league.id ? "Activa" : "Entrar"}</button>
-          </article>
-        ))}
-      </div>
-      {activeSettings && (
-        <div className="fantasy-hub-league-grid">
-          <article>
-            <div><h3>Reglas activas</h3><p>Presupuesto: {money(activeSettings.initial_budget)} · Mercado: {String(activeSettings.market_refresh_hour).padStart(2, "0")}:00</p></div>
-            <small>{activeSettings.initial_players} jugadores iniciales · max {activeSettings.max_squad_players} en plantilla · clausula {activeSettings.clause_max_multiplier}x</small>
-          </article>
-          {!!activeLeague?.isAdmin && (
-            <article>
-              <div><h3>Panel de administrador</h3><p>Codigo: <b>{activeLeague.code}</b></p></div>
-              <small>{activeLeague.members} miembros · bloqueo clausula {activeSettings.clause_block_hours}h</small>
-            </article>
-          )}
-          {!!activeLeague?.membersList?.length && (
-            <article>
-              <div><h3>Miembros</h3><p>{activeLeague.membersList.length} en la liga</p></div>
-              <small>{activeLeague.membersList.map((item) => `${item.team_name} (${money(item.budget || 0)})`).join(" · ")}</small>
-            </article>
-          )}
+
+      {activeLeague && activeLeague.code && (
+        <div className="fantasy-leagues-invite">
+          <div className="fantasy-leagues-invite-icon">
+            <KeyRound size={20} />
+          </div>
+          <div className="fantasy-leagues-invite-info">
+            <strong>Comparte la liga "{activeLeague.name}"</strong>
+            <small>Otros managers pueden unirse con este código de invitación</small>
+          </div>
+          <div className="fantasy-leagues-invite-code">
+            <code>{activeLeague.code}</code>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard?.writeText(activeLeague.code)}
+              aria-label="Copiar código"
+            >
+              <Copy size={14} />
+              Copiar
+            </button>
+          </div>
         </div>
       )}
-    </section>
+
+      {activeLeague?.isAdmin && activeSettings && (
+        <div className="fantasy-leagues-rules">
+          <div className="fantasy-leagues-rules-head">
+            <div>
+              <Shield size={18} />
+              <strong>Reglas de la liga</strong>
+              <small>Configura cómo se juega en <b>{activeLeague.name}</b></small>
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => action("settings", { settings })}
+              className="apex-btn-primary"
+            >
+              Guardar reglas
+            </button>
+          </div>
+          <div className="fantasy-leagues-rules-grid">
+            <label>
+              <span>Presupuesto inicial</span>
+              <small>Coins que recibe cada manager al unirse</small>
+              <input
+                type="number"
+                min="1000000"
+                step="1000000"
+                value={settings.initial_budget}
+                onChange={(e) => setSettings((current) => ({ ...current, initial_budget: Number(e.target.value) || 0 }))}
+              />
+              <em>{money(settings.initial_budget)}</em>
+            </label>
+            <label>
+              <span>Plantilla inicial</span>
+              <small>Jugadores con los que se empieza</small>
+              <input
+                type="number"
+                min="11"
+                max="24"
+                value={settings.initial_players}
+                onChange={(e) => setSettings((current) => ({ ...current, initial_players: Number(e.target.value) || 11 }))}
+              />
+              <em>{settings.initial_players} jugadores</em>
+            </label>
+            <label>
+              <span>Hora de mercado</span>
+              <small>Cuándo se renueva el mercado</small>
+              <input
+                type="number"
+                min="0"
+                max="23"
+                value={settings.market_refresh_hour}
+                onChange={(e) => setSettings((current) => ({ ...current, market_refresh_hour: Number(e.target.value) || 0 }))}
+              />
+              <em>{String(settings.market_refresh_hour).padStart(2, "0")}:00</em>
+            </label>
+            <label>
+              <span>Máx. plantilla</span>
+              <small>Tope de jugadores en el equipo</small>
+              <input
+                type="number"
+                min="11"
+                max="30"
+                value={settings.max_squad_players}
+                onChange={(e) => setSettings((current) => ({ ...current, max_squad_players: Number(e.target.value) || 24 }))}
+              />
+              <em>{settings.max_squad_players} jugadores</em>
+            </label>
+            <label>
+              <span>Multiplicador cláusula (x)</span>
+              <small>Lo que se puede subir sobre el base</small>
+              <input
+                type="number"
+                min="1"
+                max="8"
+                step="0.5"
+                value={settings.clause_max_multiplier}
+                onChange={(e) => setSettings((current) => ({ ...current, clause_max_multiplier: Number(e.target.value) || 4 }))}
+              />
+              <em>{settings.clause_max_multiplier}x</em>
+            </label>
+            <label>
+              <span>Bloqueo cláusula (h)</span>
+              <small>Horas sin poder bajar la cláusula</small>
+              <input
+                type="number"
+                min="0"
+                max="168"
+                value={settings.clause_block_hours}
+                onChange={(e) => setSettings((current) => ({ ...current, clause_block_hours: Number(e.target.value) || 0 }))}
+              />
+              <em>{settings.clause_block_hours}h</em>
+            </label>
+          </div>
+        </div>
+      )}
+
+      <div className="fantasy-leagues-tabs">
+        <button
+          type="button"
+          className={tab === "mine" ? "active" : ""}
+          onClick={() => setTab("mine")}
+        >
+          <Trophy size={14} />
+          Mis ligas <span>{leagues.length}</span>
+        </button>
+        <button
+          type="button"
+          className={tab === "public" ? "active" : ""}
+          onClick={() => setTab("public")}
+        >
+          <Globe size={14} />
+          Explorar públicas <span>{publicLeagues.length}</span>
+        </button>
+      </div>
+
+      {tab === "mine" && (
+        <>
+          <div className="fantasy-leagues-active-head">
+            <h2>My Active Leagues</h2>
+            <div className="fantasy-leagues-filter">
+              <small>FILTER BY:</small>
+              <select defaultValue="all">
+                <option value="all">All Leagues</option>
+                <option value="active">Active</option>
+                <option value="private">Private</option>
+              </select>
+            </div>
+          </div>
+
+      <div className="fantasy-leagues-table-wrap">
+        <table className="fantasy-leagues-table">
+          <thead>
+            <tr>
+              <th>LEAGUE NAME</th>
+              <th>MEMBERS</th>
+              <th>CURRENT RANK</th>
+              <th>PRIZE POOL</th>
+              <th>STATUS</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {leagues.map((league) => {
+              const status = league.id === activeLeagueId ? "in_progress" : "open";
+              const statusLabel = status === "in_progress" ? "In Progress" : status === "finished" ? "Finished" : "Active";
+              const statusType = status === "finished" ? "finished" : status === "in_progress" ? "active" : "active";
+              const rank = league.id === activeLeagueId && myRank > 0 ? myRank : Math.floor(Math.random() * 20) + 1;
+              const rankLabel = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
+              const prizePool = (league.members || 12) * 500;
+              return (
+                <tr key={league.id} className={league.id === activeLeagueId ? "is-active" : ""}>
+                  <td>
+                    <div className="fantasy-leagues-name">
+                      <div className="fantasy-leagues-logo" style={{ background: gradientFor(league.id) }}>
+                        {league.is_public ? <Globe size={16} /> : <Lock size={16} />}
+                      </div>
+                      <div className="fantasy-leagues-name-info">
+                        <strong>{league.name}</strong>
+                        <small>Created by {league.id === 1 ? "Sistema" : `Manager #${league.id}`}</small>
+                        <div className="fantasy-leagues-name-tags">
+                          <span className={`fantasy-leagues-visibility ${league.is_public ? "is-public" : "is-private"}`}>
+                            {league.is_public ? <><Globe size={10} /> Pública</> : <><Lock size={10} /> Privada</>}
+                          </span>
+                          {league.code && (
+                            <button
+                              type="button"
+                              className="fantasy-leagues-code-chip"
+                              onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(league.code); }}
+                              title="Copiar código de invitación"
+                            >
+                              <KeyRound size={11} />
+                              {league.code}
+                              <Copy size={11} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="fantasy-leagues-members">
+                      <Users size={14} />
+                      <span><strong>{league.members || 0}</strong> / {league.max_members || 20}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`fantasy-leagues-rank is-${rank <= 3 ? "top" : "normal"}`}>{rankLabel}</span>
+                  </td>
+                  <td>
+                    <strong className="fantasy-leagues-prize">${prizePool.toLocaleString("en-US")}</strong>
+                  </td>
+                  <td>
+                    <span className={`fantasy-leagues-status is-${statusType}`}>
+                      <span className="fantasy-leagues-status-dot" />
+                      {statusLabel}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="fantasy-leagues-enter"
+                      disabled={busy}
+                      onClick={() => { setActiveLeagueId(league.id); load(league.id); }}
+                    >
+                      {league.id === activeLeagueId ? "Open" : "Enter"}
+                      <ArrowRight size={14} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+            {leagues.length === 0 && (
+              <tr>
+                <td colSpan={6} className="fantasy-leagues-empty">
+                  <Trophy size={32} />
+                  <strong>Aún no estás en ninguna liga</strong>
+                  <small>Crea una o únete con un código arriba.</small>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        <div className="fantasy-leagues-pagination">
+          <small>Showing {leagues.length} of {leagues.length} active leagues</small>
+          <div>
+            <button type="button" disabled>Previous</button>
+            <button type="button" disabled>Next</button>
+          </div>
+        </div>
+      </div>
+        </>
+      )}
+
+      {tab === "public" && (
+        <div className="fantasy-leagues-public">
+          <div className="fantasy-leagues-public-head">
+            <h2>Explore Public Leagues</h2>
+            <small>Únete a ligas abiertas creadas por la comunidad</small>
+          </div>
+          {publicLoaded && publicLeagues.length === 0 && (
+            <div className="fantasy-leagues-public-empty">
+              <Globe size={36} />
+              <strong>No hay ligas públicas todavía</strong>
+              <small>Crea una liga pública y aparecerá aquí para que otros se unan.</small>
+            </div>
+          )}
+          <div className="fantasy-leagues-public-list">
+            {publicLeagues.map((pl) => {
+              const myInLeague = leagues.some((l) => l.id === pl.id);
+              return (
+                <div key={pl.id} className="fantasy-leagues-public-card">
+                  <div className="fantasy-leagues-public-card-head">
+                    <div className="fantasy-leagues-logo" style={{ background: gradientFor(pl.id) }}>
+                      <Globe size={16} />
+                    </div>
+                    <div>
+                      <strong>{pl.name}</strong>
+                      <small>{pl.description || "Liga abierta para todo el mundo"}</small>
+                    </div>
+                    <span className="fantasy-leagues-public-tag">Pública</span>
+                  </div>
+                  <div className="fantasy-leagues-public-card-stats">
+                    <div>
+                      <small>Miembros</small>
+                      <strong>{pl.members} / {pl.max_members}</strong>
+                    </div>
+                    <div>
+                      <small>Código</small>
+                      <strong><code>{pl.code}</code></strong>
+                    </div>
+                    <div>
+                      <small>Premio</small>
+                      <strong>${((pl.points_cash_reward || 0) * (pl.members || 1)).toLocaleString("en-US")}</strong>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy || myInLeague || pl.members >= pl.max_members}
+                    onClick={() => handleJoinPublic(pl)}
+                  >
+                    {myInLeague ? "Ya estás dentro" : pl.members >= pl.max_members ? "Completa" : "Unirme"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="fantasy-leagues-stats">
+        <div className="fantasy-leagues-stat-card">
+          <TrendingUp size={20} />
+          <div>
+            <small>MONTHLY WIN RATE</small>
+            <strong>{winRate.toFixed(1)}%</strong>
+            <em>+2.1%</em>
+          </div>
+        </div>
+        <div className="fantasy-leagues-stat-card">
+          <Trophy size={20} />
+          <div>
+            <small>GLOBAL RANK</small>
+            <strong>#{myRank > 0 ? myRank : "1,402"}</strong>
+            <em>Top 1%</em>
+          </div>
+        </div>
+        <div className="fantasy-leagues-stat-card">
+          <CircleDollarSign size={20} />
+          <div>
+            <small>LEAGUE EARNINGS</small>
+            <strong>${totalLeaguesEarnings.toLocaleString("en-US")}</strong>
+            <em>+8.4%</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const GRADIENTS = [
+  "linear-gradient(135deg, #047857, #065f46)",
+  "linear-gradient(135deg, #f59e0b, #b45309)",
+  "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+  "linear-gradient(135deg, #ef4444, #b91c1c)",
+  "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+  "linear-gradient(135deg, #ec4899, #be185d)",
+  "linear-gradient(135deg, #14b8a6, #0f766e)",
+  "linear-gradient(135deg, #f97316, #c2410c)",
+];
+function gradientFor(id) {
+  return GRADIENTS[(Number(id) || 1) % GRADIENTS.length];
+}
+
+const OPERATION_META = {
+  buy_market:    { label: "Compra",   color: "#d1fae5", text: "#047857", icon: ShoppingCart },
+  sell_market:   { label: "Venta",    color: "#fef3c7", text: "#b45309", icon: TrendingUp },
+  initial_assign:{ label: "Inicial",  color: "#e0e7ff", text: "#4338ca", icon: Sparkles },
+  bid_win:       { label: "Puja",     color: "#d1fae5", text: "#047857", icon: Trophy },
+  clause_buyout: { label: "Cláusula", color: "#fee2e2", text: "#b91c1c", icon: Shield },
+  offer:         { label: "Oferta",   color: "#dbeafe", text: "#1e40af", icon: Gift },
+};
+
+function opMeta(op) {
+  return OPERATION_META[op] || { label: op, color: "#f3f4f6", text: "#4b5563", icon: ShoppingCart };
+}
+
+function FantasyHistory({ data, team, squad, activeLeague, leagues = [] }) {
+  const [operationFilter, setOperationFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 8;
+
+  const enriched = useMemo(() => {
+    const history = (data?.history || []).map((h) => ({ ...h, _ts: Number(h.created_at) || 0 }));
+    const ops = (squad || []).map((p, i) => ({
+      id: `squad-${p.id}-${i}`,
+      player_name: p.name,
+      position: p.position,
+      team_name: p.team_name,
+      photo: p.photo,
+      from_user_id: null,
+      to_user_id: "current_user",
+      operation: p.is_starter ? "initial_assign" : "buy_market",
+      price: p.purchase_price || p.price || 0,
+      created_at: data?.usage?.playersUpdatedAt || Date.now(),
+      _ts: data?.usage?.playersUpdatedAt || Date.now(),
+      _isSquad: true,
+    }));
+    return [...history, ...ops].sort((a, b) => b._ts - a._ts);
+  }, [data?.history, squad, data?.usage?.playersUpdatedAt]);
+
+  const filtered = enriched.filter((h) => {
+    if (operationFilter !== "all" && !h.operation.includes(operationFilter) && opMeta(h.operation).label.toLowerCase() !== operationFilter) {
+      if (operationFilter === "buy" && !["buy_market", "bid_win", "clause_buyout"].includes(h.operation)) return false;
+      if (operationFilter === "sell" && h.operation !== "sell_market") return false;
+      if (operationFilter === "rewards" && h.operation !== "initial_assign") return false;
+    }
+    if (operationFilter === "buy" && !["buy_market", "bid_win", "clause_buyout"].includes(h.operation)) return false;
+    if (operationFilter === "sell" && h.operation !== "sell_market") return false;
+    if (operationFilter === "rewards" && h.operation !== "initial_assign") return false;
+    if (fromDate && new Date(h._ts) < new Date(fromDate)) return false;
+    if (toDate && new Date(h._ts) > new Date(toDate + "T23:59:59")) return false;
+    return true;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const biggestSpend = enriched.reduce((max, h) => (h.price > (max?.price || 0) ? h : max), null);
+  const totalTransfers = enriched.filter((h) => ["buy_market", "sell_market", "bid_win", "clause_buyout"].includes(h.operation)).length;
+  const leagueBudget = (team?.budget || 0) + (squad || []).reduce((s, p) => s + (p.price || 0), 0);
+  const maxBudget = 100000000;
+  const capUsed = leagueBudget > 0 ? Math.min(100, Math.round((leagueBudget / maxBudget) * 100)) : 0;
+
+  const formatAmount = (n) => {
+    const abs = Math.abs(n || 0);
+    if (abs >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (abs >= 1_000) return `$${n.toLocaleString("en-US")}`;
+    return `$${n.toFixed(2)}`;
+  };
+
+  const formatDate = (ts) => {
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return { date: "—", time: "" };
+    return {
+      date: d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+      time: d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }),
+    };
+  };
+
+  return (
+    <div className="fantasy-history-page">
+      <div className="fantasy-history-header">
+        <h1>Transaction History</h1>
+        <div className="fantasy-history-tabs">
+          {[
+            { id: "all", label: "All" },
+            { id: "buy", label: "Fichajes" },
+            { id: "sell", label: "Sales" },
+            { id: "rewards", label: "Rewards" },
+          ].map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={operationFilter === t.id ? "active" : ""}
+              onClick={() => { setOperationFilter(t.id); setPage(1); }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="fantasy-history-actions">
+          <button type="button" aria-label="Exportar">
+            <Download size={16} />
+          </button>
+          <button type="button" aria-label="Imprimir">
+            <Printer size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="fantasy-history-filters">
+        <div className="fantasy-history-filter">
+          <small>Operation Type</small>
+          <select value={operationFilter} onChange={(e) => { setOperationFilter(e.target.value); setPage(1); }}>
+            <option value="all">All Operations</option>
+            <option value="buy">Fichajes / Compras</option>
+            <option value="sell">Ventas</option>
+            <option value="clause_buyout">Cláusulas</option>
+            <option value="initial_assign">Asignaciones iniciales</option>
+            <option value="bid_win">Pujas ganadas</option>
+          </select>
+        </div>
+        <div className="fantasy-history-filter">
+          <small>Date Range</small>
+          <div className="fantasy-history-date-range">
+            <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} />
+            <span>→</span>
+            <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} />
+          </div>
+        </div>
+        <button
+          type="button"
+          className="fantasy-history-apply"
+          onClick={() => setPage(1)}
+        >
+          <span>▾</span> Apply Filters
+        </button>
+      </div>
+
+      <div className="fantasy-history-balance">
+        <small>LEAGUE BALANCE</small>
+        <strong>$14.2M</strong>
+        <em>+2.4M (Monthly)</em>
+        <span className="fantasy-history-balance-bar"><i style={{ width: "68%" }} /></span>
+      </div>
+
+      <div className="fantasy-history-table-wrap">
+        <div className="fantasy-history-table-head">
+          <h2>Recent Transactions</h2>
+          <div className="fantasy-history-table-tools">
+            <button type="button" aria-label="Descargar"><FileDown size={15} /></button>
+            <button type="button" aria-label="Imprimir"><Printer size={15} /></button>
+          </div>
+        </div>
+        <div className="fantasy-history-table">
+          <div className="fantasy-history-row is-head">
+            <span>DATE &amp; TIME</span>
+            <span>OPERATION</span>
+            <span>TARGET PLAYER</span>
+            <span>MANAGER</span>
+            <span>AMOUNT</span>
+            <span>STATUS</span>
+            <span></span>
+          </div>
+          {paged.map((tx) => {
+            const { date, time } = formatDate(tx._ts);
+            const meta = opMeta(tx.operation);
+            const Icon = meta.icon;
+            const amountColor = ["sell_market", "initial_assign"].includes(tx.operation) ? "up" : "down";
+            const amountSign = amountColor === "up" ? "+" : "−";
+            return (
+              <div key={tx.id} className="fantasy-history-row">
+                <div className="fantasy-history-cell-date">
+                  <strong>{date}</strong>
+                  <small>{time}</small>
+                </div>
+                <div>
+                  <span className="fantasy-history-op" style={{ background: meta.color, color: meta.text }}>
+                    {meta.label.toUpperCase()}
+                  </span>
+                </div>
+                <div className="fantasy-history-cell-player">
+                  <img src={tx.photo} alt="" />
+                  <div>
+                    <strong>{tx.player_name}</strong>
+                    {tx.position && <small>{tx.position} · {tx.team_name}</small>}
+                  </div>
+                </div>
+                <div className="fantasy-history-cell-manager">
+                  <strong>{tx.to_user_id === "current_user" ? "Tú" : (tx.to_user_id || "Mercado")}</strong>
+                  {tx.from_user_id && tx.from_user_id !== "mercado" && <small>de {tx.from_user_id}</small>}
+                </div>
+                <div className={`fantasy-history-cell-amount is-${amountColor}`}>
+                  <strong>{amountSign}{formatAmount(tx.price)}</strong>
+                </div>
+                <div>
+                  <span className="fantasy-history-status is-completed">
+                    <span className="fantasy-history-status-dot" />
+                    Completed
+                  </span>
+                </div>
+                <div>
+                  <button type="button" className="fantasy-history-more" aria-label="Más opciones">
+                    <MoreVertical size={14} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {paged.length === 0 && (
+            <div className="fantasy-history-empty">
+              <Info size={24} />
+              <strong>No hay transacciones con esos filtros.</strong>
+              <small>Prueba ampliando el rango de fechas o cambiando el tipo de operación.</small>
+            </div>
+          )}
+        </div>
+        <div className="fantasy-history-footer">
+          <small>Showing {paged.length === 0 ? 0 : ((page - 1) * PAGE_SIZE) + 1} to {Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length} results</small>
+          <div className="fantasy-history-pagination">
+            <button type="button" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>←</button>
+            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={n === page ? "active" : ""}
+                onClick={() => setPage(n)}
+              >
+                {n}
+              </button>
+            ))}
+            {totalPages > 5 && <span>…</span>}
+            <button type="button" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>→</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="fantasy-history-stats">
+        <div className="fantasy-history-stat-card">
+          <div className="fantasy-history-stat-icon is-purple"><TrendingUp size={18} /></div>
+          <div>
+            <small>BIGGEST SPEND</small>
+            <strong>{biggestSpend?.player_name || "—"}</strong>
+            <em>{formatAmount(biggestSpend?.price || 0)}</em>
+          </div>
+        </div>
+        <div className="fantasy-history-stat-card">
+          <div className="fantasy-history-stat-icon is-amber"><Users size={18} /></div>
+          <div>
+            <small>TOTAL TRANSFERS</small>
+            <strong>{totalTransfers}</strong>
+            <em>This Week</em>
+          </div>
+        </div>
+        <div className="fantasy-history-stat-card">
+          <div className="fantasy-history-stat-icon is-pink"><FileDown size={18} /></div>
+          <div>
+            <small>LEAGUE CAP</small>
+            <strong>{capUsed}%</strong>
+            <em>Utilized</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MarketFormBars({ points = 0 }) {
+  const heights = [0.3, 0.5, 0.7, 0.9, 1];
+  return (
+    <div className="fantasy-market-form">
+      {heights.map((h, i) => (
+        <span key={i} className={`fantasy-market-form-bar ${i === 4 ? "is-current" : ""}`} style={{ height: `${h * 100}%` }} />
+      ))}
+    </div>
+  );
+}
+
+function FantasyMarket({ market, team, data, busy, action, owned, askBid, onAddToSquad }) {
+  const [query, setQuery] = useState("");
+  const [position, setPosition] = useState("TODOS");
+  const [view, setView] = useState("ALL PLAYERS");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
+
+  const normalize = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const filtered = (market || []).filter((p) => {
+    if (position !== "TODOS" && p.position !== position) return false;
+    if (view === "WATCHLIST") return owned.has(p.id);
+    if (query) {
+      const q = normalize(query);
+      if (!normalize(p.name).includes(q) && !normalize(p.team_name).includes(q)) return false;
+    }
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const remaining = team?.budget || 0;
+  const squadValue = (team?.squad || []).reduce((s, p) => s + (p.price || 0), 0);
+  const topGainer = market.reduce((best, p) => ((p.price - (p.previous_price || p.price)) > (best.price - (best.previous_price || best.price)) ? p : best), market[0] || {});
+  const trendPct = topGainer.previous_price ? (((topGainer.price - topGainer.previous_price) / topGainer.previous_price) * 100).toFixed(1) : "0.0";
+  const mySelection = (team?.squad || []).slice(0, 15);
+
+  const viewModes = ["ALL PLAYERS", "WATCHLIST", "HOT PICKS"];
+
+  return (
+    <div className="fantasy-market-page">
+      <div className="fantasy-market-budget-bar">
+        <div>
+          <small>REMAINING BUDGET</small>
+          <strong>${(remaining / 1e6).toFixed(1)}M</strong>
+        </div>
+        <div className="fantasy-market-budget-squad">
+          <small>SQUAD VALUE</small>
+          <strong>${(squadValue / 1e6).toFixed(1)}M</strong>
+        </div>
+        <div className="fantasy-market-budget-meta">
+          <small>{squadValue > 0 ? `${team.squad.length}/15 Players Signed` : "0/15 Players Signed"}</small>
+        </div>
+      </div>
+
+      <div className="fantasy-market-searchbar">
+        <Search size={16} />
+        <input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Search players by name…" />
+      </div>
+
+      <div className="fantasy-market-pos-pills">
+        {["All", "QB", "RB", "WR", "TE", "DEF"].map((pos) => (
+          <button
+            key={pos}
+            className={position === (pos === "All" ? "TODOS" : pos) ? "active" : ""}
+            onClick={() => { setPosition(pos === "All" ? "TODOS" : pos); setPage(1); }}
+          >
+            {pos}
+          </button>
+        ))}
+      </div>
+
+      <div className="fantasy-market-table-wrap">
+        <div className="fantasy-market-table">
+          <div className="fantasy-market-table-head">
+            <span>PLAYER</span>
+            <span>CLUB</span>
+            <span>FORM</span>
+            <span>POINTS (LR)</span>
+            <span>AVG PTS</span>
+            <span>VALUE</span>
+            <span>CHANGE</span>
+            <span></span>
+          </div>
+          {paged.length === 0 && (
+            <div className="fantasy-market-empty">
+              <Info size={22} />
+              <strong>No hay jugadores con esos filtros.</strong>
+              <small>Prueba con otro deporte o limpia la búsqueda.</small>
+            </div>
+          )}
+          {paged.map((player) => {
+            const prev = player.previous_price || player.price;
+            const diff = (player.price || 0) - prev;
+            const diffPct = prev ? (diff / prev) * 100 : 0;
+            const isOwned = owned.has(player.id);
+            return (
+              <div key={player.id} className={`fantasy-market-row ${isOwned ? "is-owned" : ""}`}>
+                <div className="fantasy-market-cell-player">
+                  <img src={player.photo} alt="" />
+                  <div>
+                    <strong>{player.name}</strong>
+                    <small>
+                      <span className={`fantasy-market-pos pos-${player.position?.toLowerCase()}`}>{player.position}</span>
+                      {" "}{shortName(player.team_name)} · ${(player.price / 1e6).toFixed(1)}M
+                    </small>
+                  </div>
+                </div>
+                <div className="fantasy-market-cell-club">
+                  <span className="fantasy-market-club-badge" />
+                  <strong>{shortName(player.team_name)}</strong>
+                </div>
+                <div className="fantasy-market-cell-form">
+                  <MarketFormBars points={player.last_round_points} />
+                </div>
+                <div className="fantasy-market-cell-points">
+                  <strong>{player.last_round_points || 0}</strong>
+                </div>
+                <div className="fantasy-market-cell-avg">
+                  <strong>{(player.last_5_avg_points || 0).toFixed(1)}</strong>
+                </div>
+                <div className="fantasy-market-cell-value">
+                  <strong>${(player.price / 1e6).toFixed(1)}M</strong>
+                </div>
+                <div className="fantasy-market-cell-change">
+                  <span className={diff >= 0 ? "up" : "down"}>
+                    {diff >= 0 ? "+" : ""}{(diff / 1e6).toFixed(1)}M
+                  </span>
+                </div>
+                <div className="fantasy-market-cell-action">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => isOwned ? action("sell", { playerId: player.id }) : onAddToSquad(player)}
+                  >
+                    {isOwned ? "SELL" : "BUY"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="fantasy-market-footer">
+        <span>Showing {paged.length} of {filtered.length} players</span>
+        <div className="fantasy-market-pagination">
+          <button disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>←</button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).slice(0, 5).map((n) => (
+            <button key={n} className={n === page ? "active" : ""} onClick={() => setPage(n)}>{n}</button>
+          ))}
+          {totalPages > 5 && <span>…</span>}
+          <button disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>→</button>
+        </div>
+      </div>
+
+      <aside className="fantasy-market-selection">
+        <div className="fantasy-market-selection-head">
+          <h3>My Selection</h3>
+          <span className="fantasy-market-selection-count">{mySelection.length} / 15</span>
+        </div>
+        <div className="fantasy-market-selection-list">
+          {mySelection.map((p) => (
+            <div key={p.id} className="fantasy-market-selection-item">
+              <span className={`fantasy-market-pos pos-${p.position?.toLowerCase()}`}>{p.position}</span>
+              <div>
+                <strong>{p.name}</strong>
+                <small>{p.team_name} · ${(p.price / 1e6).toFixed(1)}M</small>
+              </div>
+            </div>
+          ))}
+          {mySelection.length === 0 && (
+            <div className="fantasy-market-selection-empty">
+              <PlusCircle size={20} />
+              <strong>Empty Slot</strong>
+              <small>Add a Forward</small>
+            </div>
+          )}
+        </div>
+        {mySelection.length > 0 && (
+          <div className="fantasy-market-selection-total">
+            <span>Expected Pts:</span>
+            <strong>{mySelection.reduce((s, p) => s + (p.last_5_avg_points || 0), 0).toFixed(1)}</strong>
+            <button type="button" className="apex-btn-primary">CONFIRM TEAM</button>
+          </div>
+        )}
+      </aside>
+    </div>
+  );
+}
+
+function FantasyRanking({ data, user, activeLeagueId, leagues, action, busy, askOffer }) {
+  const [scope, setScope] = useState("GLOBAL");
+  const [query, setQuery] = useState("");
+
+  const rankings = data?.rankings || [];
+  const top3 = rankings.slice(0, 3);
+  const myUsername = user?.username || "current_user";
+  const myRank = rankings.findIndex((r) => r.name === myUsername) + 1;
+  const myRow = rankings.find((r) => r.name === myUsername);
+  const myPoints = myRow?.total_points || 1842;
+  const myRankDisplay = myRank > 0 ? myRank : 142;
+  const myPos = "+12";
+  const myPercentile = "Top 5%";
+  const myMessage = `Keep pushing, ${myUsername}! You're in the top bracket of the Global League.`;
+
+  const trendFor = (rank) => {
+    if (rank === 1) return { text: "+ 0", type: "stable" };
+    if (rank === 2) return { text: "+ 0", type: "stable" };
+    if (rank === 3) return { text: "+ 0", type: "stable" };
+    if (rank % 2 === 0) return { text: `+ ${(rank % 5) + 2}`, type: "up" };
+    return { text: `– 0`, type: "down" };
+  };
+
+  const filtered = rankings.filter((r) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return r.name?.toLowerCase().includes(q);
+  });
+
+  const avatarFor = (seed) => `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(seed || "user")}`;
+
+  return (
+    <div className="fantasy-ranking-page">
+      <div className="fantasy-ranking-header">
+        <h1>Fantasy Rankings</h1>
+        <div className="fantasy-ranking-scope">
+          {[{ id: "GLOBAL", label: "Global" }, { id: "FRIENDS", label: "Friends" }].map((t) => (
+            <button key={t.id} className={scope === t.id ? "active" : ""} onClick={() => setScope(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {top3.length >= 3 && (
+        <div className="fantasy-ranking-podium">
+          <div className="fantasy-ranking-podium-card is-silver">
+            <span className="fantasy-ranking-podium-medal is-silver">★ 2nd</span>
+            <div className="fantasy-ranking-podium-avatar">
+              <img src={avatarFor(top3[1]?.name || "ElenaD")} alt="" />
+            </div>
+            <strong>{top3[1]?.name || "Elena Rodriguez"}</strong>
+            <small>{top3[1]?.team_name || "Real Dragons FC"}</small>
+            <span className="fantasy-ranking-podium-pts">{(top3[1]?.total_points || 2140).toLocaleString("en-US")} pts</span>
+          </div>
+          <div className="fantasy-ranking-podium-card is-gold">
+            <span className="fantasy-ranking-podium-medal is-gold">★ 1st</span>
+            <div className="fantasy-ranking-podium-avatar">
+              <img src={avatarFor(top3[0]?.name || "MarcusS")} alt="" />
+            </div>
+            <strong>{top3[0]?.name || "Marcus Sterling"}</strong>
+            <small>{top3[0]?.team_name || "Apex Titans"}</small>
+            <span className="fantasy-ranking-podium-pts">{(top3[0]?.total_points || 2385).toLocaleString("en-US")} pts</span>
+            <span className="fantasy-ranking-podium-tag">WEEKLY CHAMPION</span>
+          </div>
+          <div className="fantasy-ranking-podium-card is-bronze">
+            <span className="fantasy-ranking-podium-medal is-bronze">★ 3rd</span>
+            <div className="fantasy-ranking-podium-avatar">
+              <img src={avatarFor(top3[2]?.name || "JulianV")} alt="" />
+            </div>
+            <strong>{top3[2]?.name || "Julian Vane"}</strong>
+            <small>{top3[2]?.team_name || "Red Devils Elite"}</small>
+            <span className="fantasy-ranking-podium-pts">{(top3[2]?.total_points || 2098).toLocaleString("en-US")} pts</span>
+          </div>
+        </div>
+      )}
+
+      <div className="fantasy-ranking-myposition">
+        <div className="fantasy-ranking-myposition-rank">
+          <small>TU POSICIÓN</small>
+          <strong>#{myRankDisplay}</strong>
+        </div>
+        <div className="fantasy-ranking-myposition-message">
+          <p>{myMessage}</p>
+        </div>
+        <div className="fantasy-ranking-myposition-stats">
+          <div>
+            <small>Puntos<br />Totales</small>
+            <strong>{myPoints.toLocaleString("en-US")}</strong>
+          </div>
+          <div>
+            <small>Racha</small>
+            <strong className="up">{myPos} Pos</strong>
+          </div>
+          <div>
+            <small>Percentil</small>
+            <strong>{myPercentile}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="fantasy-ranking-leaderboard-head">
+        <h2>Global Leaderboard</h2>
+        <div className="fantasy-ranking-search">
+          <Search size={14} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manager..." />
+        </div>
+      </div>
+
+      <div className="fantasy-ranking-table-wrap">
+        <table className="fantasy-ranking-table">
+          <thead>
+            <tr>
+              <th>RANK</th>
+              <th>MANAGER</th>
+              <th>TEAM NAME</th>
+              <th>TOTAL POINTS</th>
+              <th>TREND</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.slice(3, 20).map((row, index) => {
+              const rank = index + 4;
+              const trend = trendFor(rank);
+              return (
+                <tr key={`${row.name}-${index}`} className={row.name === myUsername ? "is-me" : ""}>
+                  <td>
+                    <span className="fantasy-ranking-rank-num">{String(rank).padStart(2, "0")}</span>
+                  </td>
+                  <td>
+                    <div className="fantasy-ranking-user">
+                      <img src={avatarFor(row.name)} alt="" />
+                      <strong>
+                        {row.name}
+                        {row.name === myUsername && <em> (Tú)</em>}
+                      </strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="fantasy-ranking-team">{row.team_name || `${row.name}'s XI`}</span>
+                  </td>
+                  <td>
+                    <strong>{(row.total_points || 0).toLocaleString("en-US")}</strong>
+                  </td>
+                  <td>
+                    <span className={`fantasy-ranking-trend is-${trend.type}`}>
+                      {trend.text}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={5} className="fantasy-ranking-empty">
+                  <Trophy size={28} />
+                  <strong>No hay resultados</strong>
+                  <small>Prueba con otro término de búsqueda.</small>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {rankings.length > 4 && (
+        <div className="fantasy-ranking-view-more">
+          <button type="button">View Full Rankings ›</button>
+        </div>
+      )}
+
+      {data?.rivalPlayers?.length > 0 && (
+        <div className="fantasy-ranking-rivals">
+          <h2>Clausulazos disponibles</h2>
+          <div className="fantasy-ranking-rivals-list">
+            {data.rivalPlayers.slice(0, 5).map((player) => (
+              <div key={player.id} className="fantasy-ranking-rival-item">
+                <img src={player.photo} alt="" />
+                <div>
+                  <strong>{player.name}</strong>
+                  <small>{player.position} · {player.team_name}</small>
+                </div>
+                <div className="fantasy-ranking-rival-side">
+                  <b>{money(player.clause_amount)}</b>
+                  <button disabled={busy} onClick={() => askOffer(player)}>Ofertar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

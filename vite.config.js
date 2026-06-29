@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import { authApi } from "./server/auth.js";
 import { getApiCache, setApiCache } from "./server/database.js";
+import { economyApi } from "./server/economy.js";
 import { oddsApi } from "./server/odds.js";
 import { fantasyApi } from "./server/fantasy.js";
 
@@ -17,10 +18,10 @@ const cacheTtl = (url) => {
   return isMatchEndpoint(url) ? MATCH_CACHE_TTL : STATIC_CACHE_TTL;
 };
 
-const sharedApiCache = {
+const sharedApiCache = (googleClientId) => ({
   name: "shared-api-cache",
   configureServer(server) {
-    server.middlewares.use(authApi());
+    server.middlewares.use(authApi({ googleClientId }));
     server.middlewares.use((req, res, next) => {
       if (req.method !== "GET" || !/^\/(odds-api|football-data|api-football|sports-db|espn|jolpi|motogp)\b/.test(req.url)) {
         return next();
@@ -53,7 +54,7 @@ const sharedApiCache = {
       next();
     });
   },
-};
+});
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -61,15 +62,20 @@ export default defineConfig(({ mode }) => {
   const footballDataKey = env.FOOTBALL_DATA_KEY;
   const oddsApiKey = env.THE_ODDS_API_KEY;
   const fantasyLeague = env.FANTASY_ESPN_LEAGUE || "esp.1";
+  const googleClientId = env.GOOGLE_CLIENT_ID || env.VITE_GOOGLE_CLIENT_ID || "";
 
   return {
+    define: {
+      "import.meta.env.VITE_GOOGLE_CLIENT_ID": JSON.stringify(googleClientId),
+    },
     plugins: [{
       name: "playfulbet-api",
       configureServer(server) {
         server.middlewares.use(fantasyApi(fantasyLeague));
+        server.middlewares.use(economyApi());
         server.middlewares.use(oddsApi(oddsApiKey));
       },
-    }, sharedApiCache, react()],
+    }, sharedApiCache(googleClientId), react()],
     server: {
       proxy: {
         "/api-football": {

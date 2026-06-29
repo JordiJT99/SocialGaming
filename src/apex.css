@@ -380,6 +380,17 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   background: #ef4444;
   border: 2px solid #fff;
 }
+.apex-header-logout {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  background: #fff;
+  color: #4b5563;
+}
+.apex-header-logout:hover { background: #f9fafb; border-color: #d1d5db; }
 .mobile-only { display: none; }
 .apex-topbar.predict-header { color: white; border-color: #006247; background: var(--apex-primary); }
 .apex-topbar.predict-header .apex-mobile-brand strong { color: white; }
@@ -1008,6 +1019,21 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
 .apex-daily-missions strong { font-size: 19px; font-weight: 500; }
 .apex-daily-missions small { margin-top: 4px; color: var(--apex-primary-2); font-size: 14px; }
 .apex-daily-missions article.pending small { color: #756600; }
+.apex-daily-missions article > button {
+  margin-left: auto;
+  min-width: 132px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 4px;
+  color: white;
+  background: var(--apex-primary-2);
+  font-size: 15px;
+  font-weight: 600;
+}
+.apex-daily-missions article > button:disabled {
+  color: #aaafad;
+  background: #edf0ef;
+}
 .apex-featured-offers { margin-top: 38px; }
 .apex-featured-offers > h2, .apex-offerwalls h2 { font-size: 21px; font-weight: 500; }
 .apex-featured-offers article { display: grid; grid-template-columns: 95px 1fr auto; grid-template-rows: auto auto; gap: 15px 24px; margin-top: 18px; padding: 24px; border: 1px solid var(--apex-outline); border-radius: 10px; background: white; }
@@ -4233,6 +4259,164 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
   cursor: grab;
 }
 
+.fantasy-hub-player-card { cursor: pointer; transition: transform 0.15s, background 0.15s; }
+.fantasy-hub-player-card:hover { background: rgba(8, 39, 29, 0.5); transform: translateY(-2px); }
+.fantasy-hub-player-card:focus-visible { outline: 2px solid #2dd4bf; outline-offset: 2px; }
+
+.fantasy-hub-player-pos {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  color: white;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: 1;
+}
+.fantasy-hub-player-pos.pos-por { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.fantasy-hub-player-pos.pos-def { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.fantasy-hub-player-pos.pos-med { background: linear-gradient(135deg, #10b981, #047857); }
+.fantasy-hub-player-pos.pos-del { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+.fantasy-hub-bench .fantasy-hub-player-pos { bottom: 4px; left: 4px; }
+
+/* Price History Modal */
+.fantasy-price-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  animation: fantasyPriceModalIn 0.18s ease;
+}
+@keyframes fantasyPriceModalIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fantasy-price-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: fantasyPriceModalSlide 0.22s ease;
+}
+@keyframes fantasyPriceModalSlide {
+  from { transform: translateY(20px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.fantasy-price-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+}
+.fantasy-price-modal-head img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: linear-gradient(180deg, #edf1ee 0%, #dce4de 100%);
+}
+.fantasy-price-modal-head > div { flex: 1; min-width: 0; }
+.fantasy-price-modal-head strong { display: block; font-size: 1.05rem; color: #111827; }
+.fantasy-price-modal-head small { display: block; font-size: 0.78rem; color: #6b7280; }
+.fantasy-price-modal-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.fantasy-price-modal-trend.up { background: #d1fae5; color: #065f46; }
+.fantasy-price-modal-trend.down { background: #fee2e2; color: #991b1b; }
+.fantasy-price-modal-head button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.fantasy-price-modal-head button:hover { background: #e5e7eb; color: #111827; }
+
+.fantasy-price-modal-body { padding: 1.25rem; }
+.fantasy-price-modal-current {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.fantasy-price-modal-current small { font-size: 0.72rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.fantasy-price-modal-current strong { font-size: 1.85rem; color: #111827; font-weight: 800; }
+.fantasy-price-modal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.fantasy-price-modal-stats > div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+}
+.fantasy-price-modal-stats small { display: block; font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin-bottom: 0.2rem; }
+.fantasy-price-modal-stats strong { font-size: 0.95rem; color: #111827; font-weight: 800; }
+.fantasy-price-modal-stats strong.up { color: #059669; }
+.fantasy-price-modal-stats strong.down { color: #dc2626; }
+
+.fantasy-price-modal-chart-wrap {
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.85rem;
+}
+.fantasy-price-modal-chart {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+.fantasy-price-modal-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.fantasy-price-modal footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 0.78rem;
+}
+.fantasy-price-modal footer svg { color: #9ca3af; flex-shrink: 0; }
+
 .fantasy-hub-player-card strong {
   max-width: 90px;
   overflow: hidden;
@@ -4576,4 +4760,3110 @@ input[type="range"]::-moz-range-track { background: transparent; height: 6px; }
     justify-self: start;
     align-items: start;
   }
+}
+
+/* Fantasy Market Redesign */
+.fantasy-market-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 1rem;
+  padding: 1rem;
+  align-items: start;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.fantasy-market-budget-bar {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.18);
+}
+.fantasy-market-budget-bar > div { display: flex; flex-direction: column; gap: 0.15rem; }
+.fantasy-market-budget-bar small { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.7); }
+.fantasy-market-budget-bar strong { font-size: 1.5rem; font-weight: 800; }
+.fantasy-market-budget-squad { text-align: right; }
+.fantasy-market-budget-meta small { font-size: 0.75rem; color: rgba(255,255,255,0.85); text-transform: none; letter-spacing: 0; }
+
+.fantasy-market-searchbar {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+.fantasy-market-searchbar input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  color: #111827;
+  background: transparent;
+}
+
+.fantasy-market-pos-pills {
+  grid-column: 1 / 2;
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.fantasy-market-pos-pills button {
+  padding: 0.45rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fantasy-market-pos-pills button:hover { border-color: #047857; color: #047857; }
+.fantasy-market-pos-pills button.active {
+  background: #047857;
+  color: #fff;
+  border-color: #047857;
+}
+
+.fantasy-market-table-wrap {
+  grid-column: 1 / 2;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fantasy-market-table { width: 100%; }
+.fantasy-market-table-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) 100px 70px 70px 90px 90px 70px;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: #f9fafb;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+.fantasy-market-table-head span:nth-child(n+4) { text-align: center; }
+.fantasy-market-table-head span:last-child { text-align: right; }
+.fantasy-market-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2rem 1rem;
+  color: #6b7280;
+  text-align: center;
+}
+.fantasy-market-empty strong { color: #374151; font-size: 0.95rem; }
+.fantasy-market-empty small { font-size: 0.82rem; }
+
+.fantasy-market-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) 100px 70px 70px 90px 90px 70px;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+.fantasy-market-row:hover { background: #fafafa; }
+.fantasy-market-row:last-child { border-bottom: 0; }
+.fantasy-market-row.is-owned { background: #f0fdf4; }
+.fantasy-market-row.is-owned:hover { background: #dcfce7; }
+.fantasy-market-cell-player { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.fantasy-market-cell-player img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: linear-gradient(180deg, #edf1ee 0%, #dce4de 100%);
+  flex-shrink: 0;
+}
+.fantasy-market-cell-player > div { min-width: 0; }
+.fantasy-market-cell-player strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fantasy-market-cell-player small {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+.fantasy-market-pos {
+  display: inline-block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  color: white;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.fantasy-market-pos.pos-por,
+.fantasy-market-pos.pos-qb { background: #f59e0b; }
+.fantasy-market-pos.pos-def,
+.fantasy-market-pos.pos-rb,
+.fantasy-market-pos.pos-wr,
+.fantasy-market-pos.pos-te { background: #3b82f6; }
+.fantasy-market-pos.pos-med,
+.fantasy-market-pos.pos-del { background: #ef4444; }
+
+.fantasy-market-cell-club { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+.fantasy-market-club-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #047857, #065f46);
+  flex-shrink: 0;
+}
+.fantasy-market-cell-club strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fantasy-market-cell-form { display: flex; align-items: center; justify-content: center; }
+.fantasy-market-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 24px;
+  width: 60px;
+}
+.fantasy-market-form-bar {
+  flex: 1;
+  background: #d1d5db;
+  border-radius: 1px;
+  min-height: 4px;
+  transition: background 0.2s;
+}
+.fantasy-market-form-bar.is-current { background: #047857; }
+
+.fantasy-market-cell-points,
+.fantasy-market-cell-avg { text-align: center; }
+.fantasy-market-cell-points strong,
+.fantasy-market-cell-avg strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #111827;
+}
+.fantasy-market-cell-value { text-align: center; }
+.fantasy-market-cell-value strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #111827;
+}
+.fantasy-market-cell-change { text-align: center; }
+.fantasy-market-cell-change span {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+.fantasy-market-cell-change span.up { color: #047857; background: #d1fae5; }
+.fantasy-market-cell-change span.down { color: #b91c1c; background: #fee2e2; }
+.fantasy-market-cell-action { display: flex; justify-content: flex-end; }
+.fantasy-market-cell-action button {
+  padding: 0.4rem 0.9rem;
+  border: 0;
+  border-radius: 6px;
+  background: #047857;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-market-cell-action button:hover { background: #065f46; }
+.fantasy-market-cell-action button:disabled { background: #d1d5db; cursor: not-allowed; }
+.fantasy-market-row.is-owned .fantasy-market-cell-action button { background: #6b7280; }
+.fantasy-market-row.is-owned .fantasy-market-cell-action button:hover { background: #4b5563; }
+
+.fantasy-market-footer {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.25rem;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+.fantasy-market-pagination { display: flex; gap: 0.25rem; align-items: center; }
+.fantasy-market-pagination button {
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fantasy-market-pagination button.active { background: #047857; color: #fff; border-color: #047857; }
+.fantasy-market-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.fantasy-market-selection {
+  grid-column: 2 / 3;
+  grid-row: 1 / 6;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.fantasy-market-selection-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+.fantasy-market-selection-head h3 { font-size: 1rem; font-weight: 800; color: #111827; }
+.fantasy-market-selection-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #d1fae5;
+  color: #065f46;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+.fantasy-market-selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+.fantasy-market-selection-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  background: #fafafa;
+}
+.fantasy-market-selection-item > div { min-width: 0; flex: 1; }
+.fantasy-market-selection-item strong {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fantasy-market-selection-item small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fantasy-market-selection-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  color: #9ca3af;
+}
+.fantasy-market-selection-empty svg { color: #d1d5db; }
+.fantasy-market-selection-empty strong { font-size: 0.85rem; color: #6b7280; }
+.fantasy-market-selection-empty small { font-size: 0.72rem; }
+.fantasy-market-selection-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+.fantasy-market-selection-total span { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; font-weight: 600; }
+.fantasy-market-selection-total strong { font-size: 1.1rem; font-weight: 800; color: #111827; margin-right: auto; }
+
+/* Mobile: stack the selection below the table */
+@media (max-width: 900px) {
+  .fantasy-market-page {
+    grid-template-columns: 1fr;
+  }
+  .fantasy-market-budget-bar,
+  .fantasy-market-searchbar,
+  .fantasy-market-pos-pills,
+  .fantasy-market-table-wrap,
+  .fantasy-market-footer {
+    grid-column: 1;
+  }
+  .fantasy-market-selection {
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+    max-height: none;
+  }
+  .fantasy-market-table-head { display: none; }
+  .fantasy-market-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  .fantasy-market-cell-club,
+  .fantasy-market-cell-form,
+  .fantasy-market-cell-points,
+  .fantasy-market-cell-avg,
+  .fantasy-market-cell-value,
+  .fantasy-market-cell-change { display: none; }
+  .fantasy-market-cell-action { justify-content: stretch; }
+  .fantasy-market-cell-action button { width: 100%; padding: 0.5rem; }
+}
+
+/* Fantasy Ranking Redesign */
+.fantasy-ranking-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem 1rem 2rem;
+  align-items: stretch;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.fantasy-ranking-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.fantasy-ranking-header h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.fantasy-ranking-scope {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 0.25rem;
+  gap: 0.2rem;
+}
+.fantasy-ranking-scope button {
+  padding: 0.4rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fantasy-ranking-scope button.active {
+  background: #047857;
+  color: #fff;
+}
+
+.fantasy-ranking-podium {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  gap: 1rem;
+  align-items: end;
+}
+.fantasy-ranking-podium-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem 1rem 1.5rem;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fantasy-ranking-podium-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); }
+.fantasy-ranking-podium-card.is-gold {
+  border-color: #fbbf24;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+  order: 2;
+  transform: translateY(-12px);
+}
+.fantasy-ranking-podium-card.is-silver { order: 1; }
+.fantasy-ranking-podium-card.is-bronze { order: 3; }
+.fantasy-ranking-podium-medal {
+  position: absolute;
+  top: -10px;
+  background: #fff;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+}
+.fantasy-ranking-podium-medal.is-gold { color: #b45309; border-color: #fbbf24; }
+.fantasy-ranking-podium-medal.is-silver { color: #6b7280; border-color: #d1d5db; }
+.fantasy-ranking-podium-medal.is-bronze { color: #92400e; border-color: #f59e0b; }
+.fantasy-ranking-podium-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+.fantasy-ranking-podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.fantasy-ranking-podium-card strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: 0.25rem;
+}
+.fantasy-ranking-podium-card small {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+.fantasy-ranking-podium-pts {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #047857;
+  margin-top: 0.25rem;
+}
+.fantasy-ranking-podium-tag {
+  margin-top: 0.5rem;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #bbf7d0;
+}
+
+.fantasy-ranking-myposition {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.18);
+}
+.fantasy-ranking-myposition-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding-right: 1.5rem;
+}
+.fantasy-ranking-myposition-rank small {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+.fantasy-ranking-myposition-rank strong {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.fantasy-ranking-myposition-message {
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.fantasy-ranking-myposition-message p { margin: 0; }
+.fantasy-ranking-myposition-stats {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 1.25rem;
+  text-align: center;
+}
+.fantasy-ranking-myposition-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.fantasy-ranking-myposition-stats small {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.2;
+}
+.fantasy-ranking-myposition-stats strong {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+.fantasy-ranking-myposition-stats strong.up { color: #6ee7b7; }
+
+.fantasy-ranking-leaderboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.fantasy-ranking-leaderboard-head h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.fantasy-ranking-search {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  min-width: 200px;
+}
+.fantasy-ranking-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  color: #111827;
+  background: transparent;
+}
+
+.fantasy-ranking-table-wrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fantasy-ranking-table { width: 100%; border-collapse: collapse; }
+.fantasy-ranking-table thead { background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.fantasy-ranking-table th {
+  padding: 0.7rem 1rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+  text-align: left;
+}
+.fantasy-ranking-table th:first-child { width: 70px; }
+.fantasy-ranking-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
+.fantasy-ranking-table tbody tr:hover { background: #fafafa; }
+.fantasy-ranking-table tbody tr:last-child { border-bottom: 0; }
+.fantasy-ranking-table tbody tr.is-me { background: #ecfdf5; }
+.fantasy-ranking-table tbody tr.is-me:hover { background: #d1fae5; }
+.fantasy-ranking-table td {
+  padding: 0.7rem 1rem;
+  font-size: 0.88rem;
+  color: #111827;
+}
+.fantasy-ranking-table td:nth-child(4) { text-align: center; }
+.fantasy-ranking-table td:last-child { text-align: center; }
+.fantasy-ranking-rank-num {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+.fantasy-ranking-user { display: flex; align-items: center; gap: 0.65rem; }
+.fantasy-ranking-user img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  flex-shrink: 0;
+}
+.fantasy-ranking-user strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+}
+.fantasy-ranking-user em {
+  font-style: normal;
+  color: #047857;
+  font-weight: 600;
+  font-size: 0.78rem;
+  margin-left: 0.2rem;
+}
+.fantasy-ranking-team {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.fantasy-ranking-trend {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.fantasy-ranking-trend.is-stable { background: #f3f4f6; color: #4b5563; }
+.fantasy-ranking-trend.is-up { background: #d1fae5; color: #047857; }
+.fantasy-ranking-trend.is-down { background: #fee2e2; color: #b91c1c; }
+.fantasy-ranking-empty {
+  text-align: center;
+  padding: 2.5rem 1rem !important;
+  color: #6b7280;
+}
+.fantasy-ranking-empty strong { display: block; margin-top: 0.4rem; color: #111827; font-size: 0.95rem; }
+.fantasy-ranking-empty small { font-size: 0.82rem; }
+
+.fantasy-ranking-view-more {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.fantasy-ranking-view-more button {
+  background: transparent;
+  border: 0;
+  color: #047857;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.fantasy-ranking-view-more button:hover { background: #ecfdf5; }
+
+.fantasy-ranking-rivals {
+  margin-top: 1.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem 1.25rem;
+}
+.fantasy-ranking-rivals h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.75rem;
+}
+.fantasy-ranking-rivals-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.fantasy-ranking-rival-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0.6rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+}
+.fantasy-ranking-rival-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: linear-gradient(180deg, #edf1ee 0%, #dce4de 100%);
+}
+.fantasy-ranking-rival-item strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+}
+.fantasy-ranking-rival-item small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.fantasy-ranking-rival-side { display: flex; align-items: center; gap: 0.5rem; }
+.fantasy-ranking-rival-side b { font-size: 0.9rem; font-weight: 800; color: #111827; }
+.fantasy-ranking-rival-side button {
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: #047857;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fantasy-ranking-rival-side button:hover { background: #065f46; }
+
+@media (max-width: 768px) {
+  .fantasy-ranking-podium { grid-template-columns: 1fr; }
+  .fantasy-ranking-podium-card.is-gold { order: 1; transform: none; }
+  .fantasy-ranking-podium-card.is-silver { order: 2; }
+  .fantasy-ranking-podium-card.is-bronze { order: 3; }
+  .fantasy-ranking-myposition {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  .fantasy-ranking-myposition-rank {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+  }
+  .fantasy-ranking-myposition-stats { grid-template-columns: repeat(3, 1fr); }
+  .fantasy-ranking-leaderboard-head { flex-direction: column; align-items: stretch; }
+  .fantasy-ranking-search { min-width: 0; }
+  .fantasy-ranking-table th:nth-child(3),
+  .fantasy-ranking-table td:nth-child(3) { display: none; }
+}
+
+/* Fantasy Leagues Redesign */
+.fantasy-leagues-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem 1rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.fantasy-leagues-header h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 0.4rem;
+  letter-spacing: -0.01em;
+}
+.fantasy-leagues-header p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.fantasy-leagues-cta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.fantasy-leagues-cta-card {
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  overflow: hidden;
+}
+.fantasy-leagues-cta-card.is-create {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+}
+.fantasy-leagues-cta-card.is-join {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+.fantasy-leagues-cta-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  margin-bottom: 0.4rem;
+}
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-icon { background: #f3f4f6; color: #047857; }
+.fantasy-leagues-cta-card h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+}
+.fantasy-leagues-cta-card p {
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+.fantasy-leagues-cta-card.is-join p { color: #6b7280; }
+.fantasy-leagues-cta-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+.fantasy-leagues-cta-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  outline: 0;
+  letter-spacing: 0.04em;
+}
+.fantasy-leagues-cta-form input::placeholder { color: rgba(255, 255, 255, 0.6); }
+.fantasy-leagues-cta-form input:focus { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-form input {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  color: #111827;
+}
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-form input::placeholder { color: #9ca3af; }
+.fantasy-leagues-cta-form button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: #fbbf24;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.15s;
+}
+.fantasy-leagues-cta-form button:hover:not(:disabled) { background: #f59e0b; transform: translateY(-1px); }
+.fantasy-leagues-cta-form button:disabled { background: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.5); cursor: not-allowed; }
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-form button {
+  background: #047857;
+  color: #fff;
+}
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-form button:hover:not(:disabled) { background: #065f46; }
+.fantasy-leagues-cta-card.is-join .fantasy-leagues-cta-form button:disabled { background: #d1d5db; color: #9ca3af; }
+
+.fantasy-leagues-active-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.fantasy-leagues-active-head h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.fantasy-leagues-filter { display: flex; align-items: center; gap: 0.5rem; }
+.fantasy-leagues-filter small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.fantasy-leagues-filter select {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  color: #111827;
+  cursor: pointer;
+}
+
+.fantasy-leagues-table-wrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fantasy-leagues-table { width: 100%; border-collapse: collapse; }
+.fantasy-leagues-table thead { background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.fantasy-leagues-table th {
+  padding: 0.75rem 1rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+  text-align: left;
+}
+.fantasy-leagues-table th:nth-child(2),
+.fantasy-leagues-table th:nth-child(3),
+.fantasy-leagues-table th:nth-child(4) { text-align: center; }
+.fantasy-leagues-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
+.fantasy-leagues-table tbody tr:hover { background: #fafafa; }
+.fantasy-leagues-table tbody tr:last-child { border-bottom: 0; }
+.fantasy-leagues-table tbody tr.is-active { background: #ecfdf5; }
+.fantasy-leagues-table tbody tr.is-active:hover { background: #d1fae5; }
+.fantasy-leagues-table td {
+  padding: 0.85rem 1rem;
+  font-size: 0.88rem;
+  color: #111827;
+}
+.fantasy-leagues-table td:nth-child(2),
+.fantasy-leagues-table td:nth-child(3),
+.fantasy-leagues-table td:nth-child(4) { text-align: center; }
+.fantasy-leagues-table td:last-child { text-align: right; }
+
+.fantasy-leagues-name { display: flex; align-items: center; gap: 0.7rem; }
+.fantasy-leagues-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.fantasy-leagues-name strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+}
+.fantasy-leagues-name small {
+  display: block;
+  font-size: 0.72rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+.fantasy-leagues-members {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #4b5563;
+}
+.fantasy-leagues-members svg { color: #9ca3af; }
+.fantasy-leagues-members strong { font-weight: 800; color: #111827; }
+.fantasy-leagues-rank {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+.fantasy-leagues-rank.is-top { background: #fef3c7; color: #b45309; }
+.fantasy-leagues-rank.is-normal { background: #f3f4f6; color: #4b5563; }
+.fantasy-leagues-prize { font-size: 0.95rem; font-weight: 800; color: #047857; }
+
+.fantasy-leagues-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+.fantasy-leagues-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.fantasy-leagues-status.is-active { background: #d1fae5; color: #047857; }
+.fantasy-leagues-status.is-active .fantasy-leagues-status-dot { background: #10b981; }
+.fantasy-leagues-status.is-finished { background: #f3f4f6; color: #6b7280; }
+.fantasy-leagues-status.is-finished .fantasy-leagues-status-dot { background: #9ca3af; }
+
+.fantasy-leagues-enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #047857;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-leagues-enter:hover { background: #ecfdf5; }
+.fantasy-leagues-enter:disabled { color: #9ca3af; cursor: not-allowed; }
+tr.is-active .fantasy-leagues-enter { color: #065f46; background: #d1fae5; }
+
+.fantasy-leagues-empty {
+  text-align: center;
+  padding: 2.5rem 1rem !important;
+  color: #6b7280;
+}
+.fantasy-leagues-empty strong { display: block; margin-top: 0.4rem; color: #111827; font-size: 0.95rem; }
+.fantasy-leagues-empty small { font-size: 0.82rem; }
+
+.fantasy-leagues-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+.fantasy-leagues-pagination small { font-size: 0.78rem; color: #6b7280; }
+.fantasy-leagues-pagination > div { display: flex; gap: 0.4rem; }
+.fantasy-leagues-pagination button {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fantasy-leagues-pagination button:hover:not(:disabled) { background: #f3f4f6; }
+.fantasy-leagues-pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fantasy-leagues-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+.fantasy-leagues-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+.fantasy-leagues-stat-card svg {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #047857;
+  flex-shrink: 0;
+}
+.fantasy-leagues-stat-card > div { min-width: 0; }
+.fantasy-leagues-stat-card small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.fantasy-leagues-stat-card strong {
+  display: inline-block;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #111827;
+  margin-right: 0.4rem;
+}
+.fantasy-leagues-stat-card em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #047857;
+}
+
+.fantasy-leagues-settings {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+.fantasy-leagues-settings summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  padding: 0.5rem 0;
+}
+.fantasy-leagues-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.fantasy-leagues-settings-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+.fantasy-leagues-settings-grid input {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #111827;
+}
+
+@media (max-width: 768px) {
+  .fantasy-leagues-header h1 { font-size: 1.6rem; }
+  .fantasy-leagues-cta { grid-template-columns: 1fr; }
+  .fantasy-leagues-stats { grid-template-columns: 1fr; }
+  .fantasy-leagues-table th:nth-child(4),
+  .fantasy-leagues-table td:nth-child(4),
+  .fantasy-leagues-table th:nth-child(5),
+  .fantasy-leagues-table td:nth-child(5) { display: none; }
+  .fantasy-leagues-cta-form { flex-direction: column; }
+  .fantasy-leagues-cta-form button { width: 100%; justify-content: center; }
+  .fantasy-leagues-invite { flex-direction: column; align-items: flex-start; }
+  .fantasy-leagues-invite-code { width: 100%; }
+  .fantasy-leagues-invite-code code { flex: 1; }
+  .fantasy-leagues-rules-head { flex-direction: column; align-items: stretch; }
+  .fantasy-leagues-rules-head button { width: 100%; }
+}
+
+/* League invite banner (código visible) */
+.fantasy-leagues-invite {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  flex-wrap: wrap;
+}
+.fantasy-leagues-invite-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #0369a1;
+  flex-shrink: 0;
+  border: 1px solid #bae6fd;
+}
+.fantasy-leagues-invite-info { flex: 1; min-width: 200px; }
+.fantasy-leagues-invite-info strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+.fantasy-leagues-invite-info small {
+  display: block;
+  font-size: 0.78rem;
+  color: #075985;
+  margin-top: 0.15rem;
+}
+.fantasy-leagues-invite-code {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 0.35rem;
+}
+.fantasy-leagues-invite-code code {
+  padding: 0.4rem 0.7rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0c4a6e;
+}
+.fantasy-leagues-invite-code button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  border-radius: 6px;
+  background: #0369a1;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-leagues-invite-code button:hover { background: #075985; }
+
+/* League rules panel (visible, no details) */
+.fantasy-leagues-rules {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.fantasy-leagues-rules-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.fantasy-leagues-rules-head > div {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.fantasy-leagues-rules-head svg {
+  color: #047857;
+  flex-shrink: 0;
+}
+.fantasy-leagues-rules-head strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+}
+.fantasy-leagues-rules-head small {
+  display: block;
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 0.1rem;
+}
+.fantasy-leagues-rules-head small b { color: #047857; font-weight: 700; }
+.fantasy-leagues-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+.fantasy-leagues-rules-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.fantasy-leagues-rules-grid label:focus-within {
+  border-color: #047857;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1);
+}
+.fantasy-leagues-rules-grid label > span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111827;
+}
+.fantasy-leagues-rules-grid label > small {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 0.15rem;
+}
+.fantasy-leagues-rules-grid label input {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fff;
+  width: 100%;
+}
+.fantasy-leagues-rules-grid label em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #047857;
+  margin-top: 0.2rem;
+  letter-spacing: 0.02em;
+}
+
+/* Code chip inline en la tabla */
+.fantasy-leagues-name { align-items: flex-start; }
+.fantasy-leagues-name-info { min-width: 0; flex: 1; }
+.fantasy-leagues-name-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+.fantasy-leagues-visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.fantasy-leagues-visibility.is-public {
+  background: #d1fae5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+.fantasy-leagues-visibility.is-private {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fcd34d;
+}
+.fantasy-leagues-code-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.4rem;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+  border-radius: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #0c4a6e;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.fantasy-leagues-code-chip:hover { background: #e0f2fe; border-color: #7dd3fc; }
+.fantasy-leagues-code-chip svg { color: #0369a1; }
+
+/* Visibility toggle (Pública / Privada) en el CTA */
+.fantasy-leagues-cta-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.fantasy-leagues-cta-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.fantasy-leagues-cta-toggle button svg { flex-shrink: 0; }
+.fantasy-leagues-cta-toggle button strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.fantasy-leagues-cta-toggle button small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 500;
+  opacity: 0.85;
+  line-height: 1.3;
+  margin-top: 0.15rem;
+}
+.fantasy-leagues-cta-toggle button:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.fantasy-leagues-cta-toggle button.active {
+  background: #fff;
+  color: #047857;
+  border-color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.fantasy-leagues-cta-toggle button.active svg { color: #047857; }
+.fantasy-leagues-cta-extras {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.fantasy-leagues-cta-extras input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  outline: 0;
+  min-width: 0;
+}
+.fantasy-leagues-cta-extras input::placeholder { color: rgba(255, 255, 255, 0.55); }
+.fantasy-leagues-cta-extras input:focus { background: rgba(255, 255, 255, 0.18); border-color: #fff; }
+.fantasy-leagues-cta-maxmembers {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 0 0.55rem;
+}
+.fantasy-leagues-cta-maxmembers small {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+.fantasy-leagues-cta-maxmembers input {
+  width: 50px;
+  padding: 0.55rem 0.2rem;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: center;
+  outline: 0;
+}
+
+/* Tabs Mis ligas / Públicas */
+.fantasy-leagues-tabs {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 0.25rem;
+  gap: 0.2rem;
+  align-self: flex-start;
+}
+.fantasy-leagues-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fantasy-leagues-tabs button svg { color: inherit; }
+.fantasy-leagues-tabs button span {
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  min-width: 22px;
+  text-align: center;
+}
+.fantasy-leagues-tabs button:hover { color: #111827; }
+.fantasy-leagues-tabs button.active {
+  background: #fff;
+  color: #047857;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.fantasy-leagues-tabs button.active span { background: #ecfdf5; color: #047857; }
+
+/* Public leagues exploration */
+.fantasy-leagues-public {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.fantasy-leagues-public-head h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.fantasy-leagues-public-head small {
+  display: block;
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+.fantasy-leagues-public-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2.5rem 1rem;
+  background: #fff;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  text-align: center;
+  color: #9ca3af;
+}
+.fantasy-leagues-public-empty svg { color: #d1d5db; }
+.fantasy-leagues-public-empty strong { font-size: 0.95rem; color: #6b7280; }
+.fantasy-leagues-public-empty small { font-size: 0.8rem; }
+
+.fantasy-leagues-public-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.fantasy-leagues-public-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.fantasy-leagues-public-card:hover {
+  border-color: #047857;
+  box-shadow: 0 6px 16px rgba(4, 120, 87, 0.1);
+  transform: translateY(-2px);
+}
+.fantasy-leagues-public-card-head {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+.fantasy-leagues-public-card-head > div:nth-child(2) { min-width: 0; }
+.fantasy-leagues-public-card-head strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fantasy-leagues-public-card-head small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+  line-height: 1.4;
+}
+.fantasy-leagues-public-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  background: #d1fae5;
+  color: #047857;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.fantasy-leagues-public-card-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+.fantasy-leagues-public-card-stats > div { text-align: center; }
+.fantasy-leagues-public-card-stats small {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.fantasy-leagues-public-card-stats strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 0.15rem;
+}
+.fantasy-leagues-public-card-stats code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  color: #0369a1;
+}
+.fantasy-leagues-public-card button {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: #047857;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-leagues-public-card button:hover:not(:disabled) { background: #065f46; }
+.fantasy-leagues-public-card button:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Fantasy History Redesign */
+.fantasy-history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 1rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.fantasy-history-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.fantasy-history-header h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+.fantasy-history-tabs {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 0.2rem;
+  gap: 0.15rem;
+}
+.fantasy-history-tabs button {
+  padding: 0.45rem 0.95rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fantasy-history-tabs button:hover { color: #111827; }
+.fantasy-history-tabs button.active {
+  background: #047857;
+  color: #fff;
+}
+.fantasy-history-actions { display: flex; gap: 0.4rem; }
+.fantasy-history-actions button {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.fantasy-history-actions button:hover { background: #f3f4f6; color: #111827; }
+
+.fantasy-history-filters {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  align-items: end;
+}
+.fantasy-history-filter small {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+.fantasy-history-filter select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #111827;
+  cursor: pointer;
+}
+.fantasy-history-date-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+.fantasy-history-date-range input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #111827;
+  background: transparent;
+}
+.fantasy-history-date-range span { color: #9ca3af; font-size: 0.85rem; }
+.fantasy-history-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: #047857;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-history-apply:hover { background: #065f46; }
+
+.fantasy-history-balance {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+  color: #fff;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.fantasy-history-balance small {
+  grid-column: 1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+.fantasy-history-balance strong {
+  grid-column: 1;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.fantasy-history-balance em {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  font-style: normal;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6ee7b7;
+  text-align: right;
+}
+.fantasy-history-balance-bar {
+  grid-column: 1 / 3;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+.fantasy-history-balance-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6ee7b7, #34d399);
+  border-radius: 999px;
+  transition: width 0.5s;
+}
+
+.fantasy-history-table-wrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.fantasy-history-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.fantasy-history-table-head h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #047857;
+  margin: 0;
+}
+.fantasy-history-table-tools { display: flex; gap: 0.4rem; }
+.fantasy-history-table-tools button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-history-table-tools button:hover { background: #f3f4f6; }
+
+.fantasy-history-table { width: 100%; }
+.fantasy-history-row {
+  display: grid;
+  grid-template-columns: 130px 100px minmax(0, 1.4fr) minmax(0, 1fr) 110px 110px 32px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s;
+}
+.fantasy-history-row:last-child { border-bottom: 0; }
+.fantasy-history-row:hover { background: #fafafa; }
+.fantasy-history-row.is-head {
+  background: #f9fafb;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.fantasy-history-row.is-head:hover { background: #f9fafb; }
+.fantasy-history-cell-date strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111827;
+}
+.fantasy-history-cell-date small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 0.1rem;
+}
+.fantasy-history-op {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.fantasy-history-cell-player {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.fantasy-history-cell-player img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(180deg, #edf1ee 0%, #dce4de 100%);
+  flex-shrink: 0;
+}
+.fantasy-history-cell-player > div { min-width: 0; }
+.fantasy-history-cell-player strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fantasy-history-cell-player small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.1rem;
+}
+.fantasy-history-cell-manager strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+}
+.fantasy-history-cell-manager small {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+.fantasy-history-cell-amount { text-align: right; }
+.fantasy-history-cell-amount strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.fantasy-history-cell-amount.is-up strong { color: #047857; }
+.fantasy-history-cell-amount.is-down strong { color: #b91c1c; }
+
+.fantasy-history-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+.fantasy-history-status.is-completed { background: #d1fae5; color: #047857; }
+.fantasy-history-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+.fantasy-history-more {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fantasy-history-more:hover { background: #f3f4f6; color: #111827; }
+
+.fantasy-history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2.5rem 1rem;
+  color: #6b7280;
+  text-align: center;
+}
+.fantasy-history-empty strong { color: #374151; font-size: 0.95rem; }
+.fantasy-history-empty small { font-size: 0.82rem; }
+
+.fantasy-history-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.fantasy-history-footer small { font-size: 0.78rem; color: #6b7280; }
+.fantasy-history-pagination { display: flex; gap: 0.25rem; align-items: center; }
+.fantasy-history-pagination button {
+  min-width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.fantasy-history-pagination button.active { background: #047857; color: #fff; border-color: #047857; }
+.fantasy-history-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+.fantasy-history-pagination span { color: #9ca3af; }
+
+.fantasy-history-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+.fantasy-history-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+.fantasy-history-stat-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.fantasy-history-stat-icon.is-purple { background: #ede9fe; color: #6d28d9; }
+.fantasy-history-stat-icon.is-amber { background: #fef3c7; color: #b45309; }
+.fantasy-history-stat-icon.is-pink { background: #fce7f3; color: #be185d; }
+.fantasy-history-stat-card small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+.fantasy-history-stat-card strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0.15rem 0;
+}
+.fantasy-history-stat-card em {
+  font-style: normal;
+  font-size: 0.78rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .fantasy-history-filters { grid-template-columns: 1fr; }
+  .fantasy-history-stats { grid-template-columns: 1fr; }
+  .fantasy-history-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    padding: 0.75rem 1rem;
+  }
+  .fantasy-history-row.is-head { display: none; }
+  .fantasy-history-cell-amount { text-align: left; }
+  .fantasy-history-more { justify-self: flex-end; }
+}
+
+/* ========================================================================
+   LEAGUES V2 — Predictions, Mixed, Fantasy
+   ======================================================================== */
+.apex-leagues-page { padding: 1.5rem 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+.apex-leagues-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.apex-leagues-top h1 { font-size: 1.85rem; font-weight: 800; color: #111827; margin: 0; }
+.apex-leagues-top p { font-size: 0.9rem; color: #6b7280; margin: 0.25rem 0 0; max-width: 520px; }
+.apex-leagues-top-actions { display: flex; gap: 0.5rem; }
+.apex-leagues-error { color: #b91c1c; background: #fee2e2; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+
+/* Botones */
+.apex-btn-primary, .apex-btn-secondary, .apex-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 0;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+}
+.apex-btn-primary { background: #047857; color: #fff; }
+.apex-btn-primary:hover:not(:disabled) { background: #065f46; }
+.apex-btn-primary:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+.apex-btn-secondary { background: #fff; color: #111827; border: 1px solid #e5e7eb; }
+.apex-btn-secondary:hover:not(:disabled) { background: #f9fafb; border-color: #d1d5db; }
+.apex-btn-ghost { background: transparent; color: #6b7280; }
+.apex-btn-ghost:hover:not(:disabled) { background: #f3f4f6; color: #111827; }
+.apex-btn-ghost.is-danger { color: #b91c1c; }
+.apex-btn-ghost.is-danger:hover { background: #fee2e2; }
+
+/* Formulario de creación */
+.apex-league-create-form,
+.apex-league-join-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.apex-league-form-section h3 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0 0 0.65rem;
+}
+.apex-league-form-hint {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin: 0 0 0.65rem;
+}
+
+.apex-league-type-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.apex-league-type-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  overflow: hidden;
+}
+.apex-league-type-card:hover:not(.is-disabled) { border-color: #d1d5db; background: #fafafa; }
+.apex-league-type-card.active { border-width: 2px; }
+.apex-league-type-card.is-disabled { opacity: 0.6; cursor: not-allowed; }
+.apex-league-type-card:focus-visible { outline: 2px solid #047857; outline-offset: 2px; }
+
+.apex-league-type-head-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+}
+.apex-league-type-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.apex-league-type-head-info { flex: 1; min-width: 0; }
+.apex-league-type-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.apex-league-type-card > .apex-league-type-head-row > .apex-league-type-head-info > .apex-league-type-head > strong { font-size: 0.92rem; color: #111827; font-weight: 800; }
+.apex-league-type-card em { font-size: 0.55rem; color: #b45309; font-style: normal; font-weight: 800; background: #fef3c7; padding: 0.05rem 0.35rem; border-radius: 999px; letter-spacing: 0.05em; }
+.apex-league-type-tagline {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 0.1rem;
+  line-height: 1.3;
+}
+.apex-league-type-toggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #4b5563;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s;
+}
+.apex-league-type-toggle:hover { background: #f3f4f6; }
+.apex-league-type-content {
+  padding: 0 0.85rem 0.85rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+.apex-league-type-content p {
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.45;
+  margin: 0.65rem 0 0.5rem;
+}
+.apex-league-type-content ul {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.apex-league-type-content ul > li {
+  position: relative;
+  padding-left: 1.05rem;
+  font-size: 0.75rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+.apex-league-type-content ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #047857;
+}
+.apex-league-type-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: #4b5563;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+.apex-league-type-meta strong { color: #111827; font-weight: 700; }
+.apex-league-type-example {
+  background: #f0f9ff;
+  border-left: 3px solid #0ea5e9;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.apex-league-type-example small {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0c4a6e;
+  text-transform: uppercase;
+}
+.apex-league-type-example > span {
+  font-size: 0.74rem;
+  color: #0c4a6e;
+  line-height: 1.4;
+  font-style: italic;
+}
+.apex-league-type-extra {
+  margin: 0.5rem 0 0 !important;
+  padding: 0.35rem 0.6rem;
+  background: #fef3c7;
+  border-radius: 6px;
+  font-size: 0.72rem !important;
+  color: #92400e !important;
+  font-weight: 600;
+}
+
+.apex-league-vis-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.apex-league-vis-toggle button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.apex-league-vis-toggle button:hover { border-color: #d1d5db; }
+.apex-league-vis-toggle button.active { background: #ecfdf5; border-color: #047857; color: #047857; }
+.apex-league-vis-toggle button strong { font-size: 0.88rem; color: inherit; }
+.apex-league-vis-toggle button small { font-size: 0.72rem; color: #6b7280; }
+
+.apex-league-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.apex-league-form-full { grid-column: 1 / 3; }
+.apex-league-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.apex-league-form-grid label > span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4b5563;
+}
+.apex-league-form-grid input,
+.apex-league-form-grid select,
+.apex-league-form-grid textarea {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #111827;
+  background: #fff;
+}
+.apex-league-form-grid input:focus,
+.apex-league-form-grid select:focus,
+.apex-league-form-grid textarea:focus {
+  outline: 0;
+  border-color: #047857;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1);
+}
+.apex-league-form-grid textarea { resize: vertical; font-family: inherit; }
+
+.apex-league-scoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+.apex-league-scoring-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+}
+.apex-league-scoring-grid label > span { font-size: 0.78rem; font-weight: 700; }
+.apex-league-scoring-grid label > small { font-size: 0.7rem; color: #6b7280; }
+.apex-league-scoring-grid input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.apex-league-form-error { color: #b91c1c; background: #fee2e2; padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.85rem; }
+.apex-league-form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f3f4f6; }
+
+.apex-league-join-form { text-align: center; align-items: center; }
+.apex-league-join-form h3 { margin: 0; font-size: 1.1rem; font-weight: 800; color: #111827; }
+.apex-league-join-form p { font-size: 0.85rem; color: #6b7280; margin: 0; }
+.apex-league-join-form input {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.apex-league-join-form input:focus { border-color: #047857; outline: 0; }
+
+/* Tabs Mis / Públicas / Actividad */
+.apex-leagues-tabs {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 0.25rem;
+  gap: 0.2rem;
+  margin-bottom: 1rem;
+}
+.apex-leagues-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.apex-leagues-tabs button:hover { color: #111827; }
+.apex-leagues-tabs button.active { background: #fff; color: #047857; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.apex-leagues-tabs button span {
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+}
+
+.apex-leagues-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.apex-leagues-search,
+.apex-leagues-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+.apex-leagues-search { flex: 1; min-width: 200px; }
+.apex-leagues-search input { flex: 1; border: 0; outline: 0; font: inherit; color: #111827; background: transparent; }
+.apex-leagues-filter select { border: 0; outline: 0; font: inherit; color: #111827; background: transparent; cursor: pointer; }
+
+/* Section header inline (h2 con icono + count) */
+.apex-section-head-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.apex-section-head-inline h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.apex-section-head-inline h2 svg { color: #047857; }
+.apex-section-count {
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.25rem;
+}
+
+/* Cards de mis ligas */
+.apex-my-leagues-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.apex-my-league-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.apex-my-league-card:hover { border-color: #047857; box-shadow: 0 4px 12px rgba(4, 120, 87, 0.08); }
+.apex-my-league-card header { display: flex; align-items: center; gap: 0.65rem; }
+.apex-my-league-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.apex-my-league-info { flex: 1; min-width: 0; }
+.apex-my-league-info strong { display: block; font-size: 0.95rem; color: #111827; }
+.apex-my-league-info small { display: flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; color: #6b7280; margin-top: 0.15rem; }
+.apex-my-league-owner-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.apex-my-league-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+}
+.apex-my-league-stats > div { text-align: center; }
+.apex-my-league-stats small { display: block; font-size: 0.6rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.apex-my-league-stats strong { display: block; font-size: 0.92rem; color: #111827; font-weight: 800; margin-top: 0.15rem; }
+.apex-my-league-actions { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
+
+/* Cards de ligas públicas */
+.apex-public-leagues-list { display: flex; flex-direction: column; gap: 0.65rem; }
+.apex-public-league-card {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 0.85rem;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: border-color 0.15s;
+}
+.apex-public-league-card:hover { border-color: #047857; }
+.apex-public-league-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.apex-public-league-body strong { display: block; font-size: 0.95rem; color: #111827; }
+.apex-public-league-body small { display: block; font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
+.apex-public-league-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+.apex-public-league-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+/* Empty state */
+.apex-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: #9ca3af;
+  background: #fff;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+}
+.apex-empty strong { color: #6b7280; font-size: 0.95rem; }
+.apex-empty small { font-size: 0.82rem; }
+.apex-empty svg { color: #d1d5db; }
+
+/* Activity feed */
+.apex-activity-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.apex-activity-feed li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+}
+.apex-activity-feed li strong { font-size: 0.88rem; color: #111827; }
+.apex-activity-feed li small { display: block; font-size: 0.72rem; color: #9ca3af; margin-top: 0.2rem; }
+.apex-activity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #047857;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+}
+
+/* ========================================================================
+   LEAGUE DETAIL V2
+   ======================================================================== */
+.apex-league-detail-page { padding: 1.5rem 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+.apex-league-detail-header {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.apex-league-detail-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.apex-back-link { font-size: 0.85rem; color: #047857; text-decoration: none; font-weight: 700; }
+.apex-league-detail-actions { display: flex; gap: 0.5rem; align-items: center; }
+.apex-league-detail-title { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0 0.4rem; }
+.apex-league-detail-title h1 { font-size: 1.7rem; font-weight: 800; color: #111827; margin: 0; }
+.apex-league-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.apex-league-owner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.apex-league-detail-desc { font-size: 0.88rem; color: #6b7280; margin: 0 0 0.5rem; }
+.apex-league-detail-meta { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.8rem; color: #6b7280; }
+.apex-league-detail-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+.apex-league-detail-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid #f3f4f6;
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+}
+.apex-league-detail-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  border-radius: 6px 6px 0 0;
+}
+.apex-league-detail-tabs button:hover { color: #111827; background: #f9fafb; }
+.apex-league-detail-tabs button.active { color: #047857; }
+.apex-league-detail-tabs button.active::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 2px;
+  background: #047857;
+}
+
+.apex-league-detail-body {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  min-height: 300px;
+}
+
+/* Resumen */
+.apex-league-summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+  margin-bottom: 1.25rem;
+}
+.apex-league-summary-stats > div { text-align: center; }
+.apex-league-summary-stats small { display: block; font-size: 0.65rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.apex-league-summary-stats strong { display: block; font-size: 1.1rem; color: #111827; font-weight: 800; margin-top: 0.15rem; }
+
+.apex-league-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.apex-league-podium-card {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+}
+.apex-league-podium-card.rank-1 { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #fbbf24; }
+.apex-league-podium-card.is-me { box-shadow: 0 0 0 2px #047857; }
+.apex-league-podium-medal { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+.apex-league-podium-card strong { display: block; font-size: 0.88rem; color: #111827; }
+.apex-league-podium-points { display: block; font-size: 1.1rem; font-weight: 800; color: #047857; margin-top: 0.2rem; }
+.apex-league-podium-card small { display: block; font-size: 0.7rem; color: #6b7280; margin-top: 0.2rem; }
+
+.apex-league-next-matches {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+.apex-league-next-matches h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0 0 0.5rem;
+}
+.apex-league-next-matches ul { list-style: none; margin: 0; padding: 0; }
+.apex-league-next-matches li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-size: 0.82rem;
+  border-top: 1px solid #f3f4f6;
+}
+.apex-league-next-matches li:first-child { border-top: 0; }
+.apex-league-next-matches small { color: #6b7280; font-size: 0.75rem; }
+
+/* Ranking table */
+.apex-league-ranking { display: flex; flex-direction: column; gap: 0.25rem; }
+.apex-league-ranking-head, .apex-league-ranking-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 80px 80px 120px 100px;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+}
+.apex-league-ranking-head {
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+}
+.apex-league-ranking-row {
+  background: #fff;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.apex-league-ranking-row:hover { background: #fafafa; }
+.apex-league-ranking-row.is-me {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+}
+.apex-league-rank-num {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 800;
+  color: #111827;
+}
+.apex-league-rank-num .trend-up { color: #047857; }
+.apex-league-rank-num .trend-down { color: #b91c1c; }
+.apex-league-rank-num .trend-stable { color: #9ca3af; }
+.apex-league-rank-user { display: flex; align-items: center; gap: 0.6rem; min-width: 0; }
+.apex-league-rank-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #047857, #065f46);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.apex-league-rank-user strong { display: block; font-size: 0.88rem; color: #111827; }
+.apex-league-rank-user small { display: block; font-size: 0.7rem; color: #6b7280; }
+.apex-league-rank-num-cell { text-align: center; font-weight: 700; color: #111827; font-variant-numeric: tabular-nums; }
+.apex-league-rank-acc { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; font-weight: 700; color: #111827; }
+.apex-league-acc-bar {
+  flex: 1;
+  height: 5px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.apex-league-acc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #f87171, #fbbf24, #047857); }
+.apex-league-rank-total {
+  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #047857;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Members list */
+.apex-league-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.apex-league-member-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+.apex-league-member-card.is-me { background: #ecfdf5; border-color: #6ee7b7; }
+.apex-league-member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #047857, #065f46);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.apex-league-member-info { flex: 1; min-width: 0; }
+.apex-league-member-info strong { display: block; font-size: 0.92rem; color: #111827; }
+.apex-league-member-info small { display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #6b7280; margin-top: 0.1rem; }
+.apex-league-member-stats {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 0.25rem 0.65rem;
+  flex-shrink: 0;
+}
+.apex-league-member-stats small { font-size: 0.6rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.apex-league-member-stats strong { font-size: 0.78rem; color: #111827; font-weight: 800; }
+
+/* Predictions */
+.apex-league-predictions { display: flex; flex-direction: column; gap: 0.5rem; }
+.apex-league-pred-item {
+  display: grid;
+  grid-template-columns: 1fr 60px 100px 110px;
+  gap: 0.75rem;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+}
+.apex-league-pred-item.is-won { border-left: 4px solid #047857; }
+.apex-league-pred-item.is-lost { border-left: 4px solid #b91c1c; }
+.apex-league-pred-info strong { display: block; font-size: 0.88rem; color: #111827; }
+.apex-league-pred-info small { display: block; font-size: 0.72rem; color: #6b7280; }
+.apex-league-pred-pick {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #fff;
+}
+.apex-league-pred-pick.is-1, .apex-league-pred-pick.is-2 { background: #047857; }
+.apex-league-pred-pick.is-X { background: #6b7280; }
+.apex-league-pred-points strong { display: block; font-size: 0.95rem; color: #047857; font-weight: 800; }
+.apex-league-pred-points small { display: block; font-size: 0.7rem; color: #6b7280; }
+.apex-league-pred-status {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+.apex-league-pred-status.is-won { background: #d1fae5; color: #047857; }
+.apex-league-pred-status.is-lost { background: #fee2e2; color: #b91c1c; }
+.apex-league-pred-status.is-pending { background: #fef3c7; color: #b45309; }
+
+/* Settings */
+.apex-league-settings { display: flex; flex-direction: column; gap: 1.25rem; }
+.apex-league-settings-section {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.apex-league-settings-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+.apex-league-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid #e5e7eb;
+}
+.apex-league-info-row:first-of-type { border-top: 0; }
+.apex-league-info-row > span { color: #6b7280; }
+.apex-league-info-row > strong { display: flex; align-items: center; gap: 0.3rem; color: #111827; }
+.apex-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+  border-radius: 6px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #0c4a6e;
+  cursor: pointer;
+  position: relative;
+}
+.apex-copy-code:hover { background: #e0f2fe; }
+.apex-copy-code em { position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.7rem; font-style: normal; }
+
+.apex-league-settings-section label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.apex-league-settings-section label > span { font-size: 0.78rem; font-weight: 700; color: #4b5563; }
+.apex-league-settings-section input,
+.apex-league-settings-section textarea {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  background: #fff;
+}
+.apex-league-settings-section button { align-self: flex-start; }
+.apex-league-scoring-edit { display: flex; flex-direction: column; gap: 0.4rem; }
+.apex-league-scoring-edit small { font-size: 0.78rem; font-weight: 700; color: #4b5563; }
+
+@media (max-width: 768px) {
+  .apex-league-type-grid { grid-template-columns: 1fr; }
+  .apex-league-vis-toggle { grid-template-columns: 1fr; }
+  .apex-league-form-grid { grid-template-columns: 1fr; }
+  .apex-league-form-full { grid-column: 1; }
+  .apex-league-podium { grid-template-columns: 1fr; }
+  .apex-league-ranking-head { display: none; }
+  .apex-league-ranking-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    padding: 0.75rem 0.9rem;
+  }
+  .apex-league-rank-total { text-align: left; font-size: 1.05rem; }
+  .apex-league-pred-item {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    text-align: left;
+  }
+}
+
+.apex-auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top left, rgba(0, 163, 122, 0.16), transparent 30%),
+    linear-gradient(180deg, #f3faf7 0%, #edf3f1 100%);
+}
+.apex-auth-card {
+  width: min(100%, 460px);
+  padding: 2rem;
+  border: 1px solid #dce5e0;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+.apex-auth-brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.apex-auth-brand strong { display: block; font-size: 1.5rem; }
+.apex-auth-brand p { margin: 0.2rem 0 0; color: #5a665f; }
+.apex-auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.25rem; }
+.apex-auth-tabs button,
+.apex-auth-submit {
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+.apex-auth-tabs button { background: #edf3f0; color: #496057; }
+.apex-auth-tabs button.active,
+.apex-auth-submit { background: #0b7a5a; color: white; }
+.apex-auth-form { display: grid; gap: 0.95rem; }
+.apex-auth-form label span { display: block; margin-bottom: 0.35rem; font-size: 0.92rem; font-weight: 600; color: #33413b; }
+.apex-auth-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 0.95rem;
+  box-sizing: border-box;
+  border: 1px solid #d7e0db;
+  border-radius: 14px;
+  background: white;
+}
+.apex-auth-error { margin: 0; color: #b42318; font-size: 0.92rem; }
+.apex-auth-submit:disabled { opacity: 0.6; }
+.apex-auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.15rem 0;
+  color: #6b7b73;
+  font-size: 0.92rem;
+}
+.apex-auth-divider::before,
+.apex-auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #dce5e0;
+}
+.apex-auth-divider span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+}
+.apex-auth-google {
+  min-height: 44px;
+}
+.apex-auth-google > div {
+  width: 100%;
+}
+.apex-auth-note {
+  margin: 0;
+  color: #5a665f;
+  font-size: 0.92rem;
 }

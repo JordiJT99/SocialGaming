@@ -17,6 +17,7 @@ import {
   Pencil,
   PlayCircle,
   Radio,
+  LogOut,
   Search,
   Smile,
   Swords,
@@ -81,7 +82,7 @@ function NavItem({ item, onClick }) {
   );
 }
 
-export default function AppHeader({ user, store, sportsData }) {
+export default function AppHeader({ user, store, sportsData, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsExpanded, setEventsExpanded] = useState(false);
   const [dismissBanner, setDismissBanner] = useState(false);
@@ -292,6 +293,9 @@ export default function AppHeader({ user, store, sportsData }) {
           <button type="button" className="apex-header-bell" aria-label="Notificaciones">
             <Bell size={19} />
             <span className="apex-header-bell-dot" />
+          </button>
+          <button type="button" className="apex-header-logout" aria-label="Cerrar sesion" onClick={onLogout}>
+            <LogOut size={18} />
           </button>
           <NavLink to="/profile" className="apex-profile-link" aria-label="Abrir perfil"><UserAvatar user={user} compact /></NavLink>
           <button className="apex-mobile-menu-button" type="button" aria-label="Abrir menu" onClick={() => setMenuOpen(true)}><Menu size={22} /></button>
