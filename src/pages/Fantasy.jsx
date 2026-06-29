@@ -4,7 +4,6 @@ import { ArrowDownRight, ArrowRight, ArrowUpRight, CircleDollarSign, Clock3, Cop
 const money = (value) => `${(Number(value || 0) / 1000000).toFixed(1)}M`;
 const headers = (user, leagueId) => ({
   "content-type": "application/json",
-  "x-playfulbet-user": user?.id || "current_user",
   "x-playfulbet-fantasy-league": String(leagueId || 1),
 });
 const syncStamp = (value) => value ? new Date(value).toLocaleString("es-ES") : "pendiente";

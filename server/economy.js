@@ -1,19 +1,14 @@
-import { db, getSessionUser } from "./database.js";
+import { db, getAppState, saveAppState } from "./database.js";
+import { getRequestUser } from "./session.js";
 
 const DAILY_REWARD_TABLE = [25, 30, 35, 40, 50, 70, 100];
 const DAILY_VIDEO_LIMIT = 5;
 const VIDEO_REWARD = 15;
-const SESSION_COOKIE = "playfulbet_session";
-
 const json = (res, status, payload) => {
   res.statusCode = status;
   res.setHeader("content-type", "application/json");
   res.end(JSON.stringify(payload));
 };
-
-const cookies = (req) => Object.fromEntries(
-  (req.headers.cookie || "").split(";").filter(Boolean).map((part) => part.trim().split("=")),
-);
 
 const readBody = (req) => new Promise((resolve, reject) => {
   let body = "";
@@ -38,12 +33,31 @@ const dayStart = (value = Date.now()) => {
 
 const isPreviousDay = (older, newer) => dayStart(newer) - dayStart(older) === 24 * 60 * 60 * 1000;
 
-function resolveUserKey(req, fallbackBody = {}) {
-  const token = cookies(req)[SESSION_COOKIE];
-  const sessionUser = getSessionUser(token);
-  if (sessionUser?.email) return sessionUser.email.toLowerCase();
-  const raw = req.headers["x-playfulbet-user"] || fallbackBody.userKey || "guest@playfulbet.local";
-  return String(raw).trim().toLowerCase();
+function resolveUser(req) {
+  const user = getRequestUser(req);
+  if (!user) throw new Error("Sesion no valida");
+  return user;
+}
+
+function rewardUserKey(user) {
+  return `user:${user.id}`;
+}
+
+function getStoredPoints(user) {
+  const state = getAppState(user.id)?.state;
+  const points = Number(state?.users?.find((item) => item.id === "current_user")?.points);
+  return Number.isFinite(points) ? points : Number(user.points || 0);
+}
+
+function applyStoredPointDelta(user, delta) {
+  const stored = getAppState(user.id);
+  if (!stored?.state?.users?.length) return;
+  const state = structuredClone(stored.state);
+  const currentUser = state.users.find((item) => item.id === "current_user");
+  if (!currentUser) return;
+  currentUser.points = Math.max(0, Number(currentUser.points || 0) + delta);
+  if (delta > 0) currentUser.totalEarned = Number(currentUser.totalEarned || 0) + delta;
+  saveAppState(user.id, state);
 }
 
 function ensureProfile(userKey) {
@@ -159,7 +173,8 @@ function importLegacyState(userKey, payload = {}) {
   }
 }
 
-function claimDaily(userKey) {
+function claimDaily(user) {
+  const userKey = rewardUserKey(user);
   const profile = ensureProfile(userKey);
   const now = Date.now();
   if (profile.last_daily_claim_at && dayStart(profile.last_daily_claim_at) === dayStart(now)) {
@@ -174,10 +189,12 @@ function claimDaily(userKey) {
     SET streak = ?, last_daily_claim_at = ?, updated_at = ?
     WHERE user_key = ?
   `).run(nextStreak, now, now, userKey);
+  applyStoredPointDelta(user, reward);
   return { reward, streak: nextStreak };
 }
 
-function claimVideo(userKey) {
+function claimVideo(user) {
+  const userKey = rewardUserKey(user);
   const today = dayStart();
   const used = db.prepare(`
     SELECT COUNT(*) AS count
@@ -189,10 +206,12 @@ function claimVideo(userKey) {
     INSERT INTO reward_video_claims (user_key, amount, claimed_at)
     VALUES (?, ?, ?)
   `).run(userKey, VIDEO_REWARD, Date.now());
+  applyStoredPointDelta(user, VIDEO_REWARD);
   return { reward: VIDEO_REWARD };
 }
 
-function claimOffer(userKey, offer) {
+function claimOffer(user, offer) {
+  const userKey = rewardUserKey(user);
   if (!offer?.id || !offer?.title || !Number(offer.reward)) throw new Error("Oferta invalida");
   const exists = db.prepare(`
     SELECT 1 FROM reward_offer_claims WHERE user_key = ? AND offer_id = ?
@@ -202,13 +221,15 @@ function claimOffer(userKey, offer) {
     INSERT INTO reward_offer_claims (user_key, offer_id, title, amount, claimed_at)
     VALUES (?, ?, ?, ?, ?)
   `).run(userKey, String(offer.id), String(offer.title), Number(offer.reward), Date.now());
+  applyStoredPointDelta(user, Number(offer.reward));
   return { reward: Number(offer.reward) };
 }
 
-function redeemReward(userKey, reward, balance) {
+function redeemReward(user, reward) {
   const cost = Number(reward?.cost || 0);
   if (!reward?.id || !reward?.name || cost <= 0) throw new Error("Premio invalido");
-  if (Number(balance || 0) < cost) throw new Error("No tienes coins suficientes");
+  const userKey = rewardUserKey(user);
+  if (getStoredPoints(user) < cost) throw new Error("No tienes coins suficientes");
   const status = reward.deliveryType === "digital" ? "processing" : "coming_soon";
   const result = db.prepare(`
     INSERT INTO reward_redemptions (user_key, reward_id, reward_name, cost, status, delivery_type, created_at)
@@ -222,6 +243,7 @@ function redeemReward(userKey, reward, balance) {
     String(reward.deliveryType || "digital"),
     Date.now(),
   );
+  applyStoredPointDelta(user, -cost);
   return { id: result.lastInsertRowid, cost };
 }
 
@@ -231,32 +253,33 @@ export function economyApi() {
 
     try {
       if (req.method === "GET" && req.url === "/api/economy") {
-        const userKey = resolveUserKey(req);
+        const userKey = rewardUserKey(resolveUser(req));
         return json(res, 200, buildState(userKey));
       }
 
       if (req.method !== "POST") return json(res, 405, { error: "Metodo no permitido" });
       const body = await readBody(req);
-      const userKey = resolveUserKey(req, body);
+      const user = resolveUser(req);
+      const userKey = rewardUserKey(user);
 
       if (req.url === "/api/economy/sync") {
         importLegacyState(userKey, body.legacy || {});
         return json(res, 200, buildState(userKey));
       }
       if (req.url === "/api/economy/daily") {
-        const result = claimDaily(userKey);
+        const result = claimDaily(user);
         return json(res, 200, { ...result, state: buildState(userKey) });
       }
       if (req.url === "/api/economy/video") {
-        const result = claimVideo(userKey);
+        const result = claimVideo(user);
         return json(res, 200, { ...result, state: buildState(userKey) });
       }
       if (req.url === "/api/economy/offer") {
-        const result = claimOffer(userKey, body.offer);
+        const result = claimOffer(user, body.offer);
         return json(res, 200, { ...result, state: buildState(userKey) });
       }
       if (req.url === "/api/economy/redeem") {
-        const result = redeemReward(userKey, body.reward, body.balance);
+        const result = redeemReward(user, body.reward);
         return json(res, 200, { ...result, state: buildState(userKey) });
       }
 

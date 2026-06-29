@@ -335,6 +335,27 @@ async function syncAllSports(apiKey) {
   cleanupSportsData();
 }
 
+export async function runOddsSync(apiKey) {
+  if (!apiKey) return;
+  await syncAllSports(apiKey);
+}
+
+export function startOddsJobs(apiKey, hooks = {}) {
+  if (!apiKey) return () => {};
+  const run = async () => {
+    try {
+      await runOddsSync(apiKey);
+      hooks.onSuccess?.(Date.now());
+    } catch (error) {
+      hooks.onError?.(error);
+    }
+  };
+  run();
+  const timer = setInterval(run, TTL);
+  timer.unref?.();
+  return () => clearInterval(timer);
+}
+
 export function oddsApi(apiKey) {
   return async (req, res, next) => {
     if (req.url === "/api/predictions/validate" && req.method === "POST") {

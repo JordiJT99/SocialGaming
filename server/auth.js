@@ -6,8 +6,8 @@ import {
   deleteSession,
   getSessionUser,
 } from "./database.js";
+import { SESSION_COOKIE, parseCookies } from "./session.js";
 
-const SESSION_COOKIE = "playfulbet_session";
 const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
 const encoder = new TextEncoder();
 let googleKeysCache = { keys: [], expiresAt: 0 };
@@ -17,10 +17,6 @@ const json = (res, status, payload) => {
   res.setHeader("content-type", "application/json");
   res.end(JSON.stringify(payload));
 };
-
-const cookies = (req) => Object.fromEntries(
-  (req.headers.cookie || "").split(";").filter(Boolean).map((part) => part.trim().split("=")),
-);
 
 const readBody = (req) => new Promise((resolve, reject) => {
   let body = "";
@@ -39,9 +35,10 @@ const readBody = (req) => new Promise((resolve, reject) => {
 
 const setSession = (res, session) => {
   const maxAge = Math.floor((session.expiresAt - Date.now()) / 1000);
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   res.setHeader(
     "set-cookie",
-    `${SESSION_COOKIE}=${session.token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`,
+    `${SESSION_COOKIE}=${session.token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure}`,
   );
 };
 
@@ -121,13 +118,14 @@ export function authApi({ googleClientId } = {}) {
   return async (req, res, next) => {
     if (!req.url.startsWith("/api/auth/")) return next();
 
-    const token = cookies(req)[SESSION_COOKIE];
+    const token = parseCookies(req)[SESSION_COOKIE];
     if (req.method === "GET" && req.url === "/api/auth/me") {
       return json(res, 200, { user: getSessionUser(token) });
     }
     if (req.method === "POST" && req.url === "/api/auth/logout") {
       deleteSession(token);
-      res.setHeader("set-cookie", `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`);
+      const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+      res.setHeader("set-cookie", `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`);
       return json(res, 200, { ok: true });
     }
     if (req.method !== "POST") return json(res, 405, { error: "Metodo no permitido" });

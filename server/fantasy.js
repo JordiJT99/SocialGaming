@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { db } from "./database.js";
 import { espnFantasyStats, fantasyPoints, nextFantasyPrice } from "./fantasyScoring.js";
+import { getRequestUser } from "./session.js";
 
 const DAY = 86400000;
 const WEEK = 7 * DAY;
@@ -705,6 +706,27 @@ function scheduleMarkets() {
   marketTimer.unref?.();
 }
 
+export async function runFantasySync(league = "esp.1") {
+  await syncPlayers(league);
+  await syncFixtures(league);
+}
+
+export function startFantasyJobs(league = "esp.1", hooks = {}) {
+  scheduleMarkets();
+  const run = async () => {
+    try {
+      await runFantasySync(league);
+      hooks.onSuccess?.(Date.now());
+    } catch (error) {
+      hooks.onError?.(error);
+    }
+  };
+  run();
+  const timer = setInterval(run, LIVE_REFRESH);
+  timer.unref?.();
+  return () => clearInterval(timer);
+}
+
 function shuffle(list) {
   const copy = [...list];
   for (let index = copy.length - 1; index > 0; index -= 1) {
@@ -961,7 +983,9 @@ export function fantasyApi(league = "esp.1") {
   scheduleMarkets();
   return async (req, res, next) => {
     if (!req.url.startsWith("/api/fantasy")) return next();
-    const userId = req.headers["x-playfulbet-user"] || "current_user";
+    const user = getRequestUser(req);
+    if (!user) return json(res, 401, { error: "Sesion no valida" });
+    const userId = user.id;
     const activeLeagueId = getActiveLeague(userId, Number(req.headers["x-playfulbet-fantasy-league"]) || null);
     try {
       if (req.method === "GET") {

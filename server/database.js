@@ -374,6 +374,12 @@ db.exec(`
     created_at INTEGER NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS app_state (
+    user_id TEXT PRIMARY KEY,
+    state_json TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+
 `);
 
 const columns = db.prepare("PRAGMA table_info(sports_events)").all().map((column) => column.name);
@@ -563,6 +569,27 @@ export function getSessionUser(token) {
 
 export const deleteSession = (token) =>
   token && db.prepare("DELETE FROM sessions WHERE token = ?").run(token);
+
+export const getUserById = (userId) =>
+  publicUser(db.prepare("SELECT * FROM users WHERE id = ?").get(Number(userId)));
+
+export const getAppState = (userId) => {
+  const row = db.prepare("SELECT state_json, updated_at FROM app_state WHERE user_id = ?").get(String(userId));
+  if (!row) return null;
+  return {
+    state: JSON.parse(row.state_json),
+    updatedAt: row.updated_at,
+  };
+};
+
+export const saveAppState = (userId, state) =>
+  db.prepare(`
+    INSERT INTO app_state (user_id, state_json, updated_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(user_id) DO UPDATE SET
+      state_json = excluded.state_json,
+      updated_at = excluded.updated_at
+  `).run(String(userId), JSON.stringify(state), Date.now());
 
 export function getApiCache(key, maxAge) {
   return db.prepare(

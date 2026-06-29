@@ -59,12 +59,20 @@ function OddsBudgetPill({ status }) {
   );
 }
 
+const stripSeedData = (state) => {
+  const next = structuredClone(state);
+  next.leagues = (next.leagues || []).filter((league) => league.id !== "league_1" && league.code !== "CHAMP24");
+  next.leagueActivity = (next.leagueActivity || []).filter((entry) => entry.leagueId !== "league_1");
+  return next;
+};
+
 export default function App() {
   const [store, setStore] = useState(() => loadStore());
   const [sessionUser, setSessionUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [economy, setEconomy] = useState(null);
   const economySeededRef = useRef(false);
+  const storeReadyRef = useRef(false);
   const [sportsData, setSportsData] = useState({
     matches: [],
     standings: [],
@@ -82,36 +90,59 @@ export default function App() {
   }, [store]);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((response) => response.json())
-      .then((payload) => {
+    const hydrateStore = async (nextUser) => {
+      setActiveAuthUser(nextUser);
+      let nextStore = loadStore();
+      if (nextUser) {
+        const response = await fetch("/api/app-state").catch(() => null);
+        if (response?.ok) {
+          const payload = await response.json();
+          nextStore = payload.state ? payload.state : stripSeedData(nextStore);
+        }
+        const localUser = getCurrentUser(nextStore);
+        if (localUser) {
+          localUser.username = nextUser.username;
+          localUser.email = nextUser.email;
+          localUser.joinedAt = nextUser.joinedAt || localUser.joinedAt;
+        }
+      }
+      setStore(nextStore);
+      saveStore(nextStore);
+      storeReadyRef.current = true;
+    };
+
+    (async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        const payload = await response.json();
         const nextUser = payload.user || null;
         setSessionUser(nextUser);
-        setActiveAuthUser(nextUser);
-        if (nextUser) {
-          setStore((previous) => {
-            const updated = loadStore();
-            const localUser = getCurrentUser(updated);
-            if (localUser) {
-              localUser.username = nextUser.username;
-              localUser.email = nextUser.email;
-              localUser.joinedAt = nextUser.joinedAt || localUser.joinedAt;
-            }
-            return updated;
-          });
-        }
-      })
-      .catch(() => {
+        await hydrateStore(nextUser);
+      } catch {
         setSessionUser(null);
         setActiveAuthUser(null);
-      })
-      .finally(() => setAuthReady(true));
+        storeReadyRef.current = true;
+      } finally {
+        setAuthReady(true);
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    if (!authReady || !sessionUser || !storeReadyRef.current) return;
+    const timer = window.setTimeout(() => {
+      fetch("/api/app-state", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ state: store }),
+      }).catch(() => {});
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [authReady, sessionUser, store]);
 
   const economyHeaders = useCallback(() => ({
     "content-type": "application/json",
-    "x-playfulbet-user": sessionUser?.email || getCurrentUser(store)?.email || getCurrentUser(store)?.username || "guest@playfulbet.local",
-  }), [sessionUser, store]);
+  }), []);
 
   const applyCoinDelta = useCallback((delta) => {
     if (!delta) return;
@@ -476,14 +507,20 @@ export default function App() {
   , [callEconomy]);
 
   const handleRedeemPrize = useCallback((prize) =>
-    callEconomy("/api/economy/redeem", { reward: prize, balance: getCurrentUser(store)?.points || 0 }, (payload) => -Number(payload.cost || 0))
-  , [callEconomy, store]);
+    callEconomy("/api/economy/redeem", { reward: prize }, (payload) => -Number(payload.cost || 0))
+  , [callEconomy]);
 
-  const handleAuth = useCallback((nextUser) => {
+  const handleAuth = useCallback(async (nextUser) => {
     setSessionUser(nextUser);
     setActiveAuthUser(nextUser);
     economySeededRef.current = false;
-    const nextStore = loadStore();
+    storeReadyRef.current = false;
+    let nextStore = loadStore();
+    const response = await fetch("/api/app-state").catch(() => null);
+    if (response?.ok) {
+      const payload = await response.json();
+      nextStore = payload.state ? payload.state : stripSeedData(nextStore);
+    }
     const localUser = getCurrentUser(nextStore);
     if (localUser) {
       localUser.username = nextUser.username;
@@ -491,6 +528,8 @@ export default function App() {
       localUser.joinedAt = nextUser.joinedAt || localUser.joinedAt;
     }
     setStore(nextStore);
+    saveStore(nextStore);
+    storeReadyRef.current = true;
   }, []);
 
   const handleLogout = useCallback(async () => {
@@ -499,7 +538,9 @@ export default function App() {
     setEconomy(null);
     setActiveAuthUser(null);
     economySeededRef.current = false;
+    storeReadyRef.current = false;
     setStore(loadStore());
+    storeReadyRef.current = true;
   }, []);
 
   if (!authReady) return null;
